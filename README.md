@@ -184,6 +184,23 @@ Conflict subset:
 - `conflict rate = 0.1050`
 - `crossview 95% bootstrap CI = [0.4286, 0.8095]`
 
+### Wildfire backbone ablation snapshot
+
+We also started a backbone robustness sweep on the wildfire `crossview`
+benchmark.
+
+- `ResNet18`: best val `F1 = 0.9676`
+- `ResNet50`: best val `F1 = 0.9693`
+- `DINOv2 ViT-S/14`: best val `F1 = 0.9378`
+- `CLIP ViT-B/32`: best val `F1 = 0.7502`
+
+This already supports one useful paper claim:
+
+- the main `crossview` result is **not** a `ResNet18` accident
+- a stronger supervised CNN (`ResNet50`) preserves the finding
+- generic large-scale pretraining (`CLIP`) is not automatically better for
+  this disaster-specific cross-view triage task
+
 ## Main conclusion
 
 The core pattern transfers across disasters:

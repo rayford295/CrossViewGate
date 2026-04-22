@@ -109,6 +109,19 @@ texture.
 
 **Minimum acceptable:** ResNet18 vs ResNet50. CLIP is a bonus.
 
+Current status:
+
+- wildfire `ResNet50`: completed, strong and consistent with the main claim
+- wildfire `CLIP ViT-B/32`: completed, clearly underperforms the CNN baselines
+- wildfire `DINOv2 ViT-S/14`: completed, much stronger than CLIP but still below the CNN baselines
+- hurricane backbone sweep: not started yet
+
+Updated interpretation:
+
+- the paper's main result is no longer tied to `ResNet18`
+- `ResNet50` already shows that the conflict-aware crossview benefit survives a stronger supervised backbone
+- backbone choice is itself informative: off-the-shelf generic pretraining is not automatically the best fit for disaster triage
+
 **What to report:** For each backbone, report street_only / remote_only /
 crossview F1 on both datasets AND conflict-subset accuracy. If the rank order
 is preserved across backbones, the claim is robust.
@@ -159,6 +172,12 @@ conflict accuracy (wildfire): 0.761 ± 0.018
 
 This adds less than 3× compute and is expected by reviewers at any
 major venue.
+
+Current status:
+
+- wildfire `crossview seed=42`: completed
+- wildfire `crossview seed=123`: now running
+- the remaining wildfire / hurricane seed runs still need to be completed before we can report `mean ± std`
 
 ---
 

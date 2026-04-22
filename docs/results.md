@@ -105,6 +105,26 @@ A paper-ready qualitative figure is now available:
 
 ![Qualitative conflict examples](./assets/qualitative_conflict_examples.png)
 
+## Backbone ablation snapshot (wildfire crossview)
+
+We also started a backbone robustness check on the wildfire benchmark using the
+same `crossview` setup and training protocol.
+
+| Backbone | Best validation accuracy | Best validation F1 | Interpretation |
+|---|---:|---:|---|
+| ResNet18 | 0.9681 | 0.9676 | strong baseline |
+| ResNet50 | 0.9697 | 0.9693 | confirms the main result is not a tiny-backbone artifact |
+| DINOv2 ViT-S/14 | 0.9393 | 0.9378 | strong, but below the CNN baselines |
+| CLIP ViT-B/32 | 0.7219 | 0.7502 | clearly underperforms in this disaster-specific triage setting |
+
+Takeaway:
+
+- the core `crossview` result remains strong under a larger supervised CNN
+- the effect is therefore not limited to `ResNet18`
+- stronger generic pretraining does **not** automatically help in this task
+- the current evidence suggests that disaster triage is still sensitive to the
+  backbone / pretraining regime, which is itself a useful result for the paper
+
 ## Label note for hurricane
 
 The hurricane benchmark uses endpoint-to-endpoint binary classification:
