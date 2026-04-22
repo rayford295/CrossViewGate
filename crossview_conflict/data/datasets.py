@@ -77,10 +77,22 @@ class CrossViewTriageDataset(_BaseManifestDataset):
         overhead_size: int = 224,
         normalize: bool = True,
         include_generated: bool = False,
+        street_augment: bool = False,
+        overhead_augment: bool = False,
     ) -> None:
         super().__init__(manifest_csv)
-        self.street_transform = build_transform(street_size, normalize=normalize)
-        self.overhead_transform = build_transform(overhead_size, normalize=normalize)
+        self.street_transform = build_transform(
+            street_size,
+            normalize=normalize,
+            augment=street_augment,
+            domain="street",
+        )
+        self.overhead_transform = build_transform(
+            overhead_size,
+            normalize=normalize,
+            augment=overhead_augment,
+            domain="overhead",
+        )
         self.include_generated = include_generated
 
     def __getitem__(self, index: int) -> dict[str, Any]:

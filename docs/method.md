@@ -13,6 +13,9 @@ We use three settings with a shared training and evaluation protocol:
 3. `crossview`
 
 The backbone defaults to `ResNet18` for both branches in the current repo.
+The training script now also supports explicit `street_augment` and
+`overhead_augment` flags so augmentation policy can be kept consistent across
+datasets.
 
 ## Cross-view model
 

@@ -26,7 +26,7 @@ strengthen its credibility and depth.
 
 ---
 
-## Priority 1 — Fix Conflict Rate Reporting (Required)
+## Priority 1 — Fix Conflict Rate Reporting (Implemented)
 
 **Problem:** `docs/results.md` shows the hurricane conflict rate as `0.1050`
 but notes that the wildfire conflict rate is "not yet normalized in this repo
@@ -44,7 +44,7 @@ undermines the comparison.
 
 ---
 
-## Priority 2 — Bootstrap Confidence Intervals on Conflict Subset (Required)
+## Priority 2 — Bootstrap Confidence Intervals on Conflict Subset (Implemented)
 
 **Problem:** The conflict subset sizes are small (wildfire n≈57, hurricane
 n≈67). The difference 0.761 vs 0.619 is the paper's central quantitative
@@ -141,7 +141,7 @@ crossview gain, one point per dataset.
 
 ---
 
-## Priority 5 — Augmentation Must Be Consistent Across Experiments
+## Priority 5 — Augmentation Must Be Consistent Across Experiments (Implemented)
 
 **Problem:** `CrossViewTriageDataset` in `crossview_conflict/data/datasets.py`
 builds transforms with `augment=False` and no option to enable it. Meanwhile,

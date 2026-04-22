@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 import sys
 
+import numpy as np
 import pandas as pd
 import re
 
@@ -30,6 +31,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-csv", required=True)
     parser.add_argument("--summary-json", required=True)
     parser.add_argument("--crossview-preds-csv", help="Optional crossview predictions for conflict-resolution accuracy.")
+    parser.add_argument("--bootstrap-resamples", type=int, default=2000)
+    parser.add_argument("--confidence-level", type=float, default=0.95)
+    parser.add_argument("--seed", type=int, default=42)
     return parser.parse_args()
 
 
@@ -55,6 +59,40 @@ def _accuracy(frame: pd.DataFrame, column: str, target_column: str) -> float | N
     if frame.empty or column not in frame or target_column not in frame:
         return None
     return float((frame[column] == frame[target_column]).mean())
+
+
+def _bootstrap_accuracy_ci(
+    frame: pd.DataFrame,
+    column: str,
+    target_column: str,
+    *,
+    n_resamples: int,
+    confidence_level: float,
+    seed: int,
+) -> dict[str, float] | None:
+    if frame.empty or column not in frame or target_column not in frame:
+        return None
+
+    correct = (frame[column].to_numpy() == frame[target_column].to_numpy()).astype(float)
+    mean = float(correct.mean())
+    if len(correct) == 0:
+        return None
+    if len(correct) == 1:
+        return {"mean": mean, "ci_low": mean, "ci_high": mean}
+
+    rng = np.random.default_rng(seed)
+    draws = np.empty(n_resamples, dtype=np.float64)
+    for idx in range(n_resamples):
+        sample = rng.choice(correct, size=len(correct), replace=True)
+        draws[idx] = sample.mean()
+
+    alpha = 1.0 - confidence_level
+    ci_low, ci_high = np.quantile(draws, [alpha / 2.0, 1.0 - alpha / 2.0])
+    return {
+        "mean": mean,
+        "ci_low": float(ci_low),
+        "ci_high": float(ci_high),
+    }
 
 
 def main() -> None:
@@ -104,6 +142,30 @@ def main() -> None:
         "street_accuracy_on_conflicts": _accuracy(conflict_df, "street_prediction", target_column),
         "remote_accuracy_on_conflicts": _accuracy(conflict_df, "remote_prediction", target_column),
         "crossview_accuracy_on_conflicts": _accuracy(conflict_df, "crossview_prediction", target_column),
+        "street_accuracy_on_conflicts_ci": _bootstrap_accuracy_ci(
+            conflict_df,
+            "street_prediction",
+            target_column,
+            n_resamples=args.bootstrap_resamples,
+            confidence_level=args.confidence_level,
+            seed=args.seed,
+        ),
+        "remote_accuracy_on_conflicts_ci": _bootstrap_accuracy_ci(
+            conflict_df,
+            "remote_prediction",
+            target_column,
+            n_resamples=args.bootstrap_resamples,
+            confidence_level=args.confidence_level,
+            seed=args.seed,
+        ),
+        "crossview_accuracy_on_conflicts_ci": _bootstrap_accuracy_ci(
+            conflict_df,
+            "crossview_prediction",
+            target_column,
+            n_resamples=args.bootstrap_resamples,
+            confidence_level=args.confidence_level,
+            seed=args.seed,
+        ),
         "positive_rate_on_conflicts": float(conflict_df[target_column].mean()) if len(conflict_df) else None,
         "conflict_type_counts": conflict_df["conflict_type"].value_counts().to_dict(),
     }

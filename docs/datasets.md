@@ -50,6 +50,11 @@ cross-view bridge is expected to be stronger and more direct.
 - `1 = SevereDamage`
 - `ModerateDamage` excluded
 
+We keep only the endpoint classes to maximize label clarity for the cross-regime
+comparison. This avoids turning the hurricane benchmark into a noisier binary
+task where moderate examples can blur the distinction between direct structural
+damage and environmental context.
+
 ### Why this dataset matters
 
 The panoramic ground image contains broader environmental context and weaker

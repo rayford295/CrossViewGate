@@ -99,6 +99,10 @@ For this paper repo, we keep only the two endpoint classes:
 
 and drop `ModerateDamage` for a cleaner endpoint-to-endpoint comparison.
 
+This choice is intentional. We use endpoint-to-endpoint comparison to maximize
+label clarity and isolate the effect of view regime; `ModerateDamage` is
+excluded because it is semantically ambiguous for both single-view models.
+
 ## How to run
 
 ### 1. Install
@@ -161,6 +165,8 @@ Conflict subset:
 - `street_only = 0.4179`
 - `remote_only = 0.5821`
 - `crossview = 0.7612`
+- `conflict rate = 0.0338`
+- `crossview 95% bootstrap CI = [0.6567, 0.8507]`
 
 ### IAN hurricane panoramic-view benchmark
 
@@ -175,6 +181,8 @@ Conflict subset:
 - `street_only = 0.4286`
 - `remote_only = 0.5714`
 - `crossview = 0.6190`
+- `conflict rate = 0.1050`
+- `crossview 95% bootstrap CI = [0.4286, 0.8095]`
 
 ## Main conclusion
 
@@ -187,6 +195,10 @@ But the size of the gain differs:
 
 - on wildfire `building-centric` views, the improvement is stronger
 - on hurricane `360/panoramic` views, the improvement is still real but smaller
+
+Right now this should be framed as a supported trend rather than a hard
+significance claim, because the conflict-subset bootstrap intervals still
+overlap across the two datasets.
 
 This supports a paper story centered on **when cross-view helps most**, rather
 than simply whether it helps at all.

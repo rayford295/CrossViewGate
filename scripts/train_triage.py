@@ -29,6 +29,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mode", default="crossview", choices=["crossview", "street_only", "remote_only"])
     parser.add_argument("--use-generated", action="store_true")
     parser.add_argument("--image-size", type=int, default=224)
+    parser.add_argument("--street-augment", action="store_true")
+    parser.add_argument("--overhead-augment", action="store_true")
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=1e-4)
@@ -49,6 +51,8 @@ def main() -> None:
         street_size=args.image_size,
         overhead_size=args.image_size,
         include_generated=args.use_generated,
+        street_augment=args.street_augment,
+        overhead_augment=args.overhead_augment,
     )
     val_dataset = CrossViewTriageDataset(
         args.val_csv,
@@ -66,6 +70,8 @@ def main() -> None:
         "pretrained": not args.no_pretrained,
         "mode": args.mode,
         "use_generated": args.use_generated,
+        "street_augment": args.street_augment,
+        "overhead_augment": args.overhead_augment,
     }
     model = build_triage(config).to(args.device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
