@@ -1,0 +1,115 @@
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import sys
+
+import pandas as pd
+import re
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from crossview_conflict.utils.io import ensure_dir, save_json
+
+
+def _canonical_sample_id(value: object) -> str:
+    text = str(value).strip()
+    match = re.search(r"(\d+)", text)
+    if match:
+        return str(int(match.group(1)))
+    return text
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Build a CrossViewConflict triage conflict subset from per-view predictions.")
+    parser.add_argument("--split-csv", required=True)
+    parser.add_argument("--street-preds-csv", required=True)
+    parser.add_argument("--remote-preds-csv", required=True)
+    parser.add_argument("--output-csv", required=True)
+    parser.add_argument("--summary-json", required=True)
+    parser.add_argument("--crossview-preds-csv", help="Optional crossview predictions for conflict-resolution accuracy.")
+    return parser.parse_args()
+
+
+def _load_predictions(path: str | Path, prefix: str) -> pd.DataFrame:
+    df = pd.read_csv(path)
+    required = {"sample_id", "target", "probability", "prediction"}
+    missing = sorted(required - set(df.columns))
+    if missing:
+        raise KeyError(f"Missing columns in {path}: {missing}")
+    df["sample_id"] = df["sample_id"].map(_canonical_sample_id)
+    renamed = df.rename(
+        columns={
+            "target": f"{prefix}_target",
+            "probability": f"{prefix}_probability",
+            "prediction": f"{prefix}_prediction",
+            "logit": f"{prefix}_logit",
+        }
+    )
+    return renamed
+
+
+def _accuracy(frame: pd.DataFrame, column: str, target_column: str) -> float | None:
+    if frame.empty or column not in frame or target_column not in frame:
+        return None
+    return float((frame[column] == frame[target_column]).mean())
+
+
+def main() -> None:
+    args = parse_args()
+    split_df = pd.read_csv(args.split_csv)
+    split_df["sample_id"] = split_df["sample_id"].map(_canonical_sample_id)
+    metadata_columns = [
+        "sample_id",
+        "objectid",
+        "category",
+        "binary_label",
+        "binary_name",
+        "latitude",
+        "longitude",
+        "remote_tile_filename",
+        "street_view_path",
+        "remote_sensing_path",
+    ]
+    metadata = split_df[[column for column in metadata_columns if column in split_df.columns]].copy()
+
+    street = _load_predictions(args.street_preds_csv, "street")
+    remote = _load_predictions(args.remote_preds_csv, "remote")
+
+    merged = metadata.merge(street, on="sample_id", how="inner").merge(remote, on="sample_id", how="inner")
+    merged["conflict"] = merged["street_prediction"] != merged["remote_prediction"]
+    merged["conflict_type"] = merged.apply(
+        lambda row: "street_positive_remote_negative" if row["street_prediction"] > row["remote_prediction"] else (
+            "street_negative_remote_positive" if row["street_prediction"] < row["remote_prediction"] else "agreement"
+        ),
+        axis=1,
+    )
+
+    if args.crossview_preds_csv:
+        crossview = _load_predictions(args.crossview_preds_csv, "crossview")
+        merged = merged.merge(crossview, on="sample_id", how="left")
+
+    conflict_df = merged[merged["conflict"]].copy()
+    output_csv = Path(args.output_csv)
+    ensure_dir(output_csv.parent)
+    conflict_df.to_csv(output_csv, index=False)
+
+    target_column = "binary_label" if "binary_label" in conflict_df.columns else "street_target"
+    summary = {
+        "total_examples": int(len(merged)),
+        "conflict_examples": int(len(conflict_df)),
+        "conflict_rate": float(len(conflict_df) / max(len(merged), 1)),
+        "street_accuracy_on_conflicts": _accuracy(conflict_df, "street_prediction", target_column),
+        "remote_accuracy_on_conflicts": _accuracy(conflict_df, "remote_prediction", target_column),
+        "crossview_accuracy_on_conflicts": _accuracy(conflict_df, "crossview_prediction", target_column),
+        "positive_rate_on_conflicts": float(conflict_df[target_column].mean()) if len(conflict_df) else None,
+        "conflict_type_counts": conflict_df["conflict_type"].value_counts().to_dict(),
+    }
+    save_json(summary, args.summary_json)
+    print(summary)
+
+
+if __name__ == "__main__":
+    main()

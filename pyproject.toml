@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crossview-conflict"
+version = "0.1.0"
+description = "Conflict-aware cross-view disaster triage across wildfire building views and hurricane panoramic views."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+  "pillow",
+  "torch",
+  "torchvision",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+analysis = [
+  "matplotlib",
+  "seaborn",
+]
+
+[tool.setuptools.packages.find]
+include = ["crossview_conflict*"]
