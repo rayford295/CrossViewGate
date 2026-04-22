@@ -138,6 +138,20 @@
 - 地面图越“对准建筑本体”，crossview 越强
 - 地面图越“偏环境全景”，crossview 依然有用，但增益会变小
 
+## 轻量 alignment 分析
+
+我还做了一版轻量的语义分割分析，用冻结的 `SegFormer` 估计冲突子集地面图里
+`building` 像素占比和建筑质心相对图像中心的位置。
+
+结果很清楚：
+
+- 山火 conflict 图像的平均 `building_ratio = 0.2684`
+- 飓风 conflict 图像的平均 `building_ratio = 0.0154`
+- 山火图像里的建筑区域也更靠近图像中心
+
+这说明“山火上的 crossview 增益更强”不再只是一个观察，而是已经有了可解释的
+`target alignment proxy` 来支持。
+
 ## 论文主线建议
 
 这篇论文最适合写成：

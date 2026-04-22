@@ -38,6 +38,25 @@ This makes the paper story mechanism-oriented:
 > Cross-view fusion acts primarily as a conflict resolver, and its value depends
 > on how directly the ground-view image captures the target building.
 
+## Lightweight alignment proxy
+
+We estimated a simple target-alignment proxy on the conflict subsets using a
+frozen semantic-segmentation model with a `building` class.
+
+| Dataset | building ratio mean | center building ratio mean | centroid distance mean |
+|---|---:|---:|---:|
+| Eaton wildfire conflict | 0.2684 | 0.4101 | 0.2958 |
+| IAN hurricane conflict | 0.0154 | 0.0271 | 0.3965 |
+
+Interpretation:
+
+- wildfire images contain much more visible building area
+- wildfire building evidence is more centrally located
+- hurricane images are far more environment-dominant
+
+This supports the claim that cross-view gain is stronger in wildfire because
+the ground-view image is more tightly aligned with the target structure.
+
 ## Label note for hurricane
 
 The hurricane benchmark uses endpoint-to-endpoint binary classification:

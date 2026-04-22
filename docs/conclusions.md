@@ -31,6 +31,17 @@ This suggests the mechanism is related to target alignment:
 - panoramic ground views contain more environmental context and weaker direct
   alignment to the target structure
 
+### 4. A lightweight alignment proxy supports the mechanism
+
+A frozen semantic-segmentation analysis on the conflict subset shows:
+
+- wildfire conflict images have much higher `building` pixel coverage
+- wildfire conflict images also place that building evidence closer to the image center
+- hurricane conflict images are much more environment-dominant
+
+So the wildfire-vs-hurricane difference is no longer only descriptive. It is
+backed by an interpretable image-level proxy for target alignment.
+
 ## Working paper interpretation
 
 Cross-view fusion is not equally useful in all settings. Its contribution grows
@@ -42,4 +53,3 @@ when:
 Its contribution is smaller, though still real, when:
 
 - the ground view is dominated by broad environmental context
-

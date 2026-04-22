@@ -203,6 +203,32 @@ overlap across the two datasets.
 This supports a paper story centered on **when cross-view helps most**, rather
 than simply whether it helps at all.
 
+## Lightweight alignment analysis
+
+We also ran a lightweight semantic-segmentation analysis on the `conflict subset`
+to estimate how much of each ground-view image is occupied by `building`
+pixels and how centrally those building pixels are located.
+
+Using `nvidia/segformer-b5-finetuned-ade-640-640` as a frozen analyzer:
+
+- wildfire conflict images:
+  - mean `building_ratio = 0.2684`
+  - mean `center_building_ratio = 0.4101`
+  - mean normalized centroid distance `= 0.2958`
+- hurricane conflict images:
+  - mean `building_ratio = 0.0154`
+  - mean `center_building_ratio = 0.0271`
+  - mean normalized centroid distance `= 0.3965`
+
+This is exactly the mechanism we wanted to test:
+
+- wildfire conflict images contain much more visible building area
+- that building evidence is also more centered
+- hurricane conflict images are much more environment-dominant
+
+So the smaller hurricane crossview gain is no longer just an observation. It is
+now supported by a measurable target-alignment proxy.
+
 ## Paper-ready interpretation
 
 Our current interpretation is:
@@ -214,6 +240,7 @@ Our current interpretation is:
 ## Related docs
 
 - `README_CN.md`
+- `docs/alignment_analysis.md`
 - `docs/datasets.md`
 - `docs/method.md`
 - `docs/conclusions.md`

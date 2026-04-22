@@ -108,7 +108,7 @@ Option 2 is stronger for reviewers who will notice the dropped class.
 
 ---
 
-## Priority 4 — Quantify WHY Hurricane Gain Is Smaller (Key Analysis)
+## Priority 4 — Quantify WHY Hurricane Gain Is Smaller (Implemented with lightweight proxy)
 
 **Problem:** The paper currently explains the smaller hurricane gain with a
 qualitative hypothesis: "panoramic views have weaker structural alignment with

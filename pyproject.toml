@@ -21,6 +21,7 @@ dependencies = [
 analysis = [
   "matplotlib",
   "seaborn",
+  "transformers",
 ]
 
 [tool.setuptools.packages.find]
