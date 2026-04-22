@@ -53,12 +53,16 @@ def main() -> None:
         include_generated=args.use_generated,
         street_augment=args.street_augment,
         overhead_augment=args.overhead_augment,
+        street_backbone=args.street_backbone,
+        overhead_backbone=args.overhead_backbone,
     )
     val_dataset = CrossViewTriageDataset(
         args.val_csv,
         street_size=args.image_size,
         overhead_size=args.image_size,
         include_generated=args.use_generated,
+        street_backbone=args.street_backbone,
+        overhead_backbone=args.overhead_backbone,
     )
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)

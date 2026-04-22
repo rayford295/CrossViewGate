@@ -7,6 +7,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, Sampler
 
+from crossview_conflict.models.backbones import get_backbone_normalization
 from crossview_conflict.utils.image import build_transform, load_rgb_image
 
 
@@ -31,19 +32,37 @@ class CrossViewRetrievalDataset(_BaseManifestDataset):
         normalize: bool = True,
         street_augment: bool = False,
         overhead_augment: bool = False,
+        street_backbone: str = "resnet18",
+        overhead_backbone: str = "resnet18",
         load_street: bool = True,
         load_overhead: bool = True,
     ) -> None:
         super().__init__(manifest_csv)
         self.load_street = load_street
         self.load_overhead = load_overhead
+        street_mean, street_std = get_backbone_normalization(street_backbone)
+        overhead_mean, overhead_std = get_backbone_normalization(overhead_backbone)
         self.street_transform = (
-            build_transform(street_size, normalize=normalize, augment=street_augment, domain="street")
+            build_transform(
+                street_size,
+                normalize=normalize,
+                augment=street_augment,
+                domain="street",
+                mean=street_mean,
+                std=street_std,
+            )
             if load_street
             else None
         )
         self.overhead_transform = (
-            build_transform(overhead_size, normalize=normalize, augment=overhead_augment, domain="overhead")
+            build_transform(
+                overhead_size,
+                normalize=normalize,
+                augment=overhead_augment,
+                domain="overhead",
+                mean=overhead_mean,
+                std=overhead_std,
+            )
             if load_overhead
             else None
         )
@@ -79,19 +98,27 @@ class CrossViewTriageDataset(_BaseManifestDataset):
         include_generated: bool = False,
         street_augment: bool = False,
         overhead_augment: bool = False,
+        street_backbone: str = "resnet18",
+        overhead_backbone: str = "resnet18",
     ) -> None:
         super().__init__(manifest_csv)
+        street_mean, street_std = get_backbone_normalization(street_backbone)
+        overhead_mean, overhead_std = get_backbone_normalization(overhead_backbone)
         self.street_transform = build_transform(
             street_size,
             normalize=normalize,
             augment=street_augment,
             domain="street",
+            mean=street_mean,
+            std=street_std,
         )
         self.overhead_transform = build_transform(
             overhead_size,
             normalize=normalize,
             augment=overhead_augment,
             domain="overhead",
+            mean=overhead_mean,
+            std=overhead_std,
         )
         self.include_generated = include_generated
 

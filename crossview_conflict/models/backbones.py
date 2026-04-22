@@ -6,6 +6,11 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
+IMAGENET_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_STD = (0.229, 0.224, 0.225)
+CLIP_MEAN = (0.48145466, 0.4578275, 0.40821073)
+CLIP_STD = (0.26862954, 0.26130258, 0.27577711)
+
 
 class _TorchHubEmbeddingBackbone(nn.Module):
     def __init__(
@@ -52,8 +57,50 @@ class _TorchHubEmbeddingBackbone(nn.Module):
         return outputs
 
 
+class _TransformersVisionBackbone(nn.Module):
+    def __init__(
+        self,
+        model_name: str,
+        output_dim: int,
+        pretrained: bool = True,
+    ) -> None:
+        super().__init__()
+        self.output_dim = output_dim
+        try:
+            from transformers import AutoConfig, CLIPVisionModel
+        except Exception as exc:  # pragma: no cover - depends on optional deps
+            raise RuntimeError(
+                "Transformers is required for CLIP backbones. Install the 'transformers' package."
+            ) from exc
+
+        if pretrained:
+            self.model = CLIPVisionModel.from_pretrained(model_name)
+        else:
+            config = AutoConfig.from_pretrained(model_name)
+            self.model = CLIPVisionModel(config)
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        outputs = self.model(pixel_values=inputs)
+        if hasattr(outputs, "pooler_output") and outputs.pooler_output is not None:
+            return outputs.pooler_output
+        if hasattr(outputs, "last_hidden_state") and outputs.last_hidden_state is not None:
+            return outputs.last_hidden_state[:, 0]
+        raise TypeError("Unsupported output from transformers vision backbone.")
+
+
+def _normalize_name(name: str) -> str:
+    return name.lower().replace("/", "_").replace("-", "_")
+
+
+def get_backbone_normalization(name: str) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
+    normalized_name = _normalize_name(name)
+    if normalized_name in {"clip_vit_b_32", "clip_vit_b32"}:
+        return CLIP_MEAN, CLIP_STD
+    return IMAGENET_MEAN, IMAGENET_STD
+
+
 def build_backbone(name: str, pretrained: bool = True) -> Tuple[nn.Module, int]:
-    normalized_name = name.lower()
+    normalized_name = _normalize_name(name)
 
     if normalized_name == "resnet18":
         weights = models.ResNet18_Weights.DEFAULT if pretrained else None
@@ -81,6 +128,14 @@ def build_backbone(name: str, pretrained: bool = True) -> Tuple[nn.Module, int]:
             repo="facebookresearch/dinov2",
             entrypoint="dinov2_vits14",
             output_dim=384,
+            pretrained=pretrained,
+        )
+        return model, model.output_dim
+
+    if normalized_name in {"clip_vit_b_32", "clip_vit_b32"}:
+        model = _TransformersVisionBackbone(
+            model_name="openai/clip-vit-base-patch32",
+            output_dim=768,
             pretrained=pretrained,
         )
         return model, model.output_dim

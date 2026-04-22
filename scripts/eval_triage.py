@@ -34,7 +34,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     model, checkpoint = load_triage_from_checkpoint(args.checkpoint, device=args.device)
-    dataset = CrossViewTriageDataset(args.split_csv, street_size=args.image_size, overhead_size=args.image_size)
+    config = checkpoint.get("config", {})
+    dataset = CrossViewTriageDataset(
+        args.split_csv,
+        street_size=args.image_size,
+        overhead_size=args.image_size,
+        street_backbone=config.get("street_backbone", "resnet18"),
+        overhead_backbone=config.get("overhead_backbone", "resnet18"),
+    )
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     model.eval()
     logits_list = []

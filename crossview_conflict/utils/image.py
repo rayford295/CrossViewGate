@@ -21,6 +21,8 @@ def build_transform(
     normalize: bool = True,
     augment: bool = False,
     domain: str = "generic",
+    mean: tuple[float, float, float] | None = None,
+    std: tuple[float, float, float] | None = None,
 ) -> T.Compose:
     if augment and domain == "street":
         ops: list[object] = [
@@ -41,7 +43,7 @@ def build_transform(
     else:
         ops = [T.Resize((image_size, image_size)), T.ToTensor()]
     if normalize:
-        ops.append(T.Normalize(IMAGENET_MEAN, IMAGENET_STD))
+        ops.append(T.Normalize(mean or IMAGENET_MEAN, std or IMAGENET_STD))
     return T.Compose(ops)
 
 
