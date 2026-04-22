@@ -7,7 +7,7 @@
 
 ---
 
-## E1 — Permutation Test on Conflict Subset (Replaces or Augments Bootstrap)
+## E1 — Permutation Test on Conflict Subset (Implemented)
 
 **Why bootstrap alone is not enough:**
 Bootstrap CIs characterize sampling uncertainty around a point estimate.
@@ -35,7 +35,12 @@ def permutation_test_conflict_gain(y_true, crossview_pred, n_permutations=10_000
     return {"observed_accuracy": observed, "p_value": p_value}
 ```
 
-Run for both datasets. Report in results table:
+Status now:
+
+- wildfire: implemented, significant against label-independence null
+- hurricane: implemented, positive trend but not statistically strong yet
+
+Original reporting target:
 
 ```
 Wildfire conflict crossview accuracy: 0.761  p < 0.001
@@ -46,7 +51,7 @@ If hurricane p > 0.05, soften the claim accordingly.
 
 ---
 
-## E2 — Per-Sample Spearman Correlation: building_ratio → crossview gain
+## E2 — Per-Sample Spearman Correlation: building_ratio → crossview gain (Implemented, currently weak)
 
 **Why:** `improvement_notes.md` P4 describes computing building_ratio and
 shows dataset-level means. That gives two points on a scatter plot — not
@@ -70,7 +75,16 @@ r, p = spearmanr(building_ratios, crossview_gains)
 # Target: r > 0.3, p < 0.05
 ```
 
-**Expected figure:** scatter plot with two colors (wildfire / hurricane),
+Current outcome:
+
+- wildfire Spearman is weak and not significant
+- hurricane Spearman is positive but still not below 0.05
+- combined correlation is weak
+
+This means the current evidence supports an alignment effect mainly at the
+dataset / view-regime level rather than as a strong per-sample ranking signal.
+
+Expected figure:
 x = building_ratio, y = crossview_correct (jittered), logistic curve overlaid.
 This turns the mechanism from "we observe" into "we quantify."
 
@@ -128,7 +142,7 @@ signal. If it does, that is a mechanistic result, not just an architecture choic
 
 ---
 
-## E5 — Multi-Seed Variance Reporting
+## E5 — Multi-Seed Variance Reporting (In progress)
 
 **Why:** Single-run results are not reproducible claims. Three seeds give
 mean ± std and catch lucky/unlucky initialization.
@@ -169,7 +183,7 @@ If it does, it supports the claim that the mechanism is not dataset-specific.
 
 ---
 
-## E7 — Qualitative Figure (Required for Any Submission)
+## E7 — Qualitative Figure (Implemented)
 
 Every paper on visual damage assessment needs a qualitative results figure.
 
@@ -212,7 +226,7 @@ approach. This contextualizes whether F1=0.97 on wildfire is SOTA or expected.
 
 ---
 
-## E9 — Sensitivity to Conflict Definition Threshold
+## E9 — Sensitivity to Conflict Definition Threshold (Implemented)
 
 **Current definition:** conflict = street_only and remote_only predict
 different classes (binary disagreement).
@@ -250,10 +264,10 @@ across τ if the view-regime effect is real.
 
 To be acceptable at a tier-2 venue (ECCV Workshop, IEEE TGRS):
 
-- [ ] E1 — permutation test on conflict subset
-- [ ] E2 — per-sample building_ratio × crossview_gain correlation
+- [x] E1 — permutation test on conflict subset
+- [x] E2 — per-sample building_ratio × crossview_gain correlation
 - [ ] E5 — multi-seed mean ± std
-- [ ] E7 — qualitative figure (3–4 examples)
+- [x] E7 — qualitative figure (3–4 examples)
 - [ ] `improvement_notes.md` P2 — bootstrap CIs
 - [ ] `improvement_notes.md` P3 — justify hurricane label drop
 - [ ] `improvement_notes.md` P4 — building coverage quantification
