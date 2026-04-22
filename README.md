@@ -229,6 +229,21 @@ This is exactly the mechanism we wanted to test:
 So the smaller hurricane crossview gain is no longer just an observation. It is
 now supported by a measurable target-alignment proxy.
 
+## Additional statistical checks
+
+We also completed four reviewer-oriented supplementary analyses:
+
+1. `Permutation test on conflict subset`
+   - wildfire: crossview accuracy is clearly above the label-independence null
+   - hurricane: the same trend exists, but the current conflict subset is too small for a strong significance claim
+2. `Threshold sensitivity`
+   - crossview stays best across soft conflict thresholds in both datasets
+3. `Per-sample alignment correlation`
+   - the current building-ratio proxy does **not** show a strong monotonic per-sample correlation with crossview correctness
+   - this suggests the alignment effect is stronger at the `dataset / view-regime` level than as a within-conflict ranking signal
+4. `Qualitative figure`
+   - a conflict-case figure with street image, overhead patch, prediction table, and building overlay is now available
+
 ## Paper-ready interpretation
 
 Our current interpretation is:
@@ -241,6 +256,7 @@ Our current interpretation is:
 
 - `README_CN.md`
 - `docs/alignment_analysis.md`
+- `docs/statistical_checks.md`
 - `docs/datasets.md`
 - `docs/method.md`
 - `docs/conclusions.md`

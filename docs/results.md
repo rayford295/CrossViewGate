@@ -57,6 +57,54 @@ Interpretation:
 This supports the claim that cross-view gain is stronger in wildfire because
 the ground-view image is more tightly aligned with the target structure.
 
+## Permutation tests
+
+| Dataset | crossview accuracy | label-independence p | crossview vs street p | crossview vs remote p |
+|---|---:|---:|---:|---:|
+| Eaton wildfire conflict | 0.7612 | < 1e-4 | 0.0147 | 0.5276 |
+| IAN hurricane conflict | 0.6190 | 0.2639 | 0.7266 | 1.0000 |
+
+Interpretation:
+
+- wildfire conflict performance is statistically convincing
+- hurricane remains directionally positive, but not yet strong enough for a hard significance claim
+
+## Threshold sensitivity
+
+Crossview remains the strongest setting across softer conflict definitions.
+
+Selected points:
+
+| Dataset | Threshold | Conflict rate | street | remote | crossview |
+|---|---:|---:|---:|---:|---:|
+| Eaton wildfire | 0.1 | 0.0549 | 0.6239 | 0.7248 | 0.8349 |
+| Eaton wildfire | 0.3 | 0.0393 | 0.4872 | 0.6410 | 0.7821 |
+| Eaton wildfire | 0.5 | 0.0327 | 0.4154 | 0.5846 | 0.7538 |
+| IAN hurricane | 0.1 | 0.1550 | 0.5806 | 0.6774 | 0.7097 |
+| IAN hurricane | 0.3 | 0.1250 | 0.4800 | 0.6000 | 0.6400 |
+| IAN hurricane | 0.5 | 0.1050 | 0.4286 | 0.5714 | 0.6190 |
+
+## Per-sample alignment correlation
+
+We tested whether the building-ratio proxy also predicts crossview success at the
+single-example level on the conflict subset.
+
+| Setting | Spearman r | p-value |
+|---|---:|---:|
+| wildfire building_ratio vs crossview_correct | -0.1150 | 0.3528 |
+| hurricane building_ratio vs crossview_correct | 0.4212 | 0.0609 |
+| combined building_ratio vs crossview_correct | 0.0708 | 0.5173 |
+
+This does **not** currently support a strong per-sample monotonic effect.
+The alignment story is therefore better framed as a `view-regime / dataset-level`
+mechanism than as a within-conflict ranking signal.
+
+## Qualitative figure
+
+A paper-ready qualitative figure is now available:
+
+![Qualitative conflict examples](./assets/qualitative_conflict_examples.png)
+
 ## Label note for hurricane
 
 The hurricane benchmark uses endpoint-to-endpoint binary classification:

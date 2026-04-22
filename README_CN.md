@@ -152,6 +152,21 @@
 这说明“山火上的 crossview 增益更强”不再只是一个观察，而是已经有了可解释的
 `target alignment proxy` 来支持。
 
+## 新增的统计与补充实验
+
+我又补了四类 reviewer 很在意的实验：
+
+1. `Permutation test`
+   - 山火 conflict 上结果明显强于 label-independence null
+   - 飓风目前还是同方向趋势，但样本太小，暂时不适合写成强显著结论
+2. `Threshold sensitivity`
+   - 在不同 soft-conflict 阈值下，crossview 都仍然是最好的
+3. `Per-sample correlation`
+   - 当前 `building_ratio` 和单样本的 crossview 是否纠错之间，没有出现很强的单调相关
+   - 这说明 alignment 更像是一个 `dataset / view-regime` 层面的机制，而不是当前 conflict 子集内的细粒度排序信号
+4. `Qualitative figure`
+   - 现在已经有论文可直接用的冲突案例图
+
 ## 论文主线建议
 
 这篇论文最适合写成：

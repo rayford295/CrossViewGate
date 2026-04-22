@@ -42,6 +42,15 @@ A frozen semantic-segmentation analysis on the conflict subset shows:
 So the wildfire-vs-hurricane difference is no longer only descriptive. It is
 backed by an interpretable image-level proxy for target alignment.
 
+### 5. Supplementary statistical checks refine the claim
+
+The new supplementary analyses sharpen the paper's wording:
+
+- permutation testing supports a strong wildfire conflict claim
+- hurricane remains a positive trend, but is not yet statistically strong
+- threshold sensitivity shows the rank order is robust
+- per-sample alignment correlation is weak, so the alignment effect should be framed at the view-regime level
+
 ## Working paper interpretation
 
 Cross-view fusion is not equally useful in all settings. Its contribution grows
