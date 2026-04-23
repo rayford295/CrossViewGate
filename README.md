@@ -215,14 +215,55 @@ but also by low-variance multi-seed evidence.
 
 ### Hurricane backbone ablation snapshot
 
-The hurricane backbone-ablation sweep is now partially complete:
+The hurricane backbone-ablation sweep is now complete:
 
+- `ResNet18`: best val `F1 = 0.9694`
 - `ResNet50`: best val `F1 = 0.9470`
 - `CLIP ViT-B/32`: best val `F1 = 0.6437`
+- `DINOv2 ViT-S/14`: best val `F1 = 0.7975`
 
-This is still strong, but lower than the earlier `ResNet18` hurricane baseline.
-At the same time, `CLIP` performs much worse here, which reinforces the idea
-that larger or more generic pretraining is not automatically better in this task.
+This now makes the hurricane backbone story quite clear:
+
+- the earlier `ResNet18` baseline remains strongest
+- `ResNet50` is still competitive, but lower
+- `DINOv2` is much better than `CLIP`, but still below the CNN baselines
+- `CLIP` performs much worse here, which reinforces the idea that larger or
+  more generic pretraining is not automatically better in this task
+
+### Hurricane multi-seed snapshot
+
+The hurricane benchmark now also has complete three-seed validation runs for
+all three modes:
+
+- `crossview`: `0.9455 ± 0.0063`
+- `street_only`: `0.9433 ± 0.0012`
+- `remote_only`: `0.8959 ± 0.0065`
+
+This gives the paper a second stability result:
+
+- `crossview` remains the strongest hurricane mode on average
+- `street_only` is close, but consistently lower
+- `remote_only` is clearly weaker and more variable
+
+### Hurricane label-sensitivity snapshot
+
+We also started a stricter label-sensitivity check where the hurricane task is
+redefined as:
+
+- `0 = MinorDamage`
+- `1 = ModerateDamage + SevereDamage`
+
+On this harder split, the first completed test runs are:
+
+- `crossview`: test `F1 = 0.8915`
+- `street_only`: test `F1 = 0.8738`
+
+So the task clearly becomes harder once `ModerateDamage` is folded into the
+positive class, but the same rank order still appears so far:
+
+- `crossview > street_only`
+
+The matching `remote_only` test is still being finalized.
 
 ## Main conclusion
 

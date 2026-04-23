@@ -143,18 +143,64 @@ Takeaway:
 
 ## Hurricane backbone ablation snapshot (crossview)
 
-The hurricane backbone-ablation sweep is now partially complete.
+The hurricane backbone-ablation sweep is now complete.
 
 | Backbone | Best validation accuracy | Best validation F1 | Interpretation |
 |---|---:|---:|---|
 | ResNet18 | 0.9692 | 0.9694 | current baseline from the original hurricane run |
 | ResNet50 | 0.9524 | 0.9470 | strong, but lower than the smaller baseline in this setup |
 | CLIP ViT-B/32 | 0.5966 | 0.6437 | unstable and clearly not competitive in this setup |
+| DINOv2 ViT-S/14 | 0.8151 | 0.7975 | better than CLIP, but still well below the CNN baselines |
 
 This is an important reminder that a larger backbone does not automatically
 improve disaster triage. On the hurricane benchmark, `ResNet50` remains
 competitive, but it does not surpass the original `ResNet18` baseline.
-`CLIP` is substantially worse and exhibits unstable optimization on this task.
+`DINOv2` recovers some of the lost performance, but still does not match the
+supervised CNNs. `CLIP` remains substantially worse and exhibits unstable
+optimization on this task.
+
+## Hurricane multi-seed stability
+
+We also completed three-seed validation runs on the hurricane benchmark.
+
+| Mode | Seed 42 | Seed 123 | Seed 456 | Mean | Std |
+|---|---:|---:|---:|---:|---:|
+| crossview | 0.9541 | 0.9390 | 0.9434 | 0.9455 | 0.0063 |
+| street_only | 0.9433 | 0.9448 | 0.9419 | 0.9433 | 0.0012 |
+| remote_only | 0.9021 | 0.8870 | 0.8986 | 0.8959 | 0.0065 |
+
+Takeaway:
+
+- hurricane `crossview` remains the best mode on average
+- `street_only` is quite stable and close, but still lower
+- `remote_only` is clearly weaker and more variable
+- together with the wildfire multi-seed table, this gives a matched
+  cross-disaster stability result for the paper
+
+## Hurricane label-sensitivity check
+
+We started the first robustness check against the hurricane label definition by
+changing the binary task to:
+
+- `0 = MinorDamage`
+- `1 = ModerateDamage + SevereDamage`
+
+This is a harder setting because the positive class becomes broader and more
+semantically heterogeneous than the endpoint-only `Minor vs Severe` task.
+
+Completed test results so far:
+
+| Setting | Test accuracy | Test F1 |
+|---|---:|---:|
+| crossview | 0.8467 | 0.8915 |
+| street_only | 0.8267 | 0.8738 |
+
+Current interpretation:
+
+- the task becomes harder under the broader positive-class definition
+- `crossview` still remains better than `street_only`
+- once the matching `remote_only` result is added, this will become a clean
+  robustness table for the paper
 
 ## Label note for hurricane
 

@@ -116,7 +116,7 @@ Current status:
 - wildfire `DINOv2 ViT-S/14`: completed, much stronger than CLIP but still below the CNN baselines
 - hurricane `ResNet50`: completed, strong but below the earlier `ResNet18` hurricane baseline
 - hurricane `CLIP ViT-B/32`: completed, unstable and clearly below the CNN baselines
-- hurricane `DINOv2 ViT-S/14`: now running
+- hurricane `DINOv2 ViT-S/14`: completed, stronger than CLIP but still below the CNN baselines
 
 Updated interpretation:
 
@@ -180,7 +180,18 @@ Current status:
 - wildfire `crossview`: completed for seeds `42 / 123 / 456`
 - wildfire `street_only`: completed for seeds `42 / 123 / 456`
 - wildfire `remote_only`: completed for seeds `42 / 123 / 456`
-- hurricane multi-seed: intentionally postponed for now while backbone ablation is prioritized
+- hurricane `crossview`: completed for seeds `42 / 123 / 456`
+- hurricane `street_only`: completed for seeds `42 / 123 / 456`
+- hurricane `remote_only`: completed for seeds `42 / 123 / 456`
+
+Updated interpretation:
+
+- both disasters now have matched three-seed stability results for all three
+  core baselines
+- the paper no longer relies on single-run evidence for the main
+  `crossview > single-view` claim
+- a hurricane label-sensitivity follow-up is now underway using
+  `Minor vs (Moderate + Severe)`
 
 ---
 
