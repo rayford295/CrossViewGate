@@ -201,6 +201,27 @@ This already supports one useful paper claim:
 - generic large-scale pretraining (`CLIP`) is not automatically better for
   this disaster-specific cross-view triage task
 
+### Wildfire multi-seed snapshot
+
+The wildfire benchmark now has complete three-seed validation runs for all
+three modes:
+
+- `crossview`: `0.9689 ± 0.0011`
+- `street_only`: `0.9657 ± 0.0001`
+- `remote_only`: `0.9654 ± 0.0015`
+
+So the main wildfire conclusion is now supported not only by single best runs,
+but also by low-variance multi-seed evidence.
+
+### Hurricane backbone ablation snapshot
+
+The first hurricane backbone-ablation run is complete:
+
+- `ResNet50`: best val `F1 = 0.9470`
+
+This is still strong, but lower than the earlier `ResNet18` hurricane baseline,
+which means larger backbones are not automatically better in this task.
+
 ## Main conclusion
 
 The core pattern transfers across disasters:

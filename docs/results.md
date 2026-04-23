@@ -125,6 +125,35 @@ Takeaway:
 - the current evidence suggests that disaster triage is still sensitive to the
   backbone / pretraining regime, which is itself a useful result for the paper
 
+## Wildfire multi-seed stability
+
+We also completed three-seed validation runs on the wildfire benchmark.
+
+| Mode | Seed 42 | Seed 123 | Seed 456 | Mean | Std |
+|---|---:|---:|---:|---:|---:|
+| crossview | 0.9676 | 0.9704 | 0.9688 | 0.9689 | 0.0011 |
+| street_only | 0.9657 | 0.9658 | 0.9655 | 0.9657 | 0.0001 |
+| remote_only | 0.9673 | 0.9652 | 0.9636 | 0.9654 | 0.0015 |
+
+Takeaway:
+
+- the wildfire `crossview` result is not only strong, but also stable across seeds
+- `street_only` is very stable but consistently lower than `crossview`
+- `remote_only` remains competitive, but its variance is slightly larger than `street_only`
+
+## Hurricane backbone ablation snapshot (crossview)
+
+The first hurricane backbone-ablation run is now complete.
+
+| Backbone | Best validation accuracy | Best validation F1 | Interpretation |
+|---|---:|---:|---|
+| ResNet18 | 0.9692 | 0.9694 | current baseline from the original hurricane run |
+| ResNet50 | 0.9524 | 0.9470 | strong, but lower than the smaller baseline in this setup |
+
+This is an important reminder that a larger backbone does not automatically
+improve disaster triage. On the hurricane benchmark, `ResNet50` remains
+competitive, but it does not surpass the original `ResNet18` baseline.
+
 ## Label note for hurricane
 
 The hurricane benchmark uses endpoint-to-endpoint binary classification:

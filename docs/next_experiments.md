@@ -114,7 +114,9 @@ Current status:
 - wildfire `ResNet50`: completed, strong and consistent with the main claim
 - wildfire `CLIP ViT-B/32`: completed, clearly underperforms the CNN baselines
 - wildfire `DINOv2 ViT-S/14`: completed, much stronger than CLIP but still below the CNN baselines
-- hurricane backbone sweep: not started yet
+- hurricane `ResNet50`: completed, strong but below the earlier `ResNet18` hurricane baseline
+- hurricane `CLIP ViT-B/32`: now running
+- hurricane `DINOv2 ViT-S/14`: pending
 
 Updated interpretation:
 
@@ -175,9 +177,10 @@ major venue.
 
 Current status:
 
-- wildfire `crossview seed=42`: completed
-- wildfire `crossview seed=123`: now running
-- the remaining wildfire / hurricane seed runs still need to be completed before we can report `mean ± std`
+- wildfire `crossview`: completed for seeds `42 / 123 / 456`
+- wildfire `street_only`: completed for seeds `42 / 123 / 456`
+- wildfire `remote_only`: completed for seeds `42 / 123 / 456`
+- hurricane multi-seed: intentionally postponed for now while backbone ablation is prioritized
 
 ---
 
