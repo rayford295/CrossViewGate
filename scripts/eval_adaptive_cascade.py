@@ -30,6 +30,13 @@ import pandas as pd
 from sklearn.metrics import f1_score
 
 
+def _find_column(df: pd.DataFrame, candidates: list[str], label: str) -> str:
+    for name in candidates:
+        if name in df.columns:
+            return name
+    raise ValueError(f"Missing {label} column. Tried: {candidates}")
+
+
 def cascade_predict(
     prob_s: np.ndarray,
     prob_r: np.ndarray,
@@ -61,19 +68,23 @@ def main() -> None:
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    def load(path: str, prob_col: str = "prob_damaged") -> pd.DataFrame:
+    def load(path: str) -> pd.DataFrame:
         df = pd.read_csv(path)
-        if prob_col not in df.columns:
-            raise ValueError(
-                f"{path} missing '{prob_col}' column. "
-                "Re-run eval_triage.py with --save-probs."
-            )
-        return df[["sample_id", "pred_label", prob_col]]
+        pred_col = _find_column(df, ["pred_label", "prediction"], "prediction")
+        prob_col = _find_column(df, ["prob_damaged", "probability"], "probability")
+        out_df = df[["sample_id", pred_col, prob_col]].copy()
+        out_df["sample_id"] = out_df["sample_id"].astype(str).str.replace(r"^tensor\((.*)\)$", r"\1", regex=True)
+        return out_df.rename(
+            columns={pred_col: "pred_label", prob_col: "prob_damaged"}
+        )
 
     street = load(args.street_preds).rename(columns={"pred_label": "pred_s", "prob_damaged": "prob_s"})
     remote = load(args.remote_preds).rename(columns={"pred_label": "pred_r", "prob_damaged": "prob_r"})
     cross  = load(args.cross_preds) .rename(columns={"pred_label": "pred_c", "prob_damaged": "prob_c"})
-    split  = pd.read_csv(args.split_csv)[["sample_id", "label"]]
+    split_df = pd.read_csv(args.split_csv)
+    label_col = _find_column(split_df, ["label", "binary_label", "target"], "label")
+    split = split_df[["sample_id", label_col]].rename(columns={label_col: "label"})
+    split["sample_id"] = split["sample_id"].astype(str)
 
     df = split.merge(street, on="sample_id").merge(remote, on="sample_id").merge(cross, on="sample_id")
     labels = df["label"].values
@@ -110,8 +121,8 @@ def main() -> None:
             "conflict_recall": conflict_recall,
         })
         print(
-            f"  θ={theta:.2f}  stage2={pct_stage2:5.1f}%  "
-            f"F1={f1_casc:.4f}  Δ={f1_drop:+.4f}  "
+            f"  theta={theta:.2f}  stage2={pct_stage2:5.1f}%  "
+            f"F1={f1_casc:.4f}  delta={f1_drop:+.4f}  "
             f"conflict_recall={conflict_recall:.3f}"
         )
 

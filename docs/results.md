@@ -226,6 +226,28 @@ Current interpretation:
 - this gives the paper a second robustness result on the wildfire side, not
   just the hurricane side
 
+## Adaptive inference cascade (I4)
+
+We also ran the first `I4 adaptive inference cascade` sweeps on the completed
+label-sensitivity splits. The cascade uses:
+
+- stage 1: average `street_only` and `remote_only` probabilities when the two
+  views are close
+- stage 2: call `crossview` only when the two single-view probabilities differ
+  by more than a threshold
+
+Initial findings:
+
+- `altadena_sensitive`: the cascade can route only `9.5%` of samples to
+  stage 2 and still slightly exceed the full crossview baseline (`F1 = 0.9498`
+  vs `0.9473`)
+- `hurricane_minor_vs_moderate_severe`: the cascade can keep stage-2 usage at
+  `22.3%` and slightly improve over full crossview (`F1 = 0.8990` vs `0.8915`)
+
+This is a promising first result because it suggests crossview fusion may be
+most valuable as an adaptive conflict resolver rather than as a mandatory
+always-on inference path.
+
 ## Label note for hurricane
 
 The hurricane benchmark uses endpoint-to-endpoint binary classification:
