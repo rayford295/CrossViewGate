@@ -215,12 +215,14 @@ but also by low-variance multi-seed evidence.
 
 ### Hurricane backbone ablation snapshot
 
-The first hurricane backbone-ablation run is complete:
+The hurricane backbone-ablation sweep is now partially complete:
 
 - `ResNet50`: best val `F1 = 0.9470`
+- `CLIP ViT-B/32`: best val `F1 = 0.6437`
 
-This is still strong, but lower than the earlier `ResNet18` hurricane baseline,
-which means larger backbones are not automatically better in this task.
+This is still strong, but lower than the earlier `ResNet18` hurricane baseline.
+At the same time, `CLIP` performs much worse here, which reinforces the idea
+that larger or more generic pretraining is not automatically better in this task.
 
 ## Main conclusion
 

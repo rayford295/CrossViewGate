@@ -115,8 +115,8 @@ Current status:
 - wildfire `CLIP ViT-B/32`: completed, clearly underperforms the CNN baselines
 - wildfire `DINOv2 ViT-S/14`: completed, much stronger than CLIP but still below the CNN baselines
 - hurricane `ResNet50`: completed, strong but below the earlier `ResNet18` hurricane baseline
-- hurricane `CLIP ViT-B/32`: now running
-- hurricane `DINOv2 ViT-S/14`: pending
+- hurricane `CLIP ViT-B/32`: completed, unstable and clearly below the CNN baselines
+- hurricane `DINOv2 ViT-S/14`: now running
 
 Updated interpretation:
 

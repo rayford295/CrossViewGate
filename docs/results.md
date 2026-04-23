@@ -143,16 +143,18 @@ Takeaway:
 
 ## Hurricane backbone ablation snapshot (crossview)
 
-The first hurricane backbone-ablation run is now complete.
+The hurricane backbone-ablation sweep is now partially complete.
 
 | Backbone | Best validation accuracy | Best validation F1 | Interpretation |
 |---|---:|---:|---|
 | ResNet18 | 0.9692 | 0.9694 | current baseline from the original hurricane run |
 | ResNet50 | 0.9524 | 0.9470 | strong, but lower than the smaller baseline in this setup |
+| CLIP ViT-B/32 | 0.5966 | 0.6437 | unstable and clearly not competitive in this setup |
 
 This is an important reminder that a larger backbone does not automatically
 improve disaster triage. On the hurricane benchmark, `ResNet50` remains
 competitive, but it does not surpass the original `ResNet18` baseline.
+`CLIP` is substantially worse and exhibits unstable optimization on this task.
 
 ## Label note for hurricane
 
