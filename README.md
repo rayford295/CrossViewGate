@@ -257,13 +257,32 @@ On this harder split, the first completed test runs are:
 
 - `crossview`: test `F1 = 0.8915`
 - `street_only`: test `F1 = 0.8738`
+- `remote_only`: test `F1 = 0.8873`
 
 So the task clearly becomes harder once `ModerateDamage` is folded into the
 positive class, but the same rank order still appears so far:
 
-- `crossview > street_only`
+- `crossview > remote_only > street_only`
 
-The matching `remote_only` test is still being finalized.
+### Wildfire label-sensitivity snapshot
+
+We also completed a stricter wildfire binary mapping where the task is
+redefined as:
+
+- `0 = No Damage`
+- `1 = Affected + Minor + Major + Destroyed`
+
+On this broader positive-class split, all three test runs are now complete:
+
+- `crossview`: test `F1 = 0.9473`
+- `street_only`: test `F1 = 0.9392`
+- `remote_only`: test `F1 = 0.9238`
+
+So the wildfire conclusion also survives this robustness check:
+
+- `crossview > street_only > remote_only`
+- the stronger property-centric regime still benefits most from cross-view
+  fusion even under a more sensitive damage definition
 
 ## Main conclusion
 

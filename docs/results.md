@@ -194,13 +194,37 @@ Completed test results so far:
 |---|---:|---:|
 | crossview | 0.8467 | 0.8915 |
 | street_only | 0.8267 | 0.8738 |
+| remote_only | 0.8400 | 0.8873 |
 
 Current interpretation:
 
 - the task becomes harder under the broader positive-class definition
-- `crossview` still remains better than `street_only`
-- once the matching `remote_only` result is added, this will become a clean
-  robustness table for the paper
+- `crossview` still remains the best setting
+- the rank order is now `crossview > remote_only > street_only`
+- the margin shrinks compared with the endpoint-only `Minor vs Severe` setup,
+  which is exactly the kind of robustness behavior reviewers are likely to ask about
+
+## Wildfire alternative binary mapping
+
+We also ran a stricter wildfire label-sensitivity experiment with:
+
+- `0 = No Damage`
+- `1 = Affected + Minor + Major + Destroyed`
+
+Completed test results:
+
+| Setting | Test accuracy | Test F1 |
+|---|---:|---:|
+| crossview | 0.9395 | 0.9473 |
+| street_only | 0.9292 | 0.9392 |
+| remote_only | 0.9108 | 0.9238 |
+
+Current interpretation:
+
+- the cross-view advantage survives this broader positive-class definition
+- the rank order is `crossview > street_only > remote_only`
+- this gives the paper a second robustness result on the wildfire side, not
+  just the hurricane side
 
 ## Label note for hurricane
 
