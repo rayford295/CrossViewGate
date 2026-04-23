@@ -41,11 +41,29 @@ except ImportError:
     HAS_MPL = False
 
 
+def _find_column(df: pd.DataFrame, candidates: list[str]) -> str:
+    for name in candidates:
+        if name in df.columns:
+            return name
+    raise ValueError(f"Could not find any of columns: {candidates}")
+
+
 def load_merged(street_path, remote_path, cross_path, split_path):
-    s = pd.read_csv(street_path)[["sample_id", "pred_label"]].rename(columns={"pred_label": "pred_s"})
-    r = pd.read_csv(remote_path)[["sample_id", "pred_label"]].rename(columns={"pred_label": "pred_r"})
-    c = pd.read_csv(cross_path) [["sample_id", "pred_label"]].rename(columns={"pred_label": "pred_c"})
-    sp = pd.read_csv(split_path)[["sample_id", "label"]]
+    def load_preds(path: str, out_name: str) -> pd.DataFrame:
+        df = pd.read_csv(path)
+        pred_col = _find_column(df, ["pred_label", "prediction"])
+        out = df[["sample_id", pred_col]].copy()
+        out["sample_id"] = out["sample_id"].astype(str).str.replace(r"^tensor\((.*)\)$", r"\1", regex=True)
+        return out.rename(columns={pred_col: out_name})
+
+    s = load_preds(street_path, "pred_s")
+    r = load_preds(remote_path, "pred_r")
+    c = load_preds(cross_path, "pred_c")
+    sp_raw = pd.read_csv(split_path)
+    label_col = _find_column(sp_raw, ["label", "binary_label", "target"])
+    sp = sp_raw[["sample_id", label_col]].copy()
+    sp["sample_id"] = sp["sample_id"].astype(str)
+    sp = sp.rename(columns={label_col: "label"})
     return sp.merge(s, on="sample_id").merge(r, on="sample_id").merge(c, on="sample_id")
 
 

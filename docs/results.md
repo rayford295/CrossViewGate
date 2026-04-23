@@ -248,6 +248,47 @@ This is a promising first result because it suggests crossview fusion may be
 most valuable as an adaptive conflict resolver rather than as a mandatory
 always-on inference path.
 
+## Leakage check and grouped-split status
+
+We ran the new `objectid` leakage check proposed in the sharp-insights note.
+
+Current status:
+
+- `altadena_sensitive_objectid`: clean
+- `ian_hurricane_minor_vs_severe`: the original split had objectid leakage
+- `ian_hurricane_minor_vs_severe_grouped`: rebuilt and verified clean
+
+This is important because it upgrades the hurricane side of the repo from
+"works on a convenient split" to "has a verified objectid-clean grouped split"
+for future reruns and comparisons.
+
+## Gain decomposition and S->O correction analysis
+
+We also ran the first gain-decomposition pass on the completed sensitivity
+experiments.
+
+For `altadena_sensitive`:
+
+- conflict subset size: `200`
+- street accuracy on conflicts: `0.5900`
+- remote accuracy on conflicts: `0.4100`
+- crossview accuracy on conflicts: `0.7100`
+- street-corrects-overhead cases: `118 / 200 = 59.0%`
+- crossview accuracy on those street-win cases: `0.7542`
+
+For `hurricane_minor_vs_moderate_severe`:
+
+- conflict subset size: `34`
+- street accuracy on conflicts: `0.4412`
+- remote accuracy on conflicts: `0.5588`
+- crossview accuracy on conflicts: `0.6765`
+- street-corrects-overhead cases: `15 / 34 = 44.1%`
+- crossview accuracy on those street-win cases: `0.6667`
+
+The main takeaway from this first pass is that the wildfire regime contains a
+larger share of "street corrects overhead" conflict cases than the hurricane
+regime, which is exactly the kind of mechanism the paper wants to isolate.
+
 ## Label note for hurricane
 
 The hurricane benchmark uses endpoint-to-endpoint binary classification:
