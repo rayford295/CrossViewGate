@@ -148,9 +148,9 @@ negative damage class under a specified split definition.
 
 We consider three model settings under a shared training protocol:
 
-- `street_only`: ground image only
-- `remote_only`: overhead image only
-- `crossview`: paired ground + overhead fusion
+- *street-only*: ground image only
+- *remote-only*: overhead image only
+- *cross-view*: paired ground + overhead fusion
 
 ### 3.2 Eaton/Altadena Wildfire Dataset
 
@@ -162,13 +162,13 @@ resolve conflicts in overhead interpretation.
 
 For the primary wildfire binary triage task, we use:
 
-- `0 = No Damage + Affected`
-- `1 = Minor + Major + Destroyed`
+- 0 = No Damage + Affected
+- 1 = Minor + Major + Destroyed
 
 We also evaluate a stricter sensitivity split:
 
-- `0 = No Damage`
-- `1 = Affected + Minor + Major + Destroyed`
+- 0 = No Damage
+- 1 = Affected + Minor + Major + Destroyed
 
 The wildfire dataset additionally contains reliable spatial grouping metadata,
 which allows tile-level geographic analysis and map-based outputs.
@@ -183,13 +183,13 @@ environment-centric observation regime.
 
 For the endpoint binary setting, we use:
 
-- `0 = MinorDamage`
-- `1 = SevereDamage`
+- 0 = MinorDamage
+- 1 = SevereDamage
 
 We also evaluate a broader sensitivity setting:
 
-- `0 = MinorDamage`
-- `1 = ModerateDamage + SevereDamage`
+- 0 = MinorDamage
+- 1 = ModerateDamage + SevereDamage
 
 The original hurricane endpoint split showed object-level leakage. We therefore
 rebuilt a clean grouped split and use it as the more reliable hurricane control
@@ -197,11 +197,10 @@ condition.
 
 ### 3.4 Why This Comparison Matters
 
-These datasets give us more than a two-disaster benchmark. They instantiate two
-different spatial observation regimes:
+These datasets instantiate two distinct spatial observation regimes beyond a simple two-disaster comparison:
 
-- `building-centric / property-centric`
-- `panoramic / environment-centric`
+- building-centric / property-centric
+- panoramic / environment-centric
 
 This regime distinction is central to our paper. We do not assume cross-view
 fusion is equally valuable in all paired-view settings. Instead, we test
@@ -214,19 +213,15 @@ Average test F1 is necessary but insufficient. To isolate the value of cross-
 view fusion in the cases that matter most, we define a Conflict-Aware Evaluation
 Protocol (CAE).
 
-For each completed setting, CAE reports:
+For a given setting, let $\mathcal{C}_\tau = \{i : |p^\text{street}_i - p^\text{remote}_i| > \tau\}$ denote the conflict subset at threshold $\tau$. CAE reports three metrics:
 
-1. `Overall-F1`: standard F1 over the full test set.
-2. `Conflict-F1`: F1 over the disagreement subset defined by
-   `|p_street - p_remote| > tau`.
-3. `Delta_view`: the gain of cross-view fusion over the better single-view
-   model on the conflict subset.
+1. **Overall-F1**: standard F1 over the full test set.
+2. **Conflict-F1**: F1 restricted to $\mathcal{C}_\tau$, measuring cross-view performance where single-view models disagree.
+3. **Δ_view**: the gain of cross-view fusion over the stronger single-view model on $\mathcal{C}_\tau$:
 
-In our main experiments, we use `tau = 0.1`. This soft conflict definition is
-more robust than a hard binary disagreement test and yields usable conflict-set
-sizes for both datasets. Under this definition, the conflict subset contains
-435 wildfire samples and 128 hurricane sensitivity samples, both with
-permutation-test significance below `1e-4`.
+$$\Delta_\text{view} = \text{F1}_\text{cross-view}(\mathcal{C}_\tau) - \max\!\bigl(\text{F1}_\text{street}(\mathcal{C}_\tau),\, \text{F1}_\text{remote}(\mathcal{C}_\tau)\bigr)$$
+
+In our main experiments, we use τ = 0.1. This soft conflict definition is more robust than a hard binary disagreement test and yields usable conflict-subset sizes for both datasets. Under this threshold, the conflict subset contains 435 wildfire samples and 128 hurricane sensitivity samples, both with permutation-test *p* < 10⁻⁴.
 
 Conceptually, CAE reframes the task. Instead of asking whether multimodal
 fusion improves average classification, CAE asks whether fusion helps when the
@@ -237,8 +232,8 @@ single-view models disagree and which modality drives that improvement.
 ### 5.1 Base Triage Architecture
 
 We use a unified late-fusion architecture across all experiments. The
-`street_only` and `remote_only` models each use a single encoder followed by a
-binary classification head. The `crossview` model uses one encoder per view and
+*street-only* and *remote-only* models each use a single encoder followed by a
+binary classification head. The *cross-view* model uses one encoder per view and
 builds a late-fusion representation from:
 
 - the street embedding
@@ -256,10 +251,10 @@ Given CAE, we analyze conflict cases by asking which single-view model is more
 accurate within that subset. We also decompose conflicts into directional
 correction types:
 
-- `S→O`: street is correct, overhead is wrong
-- `O→S`: overhead is correct, street is wrong
-- `both wrong`
-- `both correct` under the soft disagreement threshold
+- S→O: street is correct, overhead is wrong
+- O→S: overhead is correct, street is wrong
+- "both wrong"
+- "both correct" under the soft disagreement threshold
 
 This decomposition provides a mechanism-level explanation of cross-view gain.
 If one view more frequently corrects the other in a given regime, the fusion
@@ -268,18 +263,23 @@ model should derive more of its conflict-resolution value from that modality.
 ### 5.3 ConflictFocalLoss
 
 We introduce ConflictFocalLoss as a conflict-aware training objective for
-cross-view triage. The intuition is simple: disagreement-heavy samples are
-rarer than agreement cases, but they are also more important to the paper's
-central problem. Standard binary loss treats every example equally. In
-contrast, ConflictFocalLoss increases the effective weight of samples whose
-street and overhead embeddings disagree more strongly.
+cross-view triage. Disagreement-heavy samples are rarer than agreement cases
+but are central to the conflict-aware framing. Standard binary cross-entropy
+treats every example equally. ConflictFocalLoss reweights each sample by its
+conflict magnitude:
 
-We evaluate a gamma sweep over:
+$$\mathcal{L}_\text{CFL}(i) = -\bigl(1 + \gamma \cdot d_i\bigr)\,[y_i\log\hat{y}_i + (1-y_i)\log(1-\hat{y}_i)]$$
 
-- `0.1`
-- `0.25`
-- `0.5`
-- `1.0`
+where $d_i = |p^\text{street}_i - p^\text{remote}_i|$ is the single-view conflict
+magnitude for sample $i$ and $\gamma \geq 0$ controls the conflict emphasis.
+At $\gamma = 0$, the loss reduces to standard binary cross-entropy.
+
+We evaluate a γ sweep over:
+
+- 0.1
+- 0.25
+- 0.5
+- 1.0
 
 The purpose of this sweep is not just to find a good point estimate, but to
 test whether conflict-aware weighting provides a stable positive signal across a
@@ -298,9 +298,9 @@ an on-demand conflict resolver, rather than an always-on inference path.
 ### 5.5 Conflict Density Spatial Map
 
 For the wildfire dataset, we convert paired-view disagreement into a tile-level
-spatial signal. For each geographic tile `t`, we compute:
+spatial signal. For each geographic tile *t*, we compute:
 
-`conflict_density(t) = mean_i |p_street_i - p_remote_i|`
+$$\text{CD}(t) = \frac{1}{|t|}\sum_{i \in t}\,|p^\mathrm{street}_i - p^\mathrm{remote}_i|$$
 
 over all samples in the tile. This produces an unsupervised conflict-density
 map. If conflict density correlates with observed damage rate, then cross-view
@@ -308,7 +308,7 @@ disagreement itself becomes a useful GIS-native spatial damage proxy.
 
 ## 6. Experimental Setup
 
-We train all three base modes under a unified protocol and compare them across
+We train all three model variants under a unified protocol and compare them across
 datasets, sensitivity settings, and backbone variants. The primary experiments
 use ResNet18 encoders. We also evaluate ResNet50, DINOv2 ViT-S/14, and CLIP
 ViT-B/32 in the cross-view setting to assess backbone dependence.
@@ -337,44 +337,43 @@ lightweight target-alignment proxy.
 Across the original benchmark settings, cross-view fusion achieves the best
 overall test F1 in both disasters:
 
-- wildfire: `street_only = 0.9604`, `remote_only = 0.9653`,
-  `crossview = 0.9713`
-- hurricane: `street_only = 0.8912`, `remote_only = 0.9082`,
-  `crossview = 0.9208`
+- wildfire: *street-only* = 0.9604, *remote-only* = 0.9653,
+  *cross-view* = 0.9713
+- hurricane: *street-only* = 0.8912, *remote-only* = 0.9082,
+  *cross-view* = 0.9208
 
-These numbers confirm that paired-view fusion is useful on average. However,
-the main value of the paper lies in what happens on conflict cases.
+Cross-view fusion improves overall F1 in both settings. The more informative picture emerges on conflict cases.
 
 ### 7.2 Conflict-Aware Evaluation Protocol
 
 CAE shows that the strongest gains indeed concentrate on the disagreement
 subset. On the wildfire sensitive setting, the conflict-set F1 values are:
 
-- `street_only = 0.6230`
-- `remote_only = 0.5237`
-- `crossview = 0.6618`
-- `Delta_view = +0.0388`
+- *street-only* = 0.6230
+- *remote-only* = 0.5237
+- *cross-view* = 0.6618
+- Δ_view = +0.0388
 
 On hurricane endpoint:
 
-- `street_only = 0.6842`
-- `remote_only = 0.5806`
-- `crossview = 0.7647`
-- `Delta_view = +0.0805`
+- *street-only* = 0.6842
+- *remote-only* = 0.5806
+- *cross-view* = 0.7647
+- Δ_view = +0.0805
 
 On hurricane moderate+severe sensitivity:
 
-- `street_only = 0.7324`
-- `remote_only = 0.7742`
-- `crossview = 0.7867`
-- `Delta_view = +0.0125`
+- *street-only* = 0.7324
+- *remote-only* = 0.7742
+- *cross-view* = 0.7867
+- Δ_view = +0.0125
 
 On the clean grouped hurricane split:
 
-- `street_only = 0.8101`
-- `remote_only = 0.6526`
-- `crossview = 0.7949`
-- `Delta_view = -0.0153`
+- *street-only* = 0.8101
+- *remote-only* = 0.6526
+- *cross-view* = 0.7949
+- Δ_view = -0.0153
 
 This is an important corrective result. The clean grouped split shows that
 cross-view is not universally dominant across all hurricane conditions.
@@ -387,16 +386,15 @@ Under the broader wildfire sensitivity setting and the broader hurricane
 sensitivity setting, the rank order of single-view models flips on conflict
 cases:
 
-- wildfire: `crossview > street > remote`
-- hurricane: `crossview > remote > street`
+- wildfire: cross-view > street-only > remote-only
+- hurricane: cross-view > remote-only > street-only
 
-This is the sharpest mechanism finding in the paper. It shows that the
-dominant single-view evidence source changes with the observation regime.
+The dominant single-view evidence source changes with the observation regime.
 
 Directional correction analysis supports this interpretation. In wildfire
-sensitivity conflicts, `59.0%` of conflict cases are `S→O`, meaning the street
+sensitivity conflicts, 59.0% of conflict cases are S→O, meaning the street
 view is correct while the overhead view is wrong. In hurricane
-moderate+severe sensitivity, the share of `S→O` cases falls to `44.1%`,
+moderate+severe sensitivity, the share of S→O cases falls to 44.1%,
 indicating a much weaker ground-view correction role. This is consistent with
 the regime interpretation: the property-centric wildfire ground view more often
 captures decisive structure-level evidence, whereas the panoramic hurricane
@@ -407,29 +405,26 @@ ground view is more weakly aligned to the target building.
 The segmentation-based alignment proxy reinforces this argument. On the conflict
 subset:
 
-- wildfire mean building ratio: `0.2684`
-- hurricane mean building ratio: `0.0154`
-- wildfire center building ratio: `0.4101`
-- hurricane center building ratio: `0.0271`
+- wildfire mean building ratio: 0.2684
+- hurricane mean building ratio: 0.0154
+- wildfire center building ratio: 0.4101
+- hurricane center building ratio: 0.0271
 
-Wildfire ground images contain far more visible building content, and that
-content is more centrally located. Hurricane ground images are much more
-environment-dominant. This is exactly the regime distinction the paper seeks to
-formalize.
+Wildfire ground images contain far more visible building content, and that content is more centrally located. Hurricane ground images are substantially more environment-dominant, consistent with the panoramic observation regime.
 
 ### 7.5 Threshold Sensitivity and Permutation Tests
 
 The conflict-centered story remains stable under a soft threshold definition.
-At `tau = 0.1`:
+At τ = 0.1:
 
-- wildfire conflict-set size: `435`
-- hurricane conflict-set size: `128`
-- both permutation tests: `p < 1e-4`
+- wildfire conflict-set size: 435
+- hurricane conflict-set size: 128
+- both permutation tests: *p* < 10⁻⁴
 
-Accuracy on the `tau = 0.1` conflict subset is:
+Accuracy on the τ = 0.1 conflict subset is:
 
-- wildfire: `street = 0.7356`, `remote = 0.6529`, `crossview = 0.7885`
-- hurricane: `street = 0.7031`, `remote = 0.7266`, `crossview = 0.7500`
+- wildfire: *street-only* = 0.7356, *remote-only* = 0.6529, *cross-view* = 0.7885
+- hurricane: *street-only* = 0.7031, *remote-only* = 0.7266, *cross-view* = 0.7500
 
 This confirms that the disagreement-centered effect is not an artifact of a
 single hard-threshold definition.
@@ -441,35 +436,33 @@ automatically better for cross-view disaster triage.
 
 Wildfire cross-view best validation F1:
 
-- ResNet18: `0.9676`
-- ResNet50: `0.9693`
-- DINOv2: `0.9378`
-- CLIP: `0.7502`
+- ResNet18: 0.9676
+- ResNet50: 0.9693
+- DINOv2: 0.9378
+- CLIP: 0.7502
 
 Hurricane cross-view best validation F1:
 
-- ResNet18: `0.9694`
-- ResNet50: `0.9470`
-- DINOv2: `0.7975`
-- CLIP: `0.6437`
+- ResNet18: 0.9694
+- ResNet50: 0.9470
+- DINOv2: 0.7975
+- CLIP: 0.6437
 
-These results strengthen the paper in two ways. First, the cross-view pattern
-is not a tiny-backbone artifact. Second, general vision-language pretraining
-does not transfer cleanly to this disaster triage problem.
+The cross-view ordering is not a ResNet18-specific artifact and persists under ResNet50. Notably, DINOv2 and CLIP perform substantially worse, indicating that general vision-language pretraining does not transfer cleanly to this disaster triage task.
 
 ### 7.7 Multi-Seed Robustness
 
 Wildfire multi-seed mean ± std:
 
-- `crossview = 0.9689 ± 0.0011`
-- `street_only = 0.9657 ± 0.0001`
-- `remote_only = 0.9654 ± 0.0015`
+- *cross-view* = 0.9689 ± 0.0011
+- *street-only* = 0.9657 ± 0.0001
+- *remote-only* = 0.9654 ± 0.0015
 
 Hurricane multi-seed mean ± std:
 
-- `crossview = 0.9455 ± 0.0063`
-- `street_only = 0.9433 ± 0.0012`
-- `remote_only = 0.8959 ± 0.0065`
+- *cross-view* = 0.9455 ± 0.0063
+- *street-only* = 0.9433 ± 0.0012
+- *remote-only* = 0.8959 ± 0.0065
 
 The main pattern is stable across seeds. This is especially useful for the
 wildfire result, where cross-view remains consistently stronger than both
@@ -479,15 +472,15 @@ single-view modes.
 
 The broader hurricane binary mapping remains cross-view favorable:
 
-- `crossview = 0.8915`
-- `street_only = 0.8738`
-- `remote_only = 0.8873`
+- *cross-view* = 0.8915
+- *street-only* = 0.8738
+- *remote-only* = 0.8873
 
 The broader wildfire binary mapping also preserves the ordering:
 
-- `crossview = 0.9473`
-- `street_only = 0.9392`
-- `remote_only = 0.9238`
+- *cross-view* = 0.9473
+- *street-only* = 0.9392
+- *remote-only* = 0.9238
 
 These sensitivity checks are important because they show that the cross-view
 story is not limited to one exact label collapse.
@@ -497,40 +490,32 @@ story is not limited to one exact label collapse.
 After fixing object-level leakage in the hurricane endpoint split, we reran the
 core baselines on a clean grouped split:
 
-- `crossview = 0.9008`
-- `street_only = 0.9016`
-- `remote_only = 0.8385`
+- *cross-view* = 0.9008
+- *street-only* = 0.9016
+- *remote-only* = 0.8385
 
-This is one of the most important sanity checks in the paper. It prevents
-overclaiming. The clean split shows that the hurricane result is not "crossview
-always dominates." Instead, the defensible claim is that cross-view remains
-useful as a conflict-aware comparator and clearly outperforms remote-only on the
-clean split, while its advantage over street-only can shrink depending on the
-task definition and split rigor.
+The clean split shows that cross-view does not universally dominate under leakage-free conditions. The defensible claim is that cross-view remains useful as a conflict-aware comparator and clearly outperforms remote-only, while its advantage over street-only depends on task definition and split rigor. We treat this conservative result as a feature of the paper's honesty rather than a weakness.
 
 ### 7.10 ConflictFocalLoss
 
 The complete ConflictFocalLoss sweep on wildfire sensitivity yields:
 
-- baseline `crossview = 0.9473`
-- `gamma = 0.1`: `0.9514`
-- `gamma = 0.25`: `0.9507`
-- `gamma = 0.5`: `0.9520`
-- `gamma = 1.0`: `0.9470`
+- baseline *cross-view* = 0.9473
+- γ = 0.1: 0.9514
+- γ = 0.25: 0.9507
+- γ = 0.5: 0.9520
+- γ = 1.0: 0.9470
 
-This is a useful method result. Moderate conflict-aware weighting is
-consistently beneficial, while overly strong weighting collapses back to
-baseline-level performance. The best setting, `gamma = 0.5`, improves the
-wildfire sensitivity task by `+0.0047` F1.
+Moderate conflict-aware weighting (γ = 0.25–0.5) consistently improves performance, while overly strong weighting (γ = 1.0) collapses back to near-baseline. The best setting, γ = 0.5, improves wildfire sensitivity F1 by +0.0047 over the standard cross-view baseline.
 
 ### 7.11 Adaptive Cascade
 
 The adaptive cascade also supports the paper's central idea.
 
-- wildfire sensitive: route only `9.5%` of samples to Stage 2, achieve
-  `F1 = 0.9498`, slightly above full cross-view `0.9473`
-- hurricane moderate+severe: route `22.3%` of samples to Stage 2, achieve
-  `F1 = 0.8990`, above full cross-view `0.8915`
+- wildfire sensitive: route only 9.5% of samples to Stage 2, achieve
+  F1 = 0.9498, slightly above full cross-view 0.9473
+- hurricane moderate+severe: route 22.3% of samples to Stage 2, achieve
+  F1 = 0.8990, above full cross-view 0.8915
 
 These results suggest that cross-view fusion is often most valuable as a
 selective conflict resolver rather than a mandatory always-on model.
@@ -540,13 +525,11 @@ selective conflict resolver rather than a mandatory always-on model.
 On the wildfire dataset, tile-level conflict density forms a significant
 unsupervised damage proxy:
 
-- `n_tiles = 27`
-- `Spearman r = 0.512`
-- `p = 0.0063`
+- *n* = 27
+- Spearman *r* = 0.512
+- *p = 0.0063*
 
-This is a strong GeoAI result because it converts disagreement between two
-discriminative models into a spatial damage map without using tile-level labels
-at inference time.
+Tile-level conflict density thus converts model disagreement into an unsupervised spatial damage signal without requiring tile-level annotations at inference time—a property directly relevant to rapid post-disaster GIS assessment.
 
 ## 8. Discussion
 
