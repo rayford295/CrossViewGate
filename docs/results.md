@@ -123,6 +123,53 @@ Takeaway:
 - this strengthens the claim that the gain is not an artifact of one
   hand-picked hard-threshold definition
 
+## View Dominance Switching
+
+We also ran the explicit conflict-type decomposition at `tau = 0.1` from
+`outputs/analysis/view_dominance_switch/view_dominance_switch_tau0.1.json`.
+
+| Dataset | n_conflict | street acc | remote acc | crossview acc | S->O frac | O->S frac | cross acc on S->O | cross acc on O->S | Dominant view |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Wildfire | 435 | 0.7356 | 0.6529 | 0.7885 | 0.2713 | 0.1885 | 0.7542 | 0.6463 | street |
+| Hurricane endpoint | 32 | 0.6250 | 0.5938 | 0.7500 | 0.3750 | 0.3438 | 0.9167 | 0.5455 | street (near-tie) |
+
+Interpretation:
+
+- wildfire still shows the clearest street-dominant conflict regime
+- on the hurricane endpoint split, the decomposition is much closer to balanced
+  than the broader `minor vs (moderate+severe)` sensitivity split
+- this means the paper should avoid claiming a universal `hurricane =
+  overhead-dominant` rule without first naming the exact split being discussed
+- the stable cross-dataset statement is weaker but still useful:
+  `crossview` stays strongest, while the identity of the stronger single view
+  is split-dependent and therefore part of the phenomenon rather than noise
+
+For the current draft, the safest wording is:
+
+> wildfire is clearly street-dominant under CAE, while hurricane is more
+> regime-sensitive and should be described as closer to balanced unless the
+> broader sensitivity split is being discussed explicitly.
+
+## Conflict Density Spatial Map
+
+We also completed the wildfire tile-level conflict-density analysis from
+`outputs/analysis/tile_conflict_rate/summary_wildfire.json`.
+
+| Dataset | n_tiles | min tile size | Spearman r | p-value | Supported |
+|---|---:|---:|---:|---:|---|
+| Wildfire | 27 | 5 | 0.5123 | 0.0063 | yes |
+
+Interpretation:
+
+- the wildfire tile-level correlation is now strong enough to support the
+  spatial-map contribution
+- higher mean street-vs-remote disagreement tends to occur in tiles with
+  higher realized damage rate
+- this is useful because it turns model disagreement into a GIS-native
+  unsupervised spatial signal, not just a classifier diagnostic
+- the hurricane counterpart is still missing, so the current claim should be
+  framed as `supported on wildfire` rather than `confirmed across disasters`
+
 ## Threshold sensitivity
 
 Crossview remains the strongest setting across softer conflict definitions.

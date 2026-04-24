@@ -22,28 +22,31 @@ both datasets achieve p < 1e-4 with usable sample sizes:
 
 The statistical weakness is resolved.
 
-**2. View Dominance Switching — the sharpest finding**
+**2. View Dominance Switching — the sharpest finding, but split-sensitive**
 
 ```
-Wildfire conflict (τ=0.1):   crossview > STREET > remote
-Hurricane conflict (τ=0.1):  crossview > REMOTE > street
+Wildfire conflict (τ=0.1):            crossview > STREET > remote
+Hurricane endpoint conflict (τ=0.1):  crossview > STREET > remote   (near-tie)
+Hurricane sensitivity conflict (τ=0.1):  crossview > REMOTE > street
 ```
 
 The rank order of single-view models in conflict resolution flips
-across datasets. Street is the better arbitrator in building-centric
-imagery; overhead is the better arbitrator in panoramic imagery.
-Crossview wins in both settings because it can leverage whichever
-single view is more informative.
+across settings, but hurricane is more split-sensitive than wildfire.
+Wildfire is consistently street-dominant in building-centric imagery.
+Hurricane can look near-balanced on the endpoint split and
+remote-dominant on the broader sensitivity split. Crossview wins in
+both settings because it can leverage whichever single view is more
+informative.
 
 No prior cross-view disaster paper has identified or named this switch.
 
-**3. S→O correction rate: 59% vs 44%**
+**3. Conflict-type correction asymmetry is real, but not one-number simple**
 
-Of conflict cases, the fraction where street corrects overhead (S→O)
-is 59% in wildfire and 44% in hurricane. This mechanistically explains
-the view dominance switch: when street corrects overhead more often,
-street is the dominant view, and crossview gains more from ground-view
-evidence.
+On the wildfire `τ=0.1` split, street-correct / remote-wrong cases are
+clearly more common than the reverse (`S->O = 27.1%`, `O->S = 18.9%`).
+On the hurricane endpoint split, the two are close
+(`S->O = 37.5%`, `O->S = 34.4%`), which is why that split should be
+described as near-balanced rather than strongly overhead-dominant.
 
 **4. Leakage fixed; grouped split verified**
 
@@ -101,20 +104,21 @@ for ground-view-dominant arbitration; panoramic imagery calls for
 overhead-dominant arbitration.
 
 **Evidence in hand:**
-- τ=0.1 rank order: wildfire street>remote, hurricane remote>street
-- S→O rate: wildfire 59% > hurricane 44%
-- Both permutation tests p < 1e-4
+- wildfire `τ=0.1` rank order: `street > remote`
+- hurricane is split-dependent: endpoint is near-balanced, sensitivity split shows `remote > street`
+- wildfire conflict-type decomposition: `S->O = 27.1%`, `O->S = 18.9%`
+- wildfire tile conflict-density map is now supported with `Spearman r = 0.5123`, `p = 0.0063`
 
-**Still needed:** Formally compute S→O and O→S accuracy separately
-for both datasets to quantify the switch at the conflict-type level.
+**Still needed:** extend the same conflict-type decomposition to the
+remaining hurricane variants and keep the wording split-specific in the paper.
 
 **Paper claim:**
 > Cross-view fusion resolves conflicts by leveraging whichever single
 > view is more accurate in that imaging regime. In building-centric
-> settings, the ground view corrects the overhead in 59% of conflicts.
-> In panoramic settings, the overhead corrects the ground view in 56%.
-> The fusion architecture benefits from — but does not currently exploit
-> — this asymmetry.
+> settings, the ground view is the clearer single-view arbitrator.
+> In panoramic settings, the dominant single view is more split-sensitive,
+> which suggests the regime effect is real but mediated by label definition
+> and split construction rather than by disaster name alone.
 
 ---
 
@@ -170,7 +174,16 @@ discriminative direction. Two independent unsupervised signals
 converging on the same spatial pattern would be a strong cross-repo
 finding.
 
-**Experiment needed (I3, script already written):**
+**Current status:** wildfire support is now in hand.
+
+```text
+wildfire: Spearman r = 0.5123, p = 0.0063, n_tiles = 27
+```
+
+**Still needed:** run the hurricane counterpart before claiming a
+cross-disaster spatial-map contribution.
+
+**Experiment needed (remaining extension):**
 ```bash
 python scripts/analyze_tile_conflict_rate.py \
   --wildfire-street  outputs/.../street_only.../test_predictions.csv \
@@ -179,8 +192,9 @@ python scripts/analyze_tile_conflict_rate.py \
   --tile-col         remote_tile_filename \
   --dataset          wildfire
 ```
-If tile-level Spearman r > 0.4 (p < 0.05), Innovation C is supported
-and the paper has a genuine GIS spatial contribution.
+The current wildfire result already clears the support threshold, so
+Innovation C should stay in the paper. The honest wording is that it is
+validated on wildfire and awaiting hurricane replication.
 
 ---
 
