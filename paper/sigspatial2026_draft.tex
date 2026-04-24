@@ -154,6 +154,12 @@ useful hyperlocal cues from repeated ground observations
 that hurricane damage inference from street-view imagery benefits from models
 that explicitly resolve disagreement among visual cues rather than collapse all
 evidence into a single undifferentiated score \cite{yang2026damagearbiter}.
+Other recent work has combined street-view imagery with structured building and
+hazard attributes, showing that multimodal fusion can improve post-hurricane
+damage classification even before overhead cross-view reasoning is introduced
+\cite{xue2024mmst}. Taken together, these studies establish that street-level
+disaster perception is information-rich, but they do not address how street and
+overhead evidence should be reconciled when they conflict.
 
 Recent cross-view disaster work begins to bridge these modalities. The closest
 prior direction is CVDisaster, which studies cross-view geolocalization and
@@ -237,6 +243,22 @@ We also evaluate a stricter sensitivity split:
 
 The wildfire dataset additionally contains spatial grouping metadata, which
 allows tile-level geographic analysis and map-based outputs.
+
+Figure~\ref{fig:wildfirelocator} places the wildfire benchmark in geographic
+context. The left panel locates the study area within California, and the right
+panel shows the local tile footprint in the Altadena / Eaton Fire area. This
+context matters because the wildfire benchmark is neighborhood-scale and
+spatially compact, which is precisely what enables the tile-level GeoAI
+analysis later in the paper.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/wildfire_locator_map.png}
+  \Description{A two-panel locator map places the wildfire study area in California and zooms to the Altadena tile footprint used by the paired-view benchmark.}
+  \caption{Geographic context for the Eaton/Altadena wildfire benchmark. The
+  dataset supports both paired-view triage and tile-level spatial analysis.}
+  \label{fig:wildfirelocator}
+\end{figure}
 
 \paragraph{Hurricane Ian Benchmark}
 
