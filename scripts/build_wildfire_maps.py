@@ -77,10 +77,11 @@ def square_size(n: pd.Series) -> np.ndarray:
 
 
 def style_axes(ax: plt.Axes, title: str) -> None:
-    ax.set_title(title, fontsize=12, fontweight="bold")
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
-    ax.grid(True, alpha=0.15, linewidth=0.6)
+    ax.set_title(title, fontsize=13, fontweight="bold", pad=10)
+    ax.set_xlabel("Longitude", fontsize=10)
+    ax.set_ylabel("Latitude", fontsize=10)
+    ax.tick_params(labelsize=9)
+    ax.grid(True, alpha=0.12, linewidth=0.6)
     ax.set_facecolor("#fbfbf7")
     for spine in ax.spines.values():
         spine.set_color("#8c8c84")
@@ -113,7 +114,13 @@ def main() -> None:
     lon = tile_df["longitude"]
     lat = tile_df["latitude"]
 
-    fig, axes = plt.subplots(1, 3, figsize=(16.5, 5.6), constrained_layout=True)
+    fig = plt.figure(figsize=(18.5, 9.2), constrained_layout=True)
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 1.15])
+    axes = [
+        fig.add_subplot(gs[0, 0]),
+        fig.add_subplot(gs[0, 1]),
+        fig.add_subplot(gs[1, :]),
+    ]
     fig.patch.set_facecolor("#f4f2ea")
 
     panels = [
@@ -130,14 +137,14 @@ def main() -> None:
             cmap=cmap,
             vmin=vlim[0],
             vmax=vlim[1],
-            s=sizes,
+            s=sizes * 1.08,
             marker="s",
             edgecolors="#3a3934",
-            linewidths=0.55,
+            linewidths=0.65,
             alpha=0.95,
         )
         style_axes(ax, title)
-        cbar = fig.colorbar(sc, ax=ax, shrink=0.82, pad=0.02)
+        cbar = fig.colorbar(sc, ax=ax, shrink=0.88, pad=0.02)
         cbar.ax.tick_params(labelsize=9)
         if col == "crossview_gain":
             cbar.set_label("crossview acc - best single-view acc", fontsize=9)
@@ -148,7 +155,7 @@ def main() -> None:
 
     fig.suptitle(
         "Wildfire Spatial Pattern Maps: Damage, Conflict Density, and Cross-View Gain",
-        fontsize=16,
+        fontsize=18,
         fontweight="bold",
         y=1.02,
     )
