@@ -193,7 +193,7 @@ datasets. Third, it translates disagreement analysis into spatial and
 algorithmic outputs: a conflict-density map, a conflict-aware training loss,
 and an adaptive conflict-resolver view of cross-view inference.
 
-\section{Problem Setting and Datasets}
+\section{Problem Definition and Datasets}
 
 \subsection{Datasets and Observation Regimes}
 
@@ -298,7 +298,7 @@ fusion is equally valuable in all paired-view settings. Instead, we test
 whether its gain depends on how directly the ground-view image captures the
 target structure.
 
-\section{Conflict-Aware Evaluation Protocol}
+\subsection{Conflict-Aware Evaluation Protocol}
 
 Average test F1 is necessary but insufficient. To isolate the value of
 cross-view fusion in the cases that matter most, we define a Conflict-Aware
@@ -373,7 +373,7 @@ single-view models disagree and which modality drives that improvement.
   \end{tabular}
 \end{table*}
 
-\section{Method}
+\section{Methodology}
 
 \subsection{Architecture, Evaluation Logic, and Conflict-Aware Extensions}
 
@@ -543,7 +543,7 @@ and the corresponding empirical damage rate is
 We then test the GeoAI hypothesis using Spearman correlation between
 $\mathrm{conflict\_density}(t)$ and $\mathrm{damage\_rate}(t)$ over tiles.
 
-\section{Experimental Setup}
+\subsection{Experimental Setup}
 
 We train all three base modes under a unified protocol and compare them across
 datasets, sensitivity settings, and backbone variants. The primary experiments
@@ -754,7 +754,7 @@ map without using tile-level labels at inference time.
   \label{fig:qual}
 \end{figure*}
 
-\section{Discussion}
+\section{Discussion and Limitations}
 
 The results support a different way of thinking about cross-view fusion in
 disaster intelligence. The main value of fusion is not simply that it adds more
@@ -775,8 +775,6 @@ question is not just how to combine modalities, but how the spatial alignment
 between the observer and the target changes the utility of each modality. That
 framing also creates room for adaptive inference policies, where expensive
 cross-view reasoning is reserved for the cases that actually need it.
-
-\section{Limitations}
 
 The current study has several limitations. First, the spatial-map contribution is
 currently validated strongly for wildfire but not yet for hurricane, because
