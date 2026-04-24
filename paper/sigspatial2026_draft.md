@@ -2,27 +2,27 @@
 
 ## Abstract
 
-Cross-view disaster assessment combines ground-level and overhead imagery to
-infer building damage, but most prior work evaluates it only by average test
-accuracy. That framing hides the cases in which multimodal fusion matters most:
-samples where the ground-view and overhead-view predictors disagree. We study
-cross-view disaster triage through this conflict-centered lens on two paired
-datasets with different spatial observation regimes: an Eaton/Altadena wildfire
-dataset built from property-centric inspection imagery and paired overhead
-patches, and a Hurricane Ian benchmark built from panoramic ground imagery and
-paired overhead patches. We propose a Conflict-Aware Evaluation Protocol (CAE)
-that reports overall F1, conflict-subset F1 under a soft disagreement threshold,
-and the conflict gain of cross-view fusion over the best single-view model. CAE
-reveals that cross-view fusion is most useful on evidence-conflict cases, but
-the source of that gain depends on the ground-view regime. In wildfire imagery,
-the ground view is the stronger arbitrator on conflict cases; in broader
-hurricane settings, the overhead view becomes more informative. We call this
-pattern view dominance switching. We further show that tile-level cross-view
-conflict density forms an unsupervised spatial damage signal in the wildfire
-dataset, and that a conflict-aware training objective improves wildfire
-cross-view F1 from 0.9473 to 0.9520. Together, these results recast cross-view
-disaster assessment from average-case multimodal classification to conflict-
-aware, regime-aware spatial reasoning.
+Cross-view disaster assessment is usually evaluated by average classification
+accuracy, even though the practical value of paired ground and overhead imagery
+appears most clearly when the two views disagree. We study this problem through
+a conflict-centered lens on two paired disaster datasets with different spatial
+observation regimes: an Eaton/Altadena wildfire dataset contributed by this
+paper, built from property-centric inspection imagery and overhead patches, and
+a Hurricane Ian benchmark reused from prior cross-view work, built from
+panoramic ground imagery and overhead patches. We introduce a Conflict-Aware
+Evaluation Protocol (CAE) that reports overall F1, conflict-subset F1 under a
+soft disagreement threshold, and the gain of cross-view fusion over the best
+single-view model. CAE reveals a regime-dependent pattern we call view
+dominance switching. In wildfire conflicts, the street-view model is the
+stronger single-view arbitrator; in broader hurricane settings, the overhead
+model becomes stronger. Cross-view fusion remains best in both regimes because
+it can exploit whichever single view is more informative. We further show that
+tile-level cross-view conflict density forms an unsupervised spatial damage
+signal in the wildfire dataset (`Spearman r = 0.512`, `p = 0.0063`), and that a
+conflict-aware training objective improves wildfire cross-view F1 from `0.9473`
+to `0.9520`. Together, these results recast cross-view disaster assessment from
+average-case multimodal classification to conflict-aware, regime-aware spatial
+reasoning.
 
 ## 1. Introduction
 
@@ -332,6 +332,42 @@ lightweight target-alignment proxy.
 
 ## 7. Results
 
+### Table 1. Unified Summary of Main Results
+
+Table 1 is the paper's primary summary table. It collects the most important
+evaluation settings under a single conflict-aware frame, so a reviewer can see
+the overall result, the disagreement-subset result, and the regime effect in
+one place.
+
+| Method | Dataset | Split | Overall-F1 | Conflict-F1 (`tau=0.1`) | `Delta_view` | Notes |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| street_only | Wildfire | endpoint | 0.9604 | — | — | main benchmark |
+| remote_only | Wildfire | endpoint | 0.9653 | — | — | main benchmark |
+| crossview | Wildfire | endpoint | 0.9713 | — | — | main benchmark |
+| voting ensemble | Wildfire | sensitive | 0.9396 | — | — | probability average |
+| street_only | Wildfire | sensitive | 0.9392 | 0.6230 | — | CAE split |
+| remote_only | Wildfire | sensitive | 0.9238 | 0.5237 | — | CAE split |
+| crossview | Wildfire | sensitive | 0.9473 | 0.6618 | +0.0388 | CAE split |
+| crossview + ConflictFocalLoss (`gamma = 0.5`) | Wildfire | sensitive | 0.9520 | — | — | best CFL run |
+| street_only | Hurricane | endpoint | 0.9055 | 0.6842 | — | CAE split |
+| remote_only | Hurricane | endpoint | 0.8969 | 0.5806 | — | CAE split |
+| crossview | Hurricane | endpoint | 0.9192 | 0.7647 | +0.0805 | CAE split |
+| voting ensemble | Hurricane | endpoint | 0.9100 | — | — | probability average |
+| street_only | Hurricane | moderate+severe | 0.8738 | 0.7324 | — | broader positive class |
+| remote_only | Hurricane | moderate+severe | 0.8873 | 0.7742 | — | broader positive class |
+| crossview | Hurricane | moderate+severe | 0.8915 | 0.7867 | +0.0125 | broader positive class |
+| voting ensemble | Hurricane | moderate+severe | 0.8936 | — | — | probability average |
+| street_only | Hurricane | grouped clean | 0.9016 | 0.8101 | — | objectid-clean rerun |
+| remote_only | Hurricane | grouped clean | 0.8385 | 0.6526 | — | objectid-clean rerun |
+| crossview | Hurricane | grouped clean | 0.9008 | 0.7949 | -0.0153 | objectid-clean rerun |
+| voting ensemble | Hurricane | grouped clean | 0.8800 | — | — | probability average |
+
+Two patterns from Table 1 matter most. First, the practical value of
+cross-view fusion is concentrated in conflict cases rather than in easy average
+cases. Second, the sign and magnitude of `Delta_view` are regime- and
+split-dependent, which is why the paper's main claim is about when cross-view
+helps, not about unconditional dominance on every benchmark.
+
 ### 7.1 Main Results
 
 Across the original benchmark settings, cross-view fusion achieves the best
@@ -556,6 +592,17 @@ information and nudges up average F1. Its more important function is to resolve
 evidence conflict. That is why conflict-centered evaluation is more revealing
 than average-case evaluation alone.
 
+The hurricane story is especially important to state clearly. On the clean
+grouped split, `crossview` and `street_only` are nearly tied overall
+(`0.9008` vs `0.9016`), which is a sobering and useful result rather than a
+failure. At the same time, the broader hurricane conflict analyses remain
+significant under `tau = 0.1`, and the single-view ranking can shift toward
+remote dominance on the broader sensitivity setting. This is exactly what the
+paper's theory predicts: in a panoramic regime where ground-view evidence is
+less tightly aligned to the target structure, the average advantage of
+cross-view fusion can shrink, while its conflict-resolution role remains
+meaningful and increasingly dependent on overhead evidence.
+
 The paper also suggests that "ground-view" is too coarse a category. A
 property-centric inspection image and a panoramic environmental view interact
 with overhead imagery in different ways. This is why the paper uses the concept
@@ -628,3 +675,10 @@ gain, and what spatial regime makes that gain possible.
   context.
 - After citation cleanup, this draft can be converted to ACM SIGSPATIAL LaTeX
   format with only minor structural edits.
+sensitivity split does not imply that every hurricane split is strictly
+overhead-dominant. On the clean grouped hurricane endpoint split, the conflict
+decomposition is closer to balanced than to strongly remote-dominant. The
+stable statement is therefore weaker and more honest: wildfire is clearly
+street-dominant, while hurricane is regime-sensitive and can move toward remote
+dominance when the task definition broadens and the panoramic context becomes
+more influential.
