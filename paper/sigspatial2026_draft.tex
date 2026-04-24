@@ -30,7 +30,7 @@ Cross-view disaster assessment combines ground-level and overhead imagery to
 infer building damage, yet most prior work is still evaluated primarily through
 average test performance. That perspective obscures the cases in which fusion
 is most valuable: samples for which the single-view predictors disagree. This
-paper studies cross-view disaster triage through that conflict-centered lens on
+study examines cross-view disaster triage through that conflict-centered lens on
 two paired datasets with distinct spatial observation regimes: an
 Eaton/Altadena wildfire dataset built from property-centric inspection imagery
 and overhead patches, and a Hurricane Ian benchmark built from panoramic
@@ -116,7 +116,7 @@ Second, a conflict-aware training objective, ConflictFocalLoss, improves
 wildfire cross-view performance across multiple weighting settings, with the
 best run increasing test F1 from 0.9473 to 0.9520.
 
-The paper makes four contributions:
+This study makes four contributions:
 \begin{enumerate}
   \item We introduce a Conflict-Aware Evaluation protocol for paired-view
   disaster triage, shifting evaluation from average-case F1 to conflict-centered
@@ -173,7 +173,7 @@ evidence source changes across spatial observation regimes.
 Another nearby line of work studies generation rather than classification.
 Satellite-to-Street synthesizes post-disaster street-level views from overhead
 imagery using generative vision models \cite{yang2026satellite}. That problem
-is complementary to ours: it asks whether overhead observations can be
+is complementary: it asks whether overhead observations can be
 translated into plausible ground views, whereas this paper asks when real
 ground and overhead observations should be fused, trusted, or treated as
 conflicting evidence.
@@ -186,7 +186,7 @@ spatial context, and different failure modes. Our work is closer in spirit to
 GeoAI studies that ask how spatial observation processes shape model behavior,
 rather than merely which architecture gives the highest average score.
 
-The approach differs from prior cross-view disaster work in three ways. First, it
+The study differs from prior cross-view disaster work in three ways. First, it
 defines the conflict subset as the primary evaluation target. Second, it uses a
 cross-regime design to compare two observation regimes rather than merely two
 datasets. Third, it translates disagreement analysis into spatial and
@@ -293,7 +293,7 @@ different spatial observation regimes:
   \item panoramic / environment-centric
 \end{itemize}
 
-This regime distinction is central to the paper. We do not assume cross-view
+This regime distinction is central to the study. We do not assume cross-view
 fusion is equally valuable in all paired-view settings. Instead, we test
 whether its gain depends on how directly the ground-view image captures the
 target structure.
@@ -390,7 +390,7 @@ uses one encoder per view and builds a late-fusion representation from:
   \item their elementwise product
 \end{itemize}
 
-This architecture is intentionally simple. Our goal is not to maximize raw
+This architecture is intentionally simple. The goal is not to maximize raw
 architectural novelty, but to create a controlled setting in which we can study
 when and why paired-view fusion helps. The base implementation uses ResNet18
 encoders \cite{he2016resnet}, and we later compare against larger supervised
@@ -576,8 +576,8 @@ overall test F1 in both disasters:
   crossview $= 0.9208$
 \end{itemize}
 
-These numbers confirm that paired-view fusion is useful on average. However,
-the main value of the paper lies in what happens on conflict cases, where CAE
+These numbers confirm that paired-view fusion is useful on average. The more
+informative result, however, lies in what happens on conflict cases, where CAE
 is more revealing than a single overall score.
 
 \paragraph{CAE Makes the Hard Cases Visible}
@@ -617,7 +617,7 @@ Wildfire still shows the clearest street-dominant conflict regime. On the
 hurricane endpoint split, however, the decomposition is much closer to balanced
 than the broader \texttt{minor vs (moderate+severe)} sensitivity split, where
 the rank order becomes \texttt{crossview > remote > street}. This means the
-paper should avoid claiming a universal ``hurricane equals overhead-dominant''
+study should avoid claiming a universal ``hurricane equals overhead-dominant''
 rule without naming the exact split being discussed. The stable statement is
 weaker but more defensible: crossview stays strongest, while the identity of
 the stronger single view is split-dependent and therefore part of the
@@ -638,7 +638,7 @@ subset, wildfire images have much higher building visibility and more central
 building evidence than hurricane images. Mean building ratio is 0.2684 for
 wildfire versus 0.0154 for hurricane, and mean center-building ratio is 0.4101
 for wildfire versus 0.0271 for hurricane. This is exactly the regime
-distinction the paper seeks to formalize: the property-centric wildfire ground
+distinction the study seeks to formalize: the property-centric wildfire ground
 view more often contains direct target evidence, whereas the hurricane ground
 view is much more environment-dominant.
 
@@ -679,7 +679,7 @@ The backbone results show that larger or more generic pretraining is not
 automatically better for cross-view disaster triage. On wildfire crossview,
 best validation F1 is 0.9676 for ResNet18, 0.9693 for ResNet50, 0.9378 for
 DINOv2, and 0.7502 for CLIP. On hurricane crossview, the corresponding values
-are 0.9694, 0.9470, 0.7975, and 0.6437. These results strengthen the paper in
+are 0.9694, 0.9470, 0.7975, and 0.6437. These results strengthen the empirical case in
 two ways: the cross-view pattern is not a tiny-backbone artifact, and generic
 vision-language pretraining does not transfer cleanly to this task.
 
@@ -701,7 +701,7 @@ not limited to one exact label collapse.
 After fixing object-level leakage in the hurricane endpoint split, we reran the
 core baselines on a clean grouped split. The resulting test F1 values are
 crossview $= 0.9008$, street\_only $= 0.9016$, and remote\_only $= 0.8385$.
-This is one of the most important sanity checks in the paper because it
+This is one of the most important sanity checks in the study because it
 prevents overclaiming. The clean split shows that the defensible claim is not
 ``crossview always dominates.'' Rather, crossview remains useful as a
 conflict-aware comparator and clearly outperforms remote-only on the clean
@@ -762,9 +762,9 @@ information and nudges up average F1. Its more important function is to resolve
 evidence conflict. That is why conflict-centered evaluation is more revealing
 than average-case evaluation alone.
 
-The paper also suggests that ``ground-view'' is too coarse a category. A
+The results also suggest that ``ground-view'' is too coarse a category. A
 property-centric inspection image and a panoramic environmental view interact
-with overhead imagery in different ways. This is why the paper uses the concept
+with overhead imagery in different ways. This is why the study uses the concept
 of spatial observation regime. In one regime, the ground view offers strong
 target-specific corrections. In another, the overhead image can remain the more
 trustworthy single-view source, or the balance can become split-sensitive
@@ -784,8 +784,8 @@ primary GIS-native spatial analysis dataset and hurricane as a cross-regime
 comparison benchmark.
 
 Second, the clean grouped hurricane split leads to a more conservative result
-than the original endpoint split. We consider this a strength of the paper's
-honesty, but it also means that claims must be phrased carefully. The paper
+than the original endpoint split. We consider this a strength of the study's
+honesty, but it also means that claims must be phrased carefully. The argument
 should emphasize conflict-aware value and regime comparison rather than a
 blanket assertion that cross-view always dominates every baseline.
 
