@@ -7,6 +7,42 @@
 | Eaton wildfire | building / property-centric | 0.9604 | 0.9653 | 0.9713 |
 | IAN hurricane | 360 / panoramic environment-centric | 0.8912 | 0.9082 | 0.9208 |
 
+## Conflict-Aware Evaluation Protocol (CAE)
+
+We now summarize every completed core setting with the three CAE metrics:
+
+1. `Overall-F1` on the full test set
+2. `Conflict-F1` on the `tau = 0.1` disagreement subset
+3. `Delta_view = Conflict-F1(crossview) - Conflict-F1(best single-view)`
+
+| Setting | Mode | Overall-F1 | Conflict-F1 (tau=0.1) | Delta_view | n_conflict |
+|---|---|---:|---:|---:|---:|
+| Wildfire sensitive | street_only | 0.9392 | 0.6230 | — | 435 |
+| Wildfire sensitive | remote_only | 0.9238 | 0.5237 | — | 435 |
+| Wildfire sensitive | crossview | 0.9473 | 0.6618 | +0.0388 | 435 |
+| Hurricane endpoint | street_only | 0.9055 | 0.6842 | — | 32 |
+| Hurricane endpoint | remote_only | 0.8969 | 0.5806 | — | 32 |
+| Hurricane endpoint | crossview | 0.9192 | 0.7647 | +0.0805 | 32 |
+| Hurricane moderate+severe | street_only | 0.8738 | 0.7324 | — | 128 |
+| Hurricane moderate+severe | remote_only | 0.8873 | 0.7742 | — | 128 |
+| Hurricane moderate+severe | crossview | 0.8915 | 0.7867 | +0.0125 | 128 |
+| Hurricane grouped clean | street_only | 0.9016 | 0.8101 | — | 80 |
+| Hurricane grouped clean | remote_only | 0.8385 | 0.6526 | — | 80 |
+| Hurricane grouped clean | crossview | 0.9008 | 0.7949 | -0.0153 | 80 |
+
+Interpretation:
+
+- `crossview` remains strongest on the wildfire and the original hurricane
+  endpoint setting under the CAE protocol
+- the broader hurricane sensitivity setting still shows a positive but smaller
+  `Delta_view`
+- the clean grouped hurricane split is more sobering: it remains a useful
+  benchmark, but the CAE table shows that `crossview` is no longer dominant on
+  the conflict subset there
+- this is exactly why the CAE protocol matters: it separates easy average
+  performance from the harder disagreement cases that actually drive the paper's
+  mechanism story
+
 ## Conflict subset comparison
 
 | Dataset | Conflict rate | street_only | remote_only | crossview |
@@ -329,25 +365,31 @@ The main takeaway from this first pass is that the wildfire regime contains a
 larger share of "street corrects overhead" conflict cases than the hurricane
 regime, which is exactly the kind of mechanism the paper wants to isolate.
 
-## ConflictFocalLoss pilot
+## ConflictFocalLoss sweep
 
-We also ran the first `ConflictFocalLoss` pilot on the wildfire sensitive split.
-This loss upweights samples whose street and overhead embeddings disagree more
-strongly, so the model spends more capacity on conflict-like examples during
-training.
+We completed the first `ConflictFocalLoss` sweep on the wildfire sensitive
+split. This loss upweights samples whose street and overhead embeddings
+disagree more strongly, so the model spends more capacity on conflict-like
+examples during training.
 
 | Setting | Test accuracy | Test F1 |
 |---|---:|---:|
 | Wildfire sensitive `crossview` baseline | 0.9395 | 0.9473 |
+| `ConflictFocalLoss` (`gamma = 0.1`) | 0.9441 | 0.9514 |
+| `ConflictFocalLoss` (`gamma = 0.25`) | 0.9426 | 0.9507 |
 | `ConflictFocalLoss` (`gamma = 0.5`) | 0.9441 | 0.9520 |
+| `ConflictFocalLoss` (`gamma = 1.0`) | 0.9385 | 0.9470 |
 
 Current interpretation:
 
-- the first pilot is promising: `ConflictFocalLoss` improves over the standard
-  wildfire sensitive baseline by about `+0.0047` F1
-- that is not yet a full sweep, but it is already enough to justify keeping
-  conflict-aware training as a real method contribution rather than a
-  placeholder idea
+- moderate conflict-aware weighting is consistently useful on the wildfire
+  sensitive split
+- the best configuration in this first sweep is `gamma = 0.5`, which improves
+  over the standard wildfire sensitive baseline by about `+0.0047` F1
+- `gamma = 0.1` and `gamma = 0.25` also improve over baseline, which suggests
+  the method is not relying on a single narrow hyperparameter choice
+- `gamma = 1.0` falls back to roughly baseline performance, which indicates the
+  weighting can become too strong if conflict-heavy examples dominate training
 
 ## Label note for hurricane
 

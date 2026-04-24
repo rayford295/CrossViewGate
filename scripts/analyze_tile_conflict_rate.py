@@ -53,12 +53,21 @@ def main() -> None:
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    street = pd.read_csv(args.street_preds)[["sample_id", "pred_label"]].rename(
-        columns={"pred_label": "pred_s"}
-    )
-    remote = pd.read_csv(args.remote_preds)[["sample_id", "pred_label"]].rename(
-        columns={"pred_label": "pred_r"}
-    )
+    street_raw = pd.read_csv(args.street_preds)
+    remote_raw = pd.read_csv(args.remote_preds)
+    street_pred_col = next((c for c in ["pred_label", "prediction"] if c in street_raw.columns), None)
+    remote_pred_col = next((c for c in ["pred_label", "prediction"] if c in remote_raw.columns), None)
+    if street_pred_col is None or remote_pred_col is None:
+        raise ValueError("prediction column not found in one of the input prediction CSVs")
+
+    street = street_raw[["sample_id", street_pred_col]].rename(columns={street_pred_col: "pred_s"})
+    remote = remote_raw[["sample_id", remote_pred_col]].rename(columns={remote_pred_col: "pred_r"})
+    for df in (street, remote):
+        df["sample_id"] = (
+            df["sample_id"]
+            .astype(str)
+            .str.replace(r"^tensor\((.+)\)$", r"\1", regex=True)
+        )
     split = pd.read_csv(args.split_csv)
 
     required_cols = {"sample_id", args.label_col}
@@ -71,9 +80,15 @@ def main() -> None:
 
     df = (
         split[list(required_cols)]
+        .assign(sample_id=lambda x: x["sample_id"].astype(str))
         .merge(street, on="sample_id")
         .merge(remote,  on="sample_id")
     )
+    df = df[df[args.tile_col].notna()].copy()
+    if df.empty:
+        raise ValueError(
+            f"tile column '{args.tile_col}' is present but has no usable values for dataset {args.dataset}"
+        )
     df["is_conflict"] = (df["pred_s"] != df["pred_r"]).astype(int)
 
     tile_stats = (

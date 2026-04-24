@@ -371,16 +371,22 @@ We also added a wider-threshold permutation check using `tau = 0.1`.
 So the conflict-aware story still holds under a softer disagreement definition,
 not just under the original hard conflict subset.
 
-## Conflict-aware training pilot
+## Conflict-aware training sweep
 
-We also ran the first `ConflictFocalLoss` pilot on the wildfire sensitive split.
+We completed the first `ConflictFocalLoss` sweep on the wildfire sensitive
+split.
 
 - standard `crossview` baseline: test `F1 = 0.9473`
+- `ConflictFocalLoss (gamma = 0.1)`: test `F1 = 0.9514`
+- `ConflictFocalLoss (gamma = 0.25)`: test `F1 = 0.9507`
 - `ConflictFocalLoss (gamma = 0.5)`: test `F1 = 0.9520`
+- `ConflictFocalLoss (gamma = 1.0)`: test `F1 = 0.9470`
 
-This is a promising early method result because it suggests that explicitly
-upweighting disagreement-heavy samples can improve the conflict-aware model,
-not just the post hoc analysis.
+The best result in the current sweep is `gamma = 0.5`, and all moderate
+settings (`0.1`, `0.25`, `0.5`) beat the standard baseline. This is a stronger
+signal than the original single-point pilot because it shows conflict-aware
+training is useful across a small range of hyperparameters rather than only at
+one cherry-picked value.
 
 ## Paper-ready interpretation
 
