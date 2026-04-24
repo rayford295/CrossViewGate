@@ -265,7 +265,10 @@ We also evaluate a stricter sensitivity split:
 \end{itemize}
 
 The wildfire dataset additionally contains spatial grouping metadata, which
-allows tile-level geographic analysis and map-based outputs.
+allows tile-level geographic analysis and map-based outputs. Here a
+\emph{tile} denotes a fixed overhead-image patch and its associated spatial
+unit in the wildfire benchmark, so tile-level analysis means aggregating
+sample-level predictions within the same remote-sensing patch.
 
 Figure~\ref{fig:wildfirelocator} places the wildfire benchmark in geographic
 context. The left panel locates the study area within California, and the right
@@ -338,10 +341,14 @@ For each completed setting, CAE reports:
 
 In the main experiments, we use \texttt{tau = 0.1}. This soft conflict
 definition is more robust than a hard binary disagreement test and yields
-usable conflict-set sizes for both datasets. Under this definition, the
-conflict subset contains 435 wildfire samples and 128 hurricane
-moderate-plus-severe samples, both with label-independence permutation-test
-significance below \texttt{1e-4}.
+usable conflict-set sizes for both datasets. Table~\ref{tab:cae} reports the
+setting-specific conflict counts under this definition. In the main text, we
+especially emphasize the wildfire sensitivity split and the hurricane
+moderate-plus-severe split because they provide the clearest conflict-centered
+comparisons; both have label-independence permutation-test significance below
+\texttt{1e-4}. We report the wildfire sensitivity split rather than the
+broader primary wildfire collapse because the stricter split creates a more
+informative disagreement subset for the CAE analysis.
 
 More precisely, the conflict subset is
 \begin{equation}
@@ -373,12 +380,12 @@ fusion improves average classification, CAE asks whether fusion helps when the
 single-view models disagree and which modality drives that improvement.
 
 \begin{table*}[t]
-  \caption{Conflict-Aware Evaluation (CAE) summary across completed settings.}
+  \caption{Conflict-Aware Evaluation (CAE) summary across completed settings. Wildfire rows report the stricter sensitivity split, which yields the most informative wildfire conflict subset for CAE.}
   \label{tab:cae}
   \centering
   \begin{tabular}{llrrrr}
     \toprule
-    Setting & Mode & Overall-F1 & Conflict-F1 ($\tau=0.1$) & Delta\_view & $n_{\mathrm{conflict}}$ \\
+    Setting & Mode & Overall-F1 & Conflict-F1 ($\tau=0.1$) & Crossview gain & $n_{\mathrm{conflict}}$ \\
     \midrule
     Wildfire sensitive & street\_only & 0.9392 & 0.6230 & -- & 435 \\
     Wildfire sensitive & remote\_only & 0.9238 & 0.5237 & -- & 435 \\
