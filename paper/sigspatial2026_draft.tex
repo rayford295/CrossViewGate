@@ -25,6 +25,16 @@
   \country{USA}
 }
 
+\author{Lei Zou}
+\authornote{Corresponding author.}
+\affiliation{%
+  \department{Department of Geography}
+  \institution{Texas A\&M University}
+  \city{College Station}
+  \state{Texas}
+  \country{USA}
+}
+
 \begin{abstract}
 Cross-view disaster assessment combines ground-level and overhead imagery to
 infer building damage, yet most prior work is still evaluated primarily through
@@ -139,7 +149,11 @@ regime-aware spatial reasoning.
 
 Research on post-disaster visual assessment has largely focused on single-view
 remote sensing benchmarks, especially satellite-only settings such as xBD
-\cite{gupta2019xbd}. This literature has established strong baselines for
+\cite{gupta2019creating}. Broader GeoAI and disaster-response syntheses also show
+how central Earth observation, multimodal data integration, and operational
+decision support have become in this area \cite{zou2023geoai,raj2025ai,li2025earthobs}. Recent wildfire-oriented remote-sensing studies further show how high-resolution imagery, vegetation-risk modeling, and AI-based burned-area prediction are being used to characterize wildfire exposure and landscape change
+\cite{tang2025evaluating,pang2025fire,nagaraja2025vegetation}. Satellite-only disaster assessment work has also explored multi-temporal fusion and transformer-based fusion architectures for building-level damage inference
+\cite{weber2020building,xiao2023cross}. This literature has established strong baselines for
 damage classification and mapping, but it does not address how different visual
 viewpoints interact when they disagree.
 
@@ -150,21 +164,30 @@ viewpoint, occlusion, non-uniform coverage, and dependence on how well the
 captured scene aligns with the target structure. Recent street-view damage
 assessment work has shown that strong pre-trained vision backbones can extract
 useful hyperlocal cues from repeated ground observations
-\cite{yang2025hyperlocal}. Related arbitration-oriented work has also shown
+\cite{yang2025hyperlocal}. Earlier Google Street View-based damage assessment
+work already demonstrated the value of street-level evidence for post-hurricane
+analysis and longer-horizon recovery interpretation
+\cite{zhai2020damage,mabon2016charting}. Related arbitration-oriented work has also shown
 that hurricane damage inference from street-view imagery benefits from models
 that explicitly resolve disagreement among visual cues rather than collapse all
 evidence into a single undifferentiated score \cite{yang2026damagearbiter}.
 Other recent work has combined street-view imagery with structured building and
 hazard attributes, showing that multimodal fusion can improve post-hurricane
 damage classification even before overhead cross-view reasoning is introduced
-\cite{xue2024mmst}. Taken together, these studies establish that street-level
+\cite{xue2024post}. Related flood-vulnerability work has also shown that
+high-resolution remote sensing and street-view imagery can be integrated for
+urban building assessment under another hazard regime \cite{xing2023flood}.
+Taken together, these studies establish that street-level
 disaster perception is information-rich, but they do not address how street and
 overhead evidence should be reconciled when they conflict.
 
 Recent cross-view disaster work begins to bridge these modalities. The closest
 prior direction is CVDisaster, which studies cross-view geolocalization and
 damage estimation for Hurricane Ian using paired street-view and very
-high-resolution satellite imagery \cite{li2024cvdisaster}. That work
+high-resolution satellite imagery \cite{li2025cross}. Follow-up
+work extends this line toward probabilistic generative location awareness and
+triple-objective optimization for disaster-related VGI geolocalization
+\cite{li2026towards,yin2026triple}. That work
 demonstrates that paired-view learning is feasible and useful, but it still
 evaluates mainly by aggregate classification performance. It does not separate
 easy cases from disagreement cases, and it does not ask whether the dominant
@@ -174,7 +197,7 @@ Another nearby line of work studies generation rather than classification.
 Satellite-to-Street synthesizes post-disaster street-level views from overhead
 imagery using generative vision models \cite{yang2026satellite}. That problem
 is complementary: it asks whether overhead observations can be
-translated into plausible ground views, whereas this paper asks when real
+translated into plausible ground views, whereas this study asks when real
 ground and overhead observations should be fused, trusted, or treated as
 conflicting evidence.
 
@@ -393,7 +416,7 @@ uses one encoder per view and builds a late-fusion representation from:
 This architecture is intentionally simple. The goal is not to maximize raw
 architectural novelty, but to create a controlled setting in which we can study
 when and why paired-view fusion helps. The base implementation uses ResNet18
-encoders \cite{he2016resnet}, and we later compare against larger supervised
+encoders \cite{he2016deep}, and we later compare against larger supervised
 and pretrained alternatives including CLIP \cite{radford2021learning}.
 
 Let $f_s:\mathcal{X}^{(s)}\to\R^d$ and $f_r:\mathcal{X}^{(r)}\to\R^d$ denote
