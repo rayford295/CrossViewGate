@@ -38,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--no-pretrained", action="store_true")
+    parser.add_argument("--conflict-gamma", type=float, default=None)
     return parser.parse_args()
 
 
@@ -76,6 +77,7 @@ def main() -> None:
         "use_generated": args.use_generated,
         "street_augment": args.street_augment,
         "overhead_augment": args.overhead_augment,
+        "conflict_gamma": args.conflict_gamma,
     }
     model = build_triage(config).to(args.device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
@@ -84,7 +86,13 @@ def main() -> None:
     best_f1 = -1.0
     best_checkpoint = output_dir / "triage_best.pt"
     for epoch in range(1, args.epochs + 1):
-        train_loss = train_triage_epoch(model, train_loader, optimizer, args.device)
+        train_loss = train_triage_epoch(
+            model,
+            train_loader,
+            optimizer,
+            args.device,
+            conflict_gamma=args.conflict_gamma,
+        )
         metrics = eval_triage(model, val_loader, args.device)
         history.append({"epoch": epoch, "train_loss": train_loss, **metrics})
         if metrics["f1"] > best_f1:

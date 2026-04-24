@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
+from crossview_conflict.training.conflict_focal_loss import ConflictFocalLoss
 from crossview_conflict.training.metrics import binary_classification_metrics
 
 
@@ -12,9 +13,11 @@ def train_triage_epoch(
     dataloader: torch.utils.data.DataLoader,
     optimizer: torch.optim.Optimizer,
     device: str,
+    conflict_gamma: float | None = None,
 ) -> float:
     model.train()
     running_loss = 0.0
+    criterion = ConflictFocalLoss(gamma=conflict_gamma) if conflict_gamma is not None else None
     for batch in tqdm(dataloader, desc="train-triage", leave=False):
         street = batch["street"].to(device)
         overhead = batch["overhead"].to(device)
@@ -22,8 +25,15 @@ def train_triage_epoch(
         kwargs = {"street": street, "overhead": overhead}
         if "generated" in batch:
             kwargs["generated"] = batch["generated"].to(device)
-        logits = model(**kwargs)
-        loss = F.binary_cross_entropy_with_logits(logits, target)
+        if criterion is not None:
+            logits, street_embedding, overhead_embedding = model(return_embeddings=True, **kwargs)
+            if street_embedding is None or overhead_embedding is None:
+                loss = F.binary_cross_entropy_with_logits(logits, target)
+            else:
+                loss = criterion(logits, target, street_embedding, overhead_embedding)
+        else:
+            logits = model(**kwargs)
+            loss = F.binary_cross_entropy_with_logits(logits, target)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()

@@ -69,6 +69,24 @@ Interpretation:
 - wildfire conflict performance is statistically convincing
 - hurricane remains directionally positive, but not yet strong enough for a hard significance claim
 
+## Wider conflict definition (`tau = 0.1`)
+
+We also reran the permutation analysis under a softer conflict definition,
+using `|p_street - p_remote| > 0.1`.
+
+| Dataset | n | street accuracy | remote accuracy | crossview accuracy | label-independence p |
+|---|---:|---:|---:|---:|---:|
+| Eaton wildfire | 435 | 0.7356 | 0.6529 | 0.7885 | < 1e-4 |
+| IAN hurricane | 128 | 0.7031 | 0.7266 | 0.7500 | < 1e-4 |
+
+Takeaway:
+
+- under a wider notion of disagreement, `crossview` still stays strongest in
+  both datasets
+- the label-independence null is still decisively rejected
+- this strengthens the claim that the gain is not an artifact of one
+  hand-picked hard-threshold definition
+
 ## Threshold sensitivity
 
 Crossview remains the strongest setting across softer conflict definitions.
@@ -262,6 +280,28 @@ This is important because it upgrades the hurricane side of the repo from
 "works on a convenient split" to "has a verified objectid-clean grouped split"
 for future reruns and comparisons.
 
+## Clean grouped rerun for hurricane (`MinorDamage` vs `SevereDamage`)
+
+After identifying leakage in the original hurricane endpoint split, we reran the
+core baselines on the new clean grouped split.
+
+| Setting | Test accuracy | Test F1 |
+|---|---:|---:|
+| crossview | 0.9073 | 0.9008 |
+| street_only | 0.9073 | 0.9016 |
+| remote_only | 0.8378 | 0.8385 |
+
+Interpretation:
+
+- the clean grouped split remains learnable, so the hurricane result is not
+  disappearing under leakage control
+- the largest effect in the clean rerun is now the strong drop in
+  `remote_only`
+- `crossview` and `street_only` become nearly tied on this stricter split,
+  which means the clean-split paper story should emphasize
+  `crossview vs remote_only` robustness and conflict resolution rather than a
+  blanket "crossview always wins by a large margin" claim
+
 ## Gain decomposition and S->O correction analysis
 
 We also ran the first gain-decomposition pass on the completed sensitivity
@@ -288,6 +328,26 @@ For `hurricane_minor_vs_moderate_severe`:
 The main takeaway from this first pass is that the wildfire regime contains a
 larger share of "street corrects overhead" conflict cases than the hurricane
 regime, which is exactly the kind of mechanism the paper wants to isolate.
+
+## ConflictFocalLoss pilot
+
+We also ran the first `ConflictFocalLoss` pilot on the wildfire sensitive split.
+This loss upweights samples whose street and overhead embeddings disagree more
+strongly, so the model spends more capacity on conflict-like examples during
+training.
+
+| Setting | Test accuracy | Test F1 |
+|---|---:|---:|
+| Wildfire sensitive `crossview` baseline | 0.9395 | 0.9473 |
+| `ConflictFocalLoss` (`gamma = 0.5`) | 0.9441 | 0.9520 |
+
+Current interpretation:
+
+- the first pilot is promising: `ConflictFocalLoss` improves over the standard
+  wildfire sensitive baseline by about `+0.0047` F1
+- that is not yet a full sweep, but it is already enough to justify keeping
+  conflict-aware training as a real method contribution rather than a
+  placeholder idea
 
 ## Label note for hurricane
 

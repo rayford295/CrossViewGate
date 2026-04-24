@@ -264,6 +264,23 @@ positive class, but the same rank order still appears so far:
 
 - `crossview > remote_only > street_only`
 
+### Clean grouped hurricane rerun
+
+We also rebuilt the endpoint hurricane split with `objectid` grouping to remove
+the leakage found in the earlier convenience split, then reran the core
+baselines.
+
+- `crossview`: test `F1 = 0.9008`
+- `street_only`: test `F1 = 0.9016`
+- `remote_only`: test `F1 = 0.8385`
+
+This is an important correction for the paper:
+
+- the hurricane benchmark remains learnable on a clean grouped split
+- `remote_only` drops substantially
+- `crossview` and `street_only` become nearly tied, so the clean-split story
+  should be framed more carefully than the original leaked result
+
 ### Wildfire label-sensitivity snapshot
 
 We also completed a stricter wildfire binary mapping where the task is
@@ -343,6 +360,27 @@ We also completed four reviewer-oriented supplementary analyses:
    - this suggests the alignment effect is stronger at the `dataset / view-regime` level than as a within-conflict ranking signal
 4. `Qualitative figure`
    - a conflict-case figure with street image, overhead patch, prediction table, and building overlay is now available
+
+We also added a wider-threshold permutation check using `tau = 0.1`.
+
+- wildfire: `n = 435`, `crossview accuracy = 0.7885`, label-independence
+  `p < 1e-4`
+- hurricane: `n = 128`, `crossview accuracy = 0.7500`, label-independence
+  `p < 1e-4`
+
+So the conflict-aware story still holds under a softer disagreement definition,
+not just under the original hard conflict subset.
+
+## Conflict-aware training pilot
+
+We also ran the first `ConflictFocalLoss` pilot on the wildfire sensitive split.
+
+- standard `crossview` baseline: test `F1 = 0.9473`
+- `ConflictFocalLoss (gamma = 0.5)`: test `F1 = 0.9520`
+
+This is a promising early method result because it suggests that explicitly
+upweighting disagreement-heavy samples can improve the conflict-aware model,
+not just the post hoc analysis.
 
 ## Paper-ready interpretation
 

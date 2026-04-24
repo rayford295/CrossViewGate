@@ -85,6 +85,7 @@ class CrossViewTriageNet(nn.Module):
         street: Optional[torch.Tensor] = None,
         overhead: Optional[torch.Tensor] = None,
         generated: Optional[torch.Tensor] = None,
+        return_embeddings: bool = False,
     ) -> torch.Tensor:
         features: list[torch.Tensor] = []
         street_embedding = None
@@ -127,4 +128,7 @@ class CrossViewTriageNet(nn.Module):
                 features.append(generated_embedding)
 
         fused = torch.cat(features, dim=-1)
-        return self.classifier(fused).squeeze(-1)
+        logits = self.classifier(fused).squeeze(-1)
+        if return_embeddings:
+            return logits, street_embedding, overhead_embedding
+        return logits
