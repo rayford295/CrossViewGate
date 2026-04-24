@@ -6,6 +6,12 @@
 \pagestyle{plain}
 
 \usepackage{booktabs}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\concat}{\mathbin\Vert}
+\newcommand{\conf}{\mathcal{C}_{\tau}}
 
 \title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes}
 
@@ -173,6 +179,16 @@ ground-view image and a paired overhead patch, with a binary damage label. The
 goal is to predict whether the target building belongs to the positive or
 negative damage class under a specified split definition.
 
+Formally, the evaluation set is
+\begin{equation}
+\mathcal{D}=\{(x_i^{(s)},x_i^{(r)},y_i)\}_{i=1}^{N},
+\end{equation}
+where $x_i^{(s)}$ is the street- or ground-view image,
+$x_i^{(r)}$ is the remote-view overhead patch, and
+$y_i\in\{0,1\}$ is the binary damage label. For a model $m$, let
+$p_i^{(m)}\in[0,1]$ denote the predicted probability of the positive class and
+$\hat{y}_i^{(m)}=\mathbf{1}[p_i^{(m)}\ge 0.5]$ its hard decision.
+
 We consider three model settings under a shared training protocol:
 \begin{itemize}
   \item \texttt{street\_only}: ground image only
@@ -263,6 +279,31 @@ conflict subset contains 435 wildfire samples and 128 hurricane
 moderate-plus-severe samples, both with label-independence permutation-test
 significance below \texttt{1e-4}.
 
+More precisely, the conflict subset is
+\begin{equation}
+\conf=\left\{i:\left|p_i^{(s)}-p_i^{(r)}\right|>\tau\right\},
+\label{eq:conflictset}
+\end{equation}
+where $p_i^{(s)}$ and $p_i^{(r)}$ are the positive-class probabilities from
+the street-only and remote-only models, respectively. For any model $m$ and
+subset $\mathcal{S}\subseteq\{1,\dots,N\}$, we compute
+\begin{equation}
+\mathrm{F1}(m;\mathcal{S})=
+\frac{2\,\mathrm{Prec}(m;\mathcal{S})\,\mathrm{Rec}(m;\mathcal{S})}
+{\mathrm{Prec}(m;\mathcal{S})+\mathrm{Rec}(m;\mathcal{S})}.
+\label{eq:f1}
+\end{equation}
+The conflict gain of cross-view fusion is then
+\begin{equation}
+\Delta_{\mathrm{view}}=
+\mathrm{F1}(\mathrm{crossview};\conf)
+-\max\left\{
+\mathrm{F1}(\mathrm{street};\conf),
+\mathrm{F1}(\mathrm{remote};\conf)
+\right\}.
+\label{eq:deltaview}
+\end{equation}
+
 Conceptually, CAE reframes the task. Instead of asking whether multimodal
 fusion improves average classification, CAE asks whether fusion helps when the
 single-view models disagree and which modality drives that improvement.
@@ -312,6 +353,28 @@ when and why paired-view fusion helps. The base implementation uses ResNet18
 encoders \cite{he2016resnet}, and we later compare against larger supervised
 and pretrained alternatives including CLIP \cite{radford2021learning}.
 
+Let $f_s:\mathcal{X}^{(s)}\to\R^d$ and $f_r:\mathcal{X}^{(r)}\to\R^d$ denote
+the street and remote encoders. The two view embeddings are
+\begin{equation}
+h_i^{(s)} = f_s(x_i^{(s)}), \qquad h_i^{(r)} = f_r(x_i^{(r)}).
+\end{equation}
+The late-fusion representation is
+\begin{equation}
+z_i=
+h_i^{(s)} \concat
+h_i^{(r)} \concat
+\left|h_i^{(s)}-h_i^{(r)}\right| \concat
+\left(h_i^{(s)}\odot h_i^{(r)}\right),
+\label{eq:fusionrepr}
+\end{equation}
+where $\odot$ denotes elementwise product. The cross-view classifier then
+predicts
+\begin{equation}
+p_i^{(\mathrm{cv})}=\sigma(w^\top z_i+b),
+\label{eq:cvprob}
+\end{equation}
+with logistic sigmoid $\sigma(\cdot)$.
+
 \subsection{View Dominance Switching}
 
 Given CAE, we analyze conflict cases by asking which single-view model is more
@@ -328,6 +391,29 @@ This decomposition provides a mechanism-level explanation of cross-view gain.
 If one view more frequently corrects the other in a given regime, the fusion
 model should derive more of its conflict-resolution value from that modality.
 
+We formalize the directional conflict subsets as
+\begin{align}
+\mathcal{S}_{S\rightarrow O}
+&=\left\{i\in\conf:
+\hat{y}_i^{(s)}=y_i,\;
+\hat{y}_i^{(r)}\neq y_i\right\},\\
+\mathcal{S}_{O\rightarrow S}
+&=\left\{i\in\conf:
+\hat{y}_i^{(r)}=y_i,\;
+\hat{y}_i^{(s)}\neq y_i\right\}.
+\end{align}
+Their normalized frequencies,
+\begin{equation}
+\eta_{S\rightarrow O}
+=\frac{|\mathcal{S}_{S\rightarrow O}|}{|\conf|},
+\qquad
+\eta_{O\rightarrow S}
+=\frac{|\mathcal{S}_{O\rightarrow S}|}{|\conf|},
+\label{eq:dominancefractions}
+\end{equation}
+act as a compact measure of which single view is the stronger conflict-set
+arbitrator.
+
 \subsection{ConflictFocalLoss}
 
 We introduce ConflictFocalLoss as a conflict-aware training objective for
@@ -342,6 +428,25 @@ this sweep is not just to find a good point estimate, but to test whether
 conflict-aware weighting provides a stable positive signal across a range of
 strengths.
 
+For sample $i$, we define a disagreement score
+\begin{equation}
+c_i=\left(\frac{1-\cos(h_i^{(s)},h_i^{(r)})}{2}\right)^\gamma,
+\label{eq:conflictweight}
+\end{equation}
+where $\gamma \ge 0$ controls how strongly high-disagreement examples are
+emphasized. The resulting training objective is
+\begin{equation}
+\mathcal{L}_{\mathrm{CF}}
+=\frac{1}{B}\sum_{i=1}^{B}
+\left(1+c_i\right)
+\mathrm{BCE}\left(\ell_i,y_i\right),
+\label{eq:cfloss}
+\end{equation}
+where $\ell_i$ is the cross-view logit and $B$ is the minibatch size. When
+$\gamma=0$, the weighting term collapses toward standard BCE; for moderate
+$\gamma$, the model puts more emphasis on samples whose two views disagree in
+feature space.
+
 \subsection{Adaptive Inference Cascade}
 
 We also study an adaptive two-stage cascade. Stage 1 uses the street-only and
@@ -350,6 +455,20 @@ the prediction. If their disagreement exceeds a threshold, we route the sample
 to the full cross-view model as Stage 2. This design operationalizes the core
 claim: cross-view fusion is most useful as an on-demand conflict resolver,
 rather than an always-on inference path.
+
+With routing threshold $\delta$, the cascade prediction is
+\begin{equation}
+p_i^{(\mathrm{cascade})}=
+\begin{cases}
+\frac{1}{2}\left(p_i^{(s)}+p_i^{(r)}\right),
+& \text{if }\left|p_i^{(s)}-p_i^{(r)}\right|\le\delta,\\[4pt]
+p_i^{(\mathrm{cv})},
+& \text{otherwise.}
+\end{cases}
+\label{eq:cascade}
+\end{equation}
+This makes the conflict-routing policy explicit: stage two is invoked only on
+samples that exceed a disagreement budget.
 
 \subsection{Conflict Density Spatial Map}
 
@@ -361,6 +480,25 @@ spatial signal. For each geographic tile $t$, we compute:
 over all samples in the tile. This produces an unsupervised conflict-density
 map. If conflict density correlates with observed damage rate, then cross-view
 disagreement itself becomes a useful GIS-native spatial damage proxy.
+
+Let $\mathcal{I}(t)$ be the set of samples assigned to tile $t$. Then
+\begin{equation}
+\mathrm{conflict\_density}(t)
+=
+\frac{1}{|\mathcal{I}(t)|}
+\sum_{i\in\mathcal{I}(t)}
+\left|p_i^{(s)}-p_i^{(r)}\right|,
+\label{eq:conflictdensity}
+\end{equation}
+and the corresponding empirical damage rate is
+\begin{equation}
+\mathrm{damage\_rate}(t)=
+\frac{1}{|\mathcal{I}(t)|}
+\sum_{i\in\mathcal{I}(t)} y_i.
+\label{eq:damagerate}
+\end{equation}
+We then test the GeoAI hypothesis using Spearman correlation between
+$\mathrm{conflict\_density}(t)$ and $\mathrm{damage\_rate}(t)$ over tiles.
 
 \section{Experimental Setup}
 
@@ -444,7 +582,7 @@ phenomenon rather than noise.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{../outputs/analysis/view_dominance_switch/view_dominance_switch_tau0.1.pdf}
+  \includegraphics[width=\columnwidth]{figures/view_dominance_switch_tau0.1.pdf}
   \Description{Two pie charts summarize conflict-type decompositions for wildfire and hurricane under tau equals 0.1. Wildfire shows a larger share of street-correct, remote-wrong cases, while hurricane is closer to balanced.}
   \caption{Conflict-type decomposition under the completed \texttt{tau = 0.1} view-dominance analysis.}
   \label{fig:dominance}
@@ -463,7 +601,7 @@ view is much more environment-dominant.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{../docs/assets/building_alignment_comparison.png}
+  \includegraphics[width=\columnwidth]{figures/building_alignment_comparison.png}
   \Description{A comparison plot contrasts wildfire and hurricane conflict subsets using building ratio, center building ratio, and centroid distance. Wildfire shows higher visible building content and more centered building evidence.}
   \caption{A lightweight alignment proxy suggests much stronger target
   alignment in wildfire conflict images than in hurricane conflict images.}
@@ -479,6 +617,16 @@ sensitivity setting, the corresponding numbers are street $= 0.7031$, remote
 $= 0.7266$, and crossview $= 0.7500$, with both permutation tests yielding
 \texttt{p < 1e-4}. This confirms that the disagreement-centered effect is not
 an artifact of a single hard-threshold definition.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{figures/wildfire_threshold_sensitivity.png}
+  \hfill
+  \includegraphics[width=0.48\textwidth]{figures/hurricane_threshold_sensitivity.png}
+  \Description{Two threshold-sensitivity plots show that crossview remains the strongest or near-strongest configuration as the disagreement threshold varies, for wildfire on the left and hurricane on the right.}
+  \caption{Threshold sensitivity under softer and harder conflict definitions. The conflict-aware story is not tied to a single threshold choice.}
+  \label{fig:threshold}
+\end{figure*}
 
 \subsection{Backbone and Multi-Seed Robustness}
 
@@ -530,13 +678,31 @@ $r = 0.5123$, and $p = 0.0063$. This is a strong GeoAI result because it
 converts disagreement between two discriminative models into a spatial damage
 map without using tile-level labels at inference time.
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/alignment_gain_correlation.png}
+  \Description{A correlation plot summarizes the relation between building-alignment proxy values and crossview correctness. The trend is weak at the per-sample level, which supports a dataset-level rather than sample-level interpretation.}
+  \caption{Per-sample alignment correlation is weak, reinforcing that the
+  alignment effect should be interpreted mainly at the regime level.}
+  \label{fig:corr}
+\end{figure}
+
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.9\textwidth]{../outputs/analysis/wildfire_maps/wildfire_spatial_maps.png}
+  \includegraphics[width=0.9\textwidth]{figures/wildfire_spatial_maps.png}
   \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
   \caption{Wildfire conflict-density maps support a tile-level unsupervised
   spatial damage signal.}
   \label{fig:spatialmap}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/qualitative_conflict_examples.png}
+  \Description{A qualitative figure shows representative conflict cases with ground-view images, overhead patches, and model predictions, highlighting when crossview resolves single-view disagreement.}
+  \caption{Qualitative conflict cases. Cross-view fusion is most valuable when
+  the two single-view models provide competing evidence.}
+  \label{fig:qual}
 \end{figure*}
 
 \section{Discussion}
