@@ -152,7 +152,8 @@ remote sensing benchmarks, especially satellite-only settings such as xBD
 \cite{gupta2019creating}. Broader GeoAI and disaster-response syntheses also show
 how central Earth observation, multimodal data integration, and operational
 decision support have become in this area \cite{zou2023geoai,raj2025ai,li2025earthobs}. Recent wildfire-oriented remote-sensing studies further show how high-resolution imagery, vegetation-risk modeling, and AI-based burned-area prediction are being used to characterize wildfire exposure and landscape change
-\cite{tang2025evaluating,pang2025fire,nagaraja2025vegetation}. This literature has established strong baselines for
+\cite{tang2025evaluating,pang2025fire,nagaraja2025vegetation}. Satellite-only disaster assessment work has also explored multi-temporal fusion and transformer-based fusion architectures for building-level damage inference
+\cite{weber2020building,xiao2023cross}. This literature has established strong baselines for
 damage classification and mapping, but it does not address how different visual
 viewpoints interact when they disagree.
 
@@ -165,14 +166,18 @@ assessment work has shown that strong pre-trained vision backbones can extract
 useful hyperlocal cues from repeated ground observations
 \cite{yang2025hyperlocal}. Earlier Google Street View-based damage assessment
 work already demonstrated the value of street-level evidence for post-hurricane
-analysis \cite{zhai2020damage}. Related arbitration-oriented work has also shown
+analysis and longer-horizon recovery interpretation
+\cite{zhai2020damage,mabon2016charting}. Related arbitration-oriented work has also shown
 that hurricane damage inference from street-view imagery benefits from models
 that explicitly resolve disagreement among visual cues rather than collapse all
 evidence into a single undifferentiated score \cite{yang2026damagearbiter}.
 Other recent work has combined street-view imagery with structured building and
 hazard attributes, showing that multimodal fusion can improve post-hurricane
 damage classification even before overhead cross-view reasoning is introduced
-\cite{xue2024post}. Taken together, these studies establish that street-level
+\cite{xue2024post}. Related flood-vulnerability work has also shown that
+high-resolution remote sensing and street-view imagery can be integrated for
+urban building assessment under another hazard regime \cite{xing2023flood}.
+Taken together, these studies establish that street-level
 disaster perception is information-rich, but they do not address how street and
 overhead evidence should be reconciled when they conflict.
 
