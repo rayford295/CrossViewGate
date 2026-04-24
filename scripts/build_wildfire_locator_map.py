@@ -32,9 +32,11 @@ def california_polygon() -> np.ndarray:
             [-120.90, 39.40],
             [-120.00, 38.20],
             [-119.40, 37.20],
-            [-118.80, 36.10],
-            [-118.10, 35.00],
-            [-117.50, 34.30],
+            [-118.95, 36.10],
+            [-118.45, 35.25],
+            [-118.10, 34.95],
+            [-117.80, 34.45],
+            [-117.55, 34.00],
             [-117.10, 33.60],
             [-116.30, 33.00],
             [-114.65, 32.72],
@@ -176,8 +178,8 @@ def main() -> None:
         zorder=5,
     )
     ax0.text(
-        ALTADENA_LON + 0.35,
-        ALTADENA_LAT + 0.08,
+        ALTADENA_LON + 0.28,
+        ALTADENA_LAT + 0.10,
         "Altadena / Eaton Fire",
         fontsize=9.5,
         fontweight="bold",
@@ -185,9 +187,9 @@ def main() -> None:
         zorder=6,
     )
     focus_box = Rectangle(
-        (-119.15, 33.45),
-        1.6,
-        1.35,
+        (-118.95, 33.78),
+        1.10,
+        0.90,
         facecolor="none",
         edgecolor="#b85a3c",
         linestyle="--",
@@ -270,7 +272,7 @@ def main() -> None:
     cbar.outline.set_edgecolor("#8e8578")
 
     con = ConnectionPatch(
-        xyA=(-117.55, 34.80),
+        xyA=(-117.85, 34.68),
         coordsA=ax0.transData,
         xyB=(local_bbox[0] + tile_w * 0.25, local_bbox[1] + local_bbox[3] - tile_h * 0.25),
         coordsB=ax1.transData,
