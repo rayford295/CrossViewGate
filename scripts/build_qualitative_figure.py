@@ -76,6 +76,10 @@ def _pick_examples(df: pd.DataFrame, dataset: str) -> pd.DataFrame:
     return chosen
 
 
+def _dataset_color(name: str) -> str:
+    return "#c87b2a" if name == "wildfire" else "#2d6f95"
+
+
 def main() -> None:
     args = parse_args()
     output_dir = ensure_dir(args.output_dir)
@@ -86,7 +90,14 @@ def main() -> None:
     selected = pd.concat([wildfire, hurricane], ignore_index=True)
 
     n_rows = len(selected)
-    fig, axes = plt.subplots(n_rows, 4, figsize=(14, 3.6 * n_rows), constrained_layout=True)
+    fig, axes = plt.subplots(
+        n_rows,
+        4,
+        figsize=(16.5, 3.9 * n_rows),
+        gridspec_kw={"width_ratios": [1.05, 1.0, 1.05, 0.95]},
+        constrained_layout=True,
+    )
+    fig.patch.set_facecolor("#f8f6f0")
     if n_rows == 1:
         axes = np.expand_dims(axes, axis=0)
 
@@ -97,18 +108,28 @@ def main() -> None:
         building_mask = _segment_building(street_image, processor, model, building_id, args.device)
         overlay = _overlay_building(street_image, building_mask)
 
+        dataset = row["dataset"]
+        color = _dataset_color(dataset)
+
         axes[row_idx, 0].imshow(street_image)
-        axes[row_idx, 0].set_title(f"{row['dataset']} street")
+        axes[row_idx, 0].set_title(f"{dataset} street", fontsize=10, pad=6)
         axes[row_idx, 1].imshow(overhead_image)
-        axes[row_idx, 1].set_title("overhead")
+        axes[row_idx, 1].set_title("overhead", fontsize=10, pad=6)
         axes[row_idx, 2].imshow(overlay)
-        axes[row_idx, 2].set_title("building overlay")
-        axes[row_idx, 3].axis("off")
+        axes[row_idx, 2].set_title("building overlay", fontsize=10, pad=6)
+        axes[row_idx, 3].set_facecolor("#f3efe5")
+        for spine in axes[row_idx, 3].spines.values():
+            spine.set_visible(True)
+            spine.set_linewidth(1.0)
+            spine.set_edgecolor(color)
+        axes[row_idx, 3].set_xticks([])
+        axes[row_idx, 3].set_yticks([])
         axes[row_idx, 3].text(
-            0.0,
-            1.0,
+            0.05,
+            0.96,
             "\n".join(
                 [
+                    f"dataset: {dataset}",
                     f"GT: {row['binary_label']}",
                     f"street: {row['street_prediction']} ({row['street_probability']:.2f})",
                     f"remote: {row['remote_prediction']} ({row['remote_probability']:.2f})",
@@ -118,10 +139,14 @@ def main() -> None:
             ),
             va="top",
             family="monospace",
-            fontsize=10,
+            fontsize=10.5,
         )
         for col in range(3):
             axes[row_idx, col].axis("off")
+            for spine in axes[row_idx, col].spines.values():
+                spine.set_visible(True)
+                spine.set_linewidth(1.0)
+                spine.set_edgecolor("#d9d1bf")
 
         records.append(
             {
@@ -134,8 +159,14 @@ def main() -> None:
             }
         )
 
+    fig.suptitle(
+        "Qualitative Conflict Cases Across Wildfire and Hurricane Regimes",
+        fontsize=18,
+        fontweight="bold",
+        y=1.01,
+    )
     figure_path = output_dir / "qualitative_conflict_examples.png"
-    fig.savefig(figure_path, dpi=200)
+    fig.savefig(figure_path, dpi=220, bbox_inches="tight")
     plt.close(fig)
     save_json({"selected_examples": records, "figure": str(figure_path)}, output_dir / "qualitative_conflict_examples.json")
     print({"selected_examples": records, "figure": str(figure_path)})
