@@ -36,7 +36,7 @@ Interpretation:
   endpoint setting under the CAE protocol
 - the broader hurricane sensitivity setting still shows a positive but smaller
   `Delta_view`
-- the clean grouped hurricane split is more sobering: it remains a useful
+- the clean grouped hurricane split is more conservative: it remains a useful
   benchmark, but the CAE table shows that `crossview` is no longer dominant on
   the conflict subset there
 - this is exactly why the CAE protocol matters: it separates easy average
@@ -126,18 +126,21 @@ Takeaway:
 ## View Dominance Switching
 
 We also ran the explicit conflict-type decomposition at `tau = 0.1` from
-`outputs/analysis/view_dominance_switch/view_dominance_switch_tau0.1.json`.
+`outputs/analysis/view_dominance_switch/view_dominance_switch_tau0.1.json` and
+`outputs/analysis/view_dominance_switch_sensitivity/view_dominance_switch_tau0.1.json`.
 
 | Dataset | n_conflict | street acc | remote acc | crossview acc | S->O frac | O->S frac | cross acc on S->O | cross acc on O->S | Dominant view |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | Wildfire | 435 | 0.7356 | 0.6529 | 0.7885 | 0.2713 | 0.1885 | 0.7542 | 0.6463 | street |
 | Hurricane endpoint | 32 | 0.6250 | 0.5938 | 0.7500 | 0.3750 | 0.3438 | 0.9167 | 0.5455 | street (near-tie) |
+| Hurricane moderate+severe | 128 | 0.7031 | 0.7266 | 0.7500 | 0.1094 | 0.1328 | 0.6429 | 0.7059 | overhead |
 
 Interpretation:
 
 - wildfire still shows the clearest street-dominant conflict regime
 - on the hurricane endpoint split, the decomposition is much closer to balanced
-  than the broader `minor vs (moderate+severe)` sensitivity split
+  than the broader `minor vs (moderate+severe)` sensitivity split, where the
+  overhead-correct / street-wrong share becomes larger
 - this means the paper should avoid claiming a universal `hurricane =
   overhead-dominant` rule without first naming the exact split being discussed
 - the stable cross-dataset statement is weaker but still useful:
@@ -147,8 +150,8 @@ Interpretation:
 For the current draft, the safest wording is:
 
 > wildfire is clearly street-dominant under CAE, while hurricane is more
-> regime-sensitive and should be described as closer to balanced unless the
-> broader sensitivity split is being discussed explicitly.
+> split-sensitive: the endpoint setting is close to balanced, and the broader
+> sensitivity split shifts toward overhead dominance.
 
 ## Conflict Density Spatial Map
 
@@ -419,20 +422,21 @@ split. This loss upweights samples whose street and overhead embeddings
 disagree more strongly, so the model spends more capacity on conflict-like
 examples during training.
 
-| Setting | Test accuracy | Test F1 |
-|---|---:|---:|
-| Wildfire sensitive `crossview` baseline | 0.9395 | 0.9473 |
-| `ConflictFocalLoss` (`gamma = 0.1`) | 0.9441 | 0.9514 |
-| `ConflictFocalLoss` (`gamma = 0.25`) | 0.9426 | 0.9507 |
-| `ConflictFocalLoss` (`gamma = 0.5`) | 0.9441 | 0.9520 |
-| `ConflictFocalLoss` (`gamma = 1.0`) | 0.9385 | 0.9470 |
+| Setting | Test accuracy | Test F1 | Conflict-F1 (tau=0.1) | Delta Conflict-F1 |
+|---|---:|---:|---:|---:|
+| Wildfire sensitive `crossview` baseline | 0.9395 | 0.9473 | 0.6618 | -- |
+| `ConflictFocalLoss` (`gamma = 0.1`) | 0.9441 | 0.9514 | 0.6906 | +0.0289 |
+| `ConflictFocalLoss` (`gamma = 0.25`) | 0.9426 | 0.9507 | 0.7190 | +0.0572 |
+| `ConflictFocalLoss` (`gamma = 0.5`) | 0.9441 | 0.9520 | 0.7208 | +0.0590 |
+| `ConflictFocalLoss` (`gamma = 1.0`) | 0.9385 | 0.9470 | 0.6957 | +0.0339 |
 
 Current interpretation:
 
 - moderate conflict-aware weighting is consistently useful on the wildfire
   sensitive split
 - the best configuration in this first sweep is `gamma = 0.5`, which improves
-  over the standard wildfire sensitive baseline by about `+0.0047` F1
+  over the standard wildfire sensitive baseline by about `+0.0047` overall F1
+  and `+0.0590` Conflict-F1
 - `gamma = 0.1` and `gamma = 0.25` also improve over baseline, which suggests
   the method is not relying on a single narrow hyperparameter choice
 - `gamma = 1.0` falls back to roughly baseline performance, which indicates the

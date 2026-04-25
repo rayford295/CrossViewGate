@@ -55,7 +55,8 @@ view becomes split-sensitive rather than universally fixed, arguing for a more
 careful regime-aware interpretation than a simple disaster-name comparison. We
 further show that tile-level cross-view conflict density forms an unsupervised
 spatial damage signal in the wildfire dataset, and that a conflict-aware
-training objective improves wildfire cross-view F1 from 0.9473 to 0.9520.
+training objective improves wildfire overall F1 from 0.9473 to 0.9520 and
+Conflict-F1 from 0.6618 to 0.7208.
 Taken together, these results reframe cross-view disaster assessment as
 conflict-aware, regime-aware spatial reasoning rather than average-case
 multimodal classification.
@@ -136,9 +137,10 @@ This study makes four contributions:
   requires more careful interpretation than a single aggregate claim.
   \item We demonstrate that tile-level cross-view conflict density forms an
   unsupervised spatial damage map in the wildfire setting.
-  \item We show that conflict-aware training can improve cross-view triage,
-  with a complete ConflictFocalLoss sweep yielding consistent gains for
-  moderate weighting levels.
+  \item We show that conflict can be operationalized beyond evaluation:
+  ConflictFocalLoss improves the hardest wildfire conflict cases, and an
+  adaptive inference cascade preserves or improves full cross-view performance
+  while routing only a minority of samples to paired-view inference.
 \end{enumerate}
 
 The broader implication is that cross-view disaster intelligence should not be
@@ -278,21 +280,11 @@ allows tile-level geographic analysis and map-based outputs. Here a
 unit in the wildfire benchmark, so tile-level analysis means aggregating
 sample-level predictions within the same remote-sensing patch.
 
-Figure~\ref{fig:wildfirelocator} places the wildfire benchmark in geographic
-context. The left panel locates the study area within California, and the right
-panel shows the local tile footprint in the Altadena / Eaton Fire area. This
+Figure~\ref{fig:overview} places the wildfire benchmark in geographic context
+and shows the local tile footprint in the Altadena / Eaton Fire area. This
 context matters because the wildfire benchmark is neighborhood-scale and
 spatially compact, which is precisely what enables the tile-level GeoAI
 analysis later in the paper.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figures/wildfire_locator_map.png}
-  \Description{A two-panel locator map places the wildfire study area in California and zooms to the Altadena tile footprint used by the paired-view benchmark.}
-  \caption{Geographic context for the Eaton/Altadena wildfire benchmark. The
-  dataset supports both paired-view triage and tile-level spatial analysis.}
-  \label{fig:wildfirelocator}
-\end{figure}
 
 \paragraph{Hurricane Ian Benchmark}
 
@@ -624,7 +616,7 @@ Table~\ref{tab:cae} summarizes the full CAE view. Three patterns stand out.
 First, crossview remains strongest on the wildfire sensitive split and on the
 original hurricane endpoint setting under the CAE protocol. Second, the broader
 hurricane sensitivity setting still shows a positive but smaller
-\texttt{Delta\_view}. Third, the clean grouped hurricane split is more sobering:
+\texttt{Delta\_view}. Third, the clean grouped hurricane split is more conservative:
 it remains a useful benchmark, but CAE shows that crossview is no longer
 dominant on the conflict subset there. This is exactly why CAE matters: it
 separates easy average performance from the harder disagreement cases that
@@ -633,20 +625,24 @@ actually drive the mechanism story.
 \paragraph{View Dominance Switching Is Real but Split-Sensitive}
 
 To move beyond scalar F1, we explicitly decompose conflict cases by directional
-correction type. Table~\ref{tab:dominance} reports the conflict-type breakdown
-for the two completed \texttt{tau = 0.1} decompositions currently available in
-the repository.
+correction type. Table~\ref{tab:dominance} reports the \texttt{tau = 0.1}
+breakdown across the wildfire sensitive split, the hurricane endpoint split,
+and the broader hurricane sensitivity split.
 
 \begin{table}[t]
-  \caption{View dominance switching analysis on completed conflict-type decompositions.}
+  \caption{View dominance switching analysis under the \texttt{tau = 0.1}
+  conflict definition. $S{\rightarrow}O$ denotes street-correct /
+  overhead-wrong conflicts, and $O{\rightarrow}S$ denotes overhead-correct /
+  street-wrong conflicts.}
   \label{tab:dominance}
   \centering
-  \begin{tabular}{lrrr}
+  \begin{tabular}{lrrrl}
     \toprule
-    Dataset & S->O frac & O->S frac & Dominant view \\
+    Split & $n_c$ & $S{\rightarrow}O$ & $O{\rightarrow}S$ & Dominant \\
     \midrule
-    Wildfire & 0.2713 & 0.1885 & street \\
-    Hurricane endpoint & 0.3750 & 0.3438 & street (near-tie) \\
+    Wildfire sensitive & 435 & 0.2713 & 0.1885 & street \\
+    Hurricane endpoint & 32 & 0.3750 & 0.3438 & street, near-tie \\
+    Hurricane moderate+severe & 128 & 0.1094 & 0.1328 & overhead \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -654,11 +650,12 @@ the repository.
 Wildfire still shows the clearest street-dominant conflict regime. On the
 hurricane endpoint split, however, the decomposition is much closer to balanced
 than the broader \texttt{minor vs (moderate+severe)} sensitivity split, where
-the rank order becomes \texttt{crossview > remote > street}. This means the
-study should avoid claiming a universal ``hurricane equals overhead-dominant''
-rule without naming the exact split being discussed. The stable statement is
-weaker but more defensible: crossview stays strongest, while the identity of
-the stronger single view is split-dependent and therefore part of the
+the overhead-correct / street-wrong share becomes larger and the rank order
+becomes \texttt{crossview > remote > street}. This means the study should
+avoid claiming a universal ``hurricane equals overhead-dominant'' rule without
+naming the exact split being discussed. The stable statement is more precise:
+crossview stays strongest on the broader sensitivity split, while the identity
+of the stronger single view is split-dependent and therefore part of the
 phenomenon rather than noise.
 
 \begin{figure}[t]
@@ -748,14 +745,59 @@ definition and split rigor.
 
 \subsection{Method Extensions and GeoAI Outputs}
 
-\paragraph{ConflictFocalLoss and the Spatial Map Extension}
+\paragraph{ConflictFocalLoss, Adaptive Cascade, and Spatial Maps}
 
 The complete ConflictFocalLoss sweep on wildfire sensitivity yields:
 baseline crossview $= 0.9473$, gamma $= 0.1$ gives 0.9514, gamma $= 0.25$
 gives 0.9507, gamma $= 0.5$ gives 0.9520, and gamma $= 1.0$ gives 0.9470.
-Moderate conflict-aware weighting is consistently beneficial, while overly
-strong weighting collapses back toward baseline-level performance. The best
-setting improves the wildfire sensitivity task by +0.0047 F1.
+Table~\ref{tab:cfl} reports the corresponding overall and conflict-subset
+scores. Moderate conflict-aware weighting is consistently beneficial, while
+overly strong weighting collapses back toward baseline-level performance. The
+best setting improves the wildfire sensitivity task by $+0.0047$ F1. More
+importantly, the improvement is concentrated on the conflict subset:
+Conflict-F1 increases from 0.6618 to 0.7208 at gamma $= 0.5$, a gain of
+$+0.0590$ on the cases that CAE identifies as most consequential.
+
+\begin{table}[t]
+  \caption{ConflictFocalLoss ablation on the wildfire sensitivity split.
+  Conflict-F1 is computed on the \texttt{tau = 0.1} disagreement subset.}
+  \label{tab:cfl}
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    Setting & Overall-F1 & Conflict-F1 & $\Delta$ Conflict-F1 \\
+    \midrule
+    Crossview baseline & 0.9473 & 0.6618 & -- \\
+    $\gamma=0.1$ & 0.9514 & 0.6906 & +0.0289 \\
+    $\gamma=0.25$ & 0.9507 & 0.7190 & +0.0572 \\
+    $\gamma=0.5$ & 0.9520 & 0.7208 & +0.0590 \\
+    $\gamma=1.0$ & 0.9470 & 0.6957 & +0.0339 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The adaptive inference cascade provides a complementary operational use of the
+same conflict principle. Instead of running cross-view fusion on every sample,
+the cascade first compares the street-only and remote-only predictors and only
+invokes the paired-view model when their probabilities differ by more than a
+threshold. Table~\ref{tab:cascade} shows that this selective policy can match
+or exceed full cross-view F1 while calling the paired-view model for only a
+minority of samples.
+
+\begin{table}[t]
+  \caption{Adaptive inference cascade results. Stage-2 rate is the percentage
+  of samples routed to the cross-view model.}
+  \label{tab:cascade}
+  \centering
+  \begin{tabular}{lrrrr}
+    \toprule
+    Split & $\delta$ & Stage-2 & Full CV F1 & Cascade F1 \\
+    \midrule
+    Wildfire sensitive & 0.50 & 9.5\% & 0.9473 & 0.9498 \\
+    Hurricane moderate+severe & 0.20 & 22.3\% & 0.8915 & 0.8990 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 On the wildfire dataset, tile-level conflict density also forms a significant
 unsupervised damage proxy: \texttt{n\_tiles = 27}, Spearman
@@ -822,10 +864,10 @@ primary GIS-native spatial analysis dataset and hurricane as a cross-regime
 comparison benchmark.
 
 Second, the clean grouped hurricane split leads to a more conservative result
-than the original endpoint split. We consider this a strength of the study's
-honesty, but it also means that claims must be phrased carefully. The argument
-should emphasize conflict-aware value and regime comparison rather than a
-blanket assertion that cross-view always dominates every baseline.
+than the original endpoint split. This leakage-controlled split is a necessary
+boundary condition for the study: it shows that the argument should emphasize
+conflict-aware value and regime comparison rather than a blanket assertion
+that cross-view always dominates every baseline.
 
 Third, ConflictFocalLoss is currently validated only on the wildfire sensitive
 setting. The positive signal is encouraging, but broader validation remains
