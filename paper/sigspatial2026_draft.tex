@@ -23,7 +23,7 @@
 \newcommand{\concat}{\mathbin\Vert}
 \newcommand{\conf}{\mathcal{C}_{\tau}}
 
-\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:10 CDT}
+\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:16 CDT}
 
 \author{Yifan Yang}
 \authornote{Ph.D. student, Department of Geography.}
@@ -657,16 +657,6 @@ dominant on the conflict subset there. This is exactly why CAE matters: it
 separates easy average performance from the harder disagreement cases that
 actually drive the mechanism story.
 
-\begin{figure*}[!tbp]
-  \centering
-  \includegraphics[width=0.97\textwidth]{figures/qualitative_conflict_examples.png}
-  \Description{A qualitative figure shows representative conflict cases with ground-view images, overhead patches, and model predictions, highlighting when crossview resolves single-view disagreement.}
-  \caption{Qualitative conflict cases across wildfire and hurricane regimes.
-  The panel illustrates how cross-view fusion resolves disagreement when the
-  two single-view models provide competing evidence.}
-  \label{fig:qual}
-\end{figure*}
-
 \paragraph{View Dominance Switching Is Real but Split-Sensitive}
 
 To move beyond scalar F1, we explicitly decompose conflict cases by directional
@@ -919,6 +909,16 @@ unsupervised tile-level damage mapping.
 The broader takeaway is that multimodal disaster assessment should not ask only
 whether fusion helps. It should ask when fusion helps, which modality drives
 the gain, and what spatial regime makes that gain possible.
+
+\begin{figure*}[!p]
+  \centering
+  \includegraphics[width=0.97\textwidth]{figures/qualitative_conflict_examples.png}
+  \Description{A qualitative figure shows representative conflict cases with ground-view images, overhead patches, and model predictions, highlighting when crossview resolves single-view disagreement.}
+  \caption{Qualitative conflict cases across wildfire and hurricane regimes.
+  The panel illustrates how cross-view fusion resolves disagreement when the
+  two single-view models provide competing evidence.}
+  \label{fig:qual}
+\end{figure*}
 
 \begin{figure*}[!p]
   \centering
