@@ -653,6 +653,16 @@ The broader takeaway is that multimodal disaster assessment should not ask only
 whether fusion helps. It should ask when fusion helps, which modality drives the
 gain, and what spatial regime makes that gain possible.
 
+## Acknowledgments
+
+The authors used GPT-based writing assistance only for grammar checking and
+language polishing of author-written manuscript text. These tools were not used
+as sources of scientific evidence or to autonomously generate the study design,
+datasets, experimental results, figures, tables, interpretations, or
+conclusions. All analyses, visualizations, and manuscript content were reviewed,
+verified, and approved by the authors, who take full responsibility for the
+work.
+
 ## Figures to Finalize for Submission
 
 1. **View Dominance Switching figure**
