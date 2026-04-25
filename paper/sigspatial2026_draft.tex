@@ -23,7 +23,7 @@
 \newcommand{\concat}{\mathbin\Vert}
 \newcommand{\conf}{\mathcal{C}_{\tau}}
 
-\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:05 CDT}
+\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:10 CDT}
 
 \author{Yifan Yang}
 \authornote{Ph.D. student, Department of Geography.}
@@ -674,7 +674,7 @@ correction type. Table~\ref{tab:dominance} reports the \texttt{tau = 0.1}
 breakdown across the wildfire sensitive split, the hurricane endpoint split,
 and the broader hurricane sensitivity split.
 
-\begin{table}[t]
+\begin{table}[!tbp]
   \caption{View dominance switching analysis under the \texttt{tau = 0.1}
   conflict definition. $n_c$ is the number of conflict samples. $S{\rightarrow}O$ denotes street-correct /
   overhead-wrong conflicts, and $O{\rightarrow}S$ denotes overhead-correct /
@@ -704,7 +704,7 @@ crossview stays strongest on the broader sensitivity split, while the identity
 of the stronger single view is split-dependent and therefore part of the
 phenomenon rather than noise.
 
-\begin{figure}[t]
+\begin{figure}[!tbp]
   \centering
   \includegraphics[width=\columnwidth]{figures/view_dominance_switch_tau0.1.pdf}
   \Description{Two pie charts summarize conflict-type decompositions for wildfire and hurricane under tau equals 0.1. Wildfire shows a larger share of street-correct, remote-wrong cases, while hurricane is closer to balanced.}
@@ -723,7 +723,7 @@ distinction the study seeks to formalize: the property-centric wildfire ground
 view more often contains direct target evidence, whereas the hurricane ground
 view is much more environment-dominant.
 
-\begin{figure}[t]
+\begin{figure}[!tbp]
   \centering
   \includegraphics[width=\columnwidth]{figures/building_alignment_comparison.png}
   \Description{A comparison plot contrasts wildfire and hurricane conflict subsets using building ratio, center building ratio, and centroid distance. Wildfire shows higher visible building content and more centered building evidence.}
@@ -770,8 +770,6 @@ for street\_only, and 0.9654 $\pm$ 0.0015 for remote\_only. Hurricane
 multi-seed values are 0.9455 $\pm$ 0.0063, 0.9433 $\pm$ 0.0012, and
 0.8959 $\pm$ 0.0065, respectively.
 
-\FloatBarrier
-
 \paragraph{Label Sensitivity and Clean Hurricane Control}
 
 The broader hurricane binary mapping remains cross-view favorable:
@@ -807,7 +805,7 @@ importantly, the improvement is concentrated on the conflict subset:
 Conflict-F1 increases from 0.6618 to 0.7208 at gamma $= 0.5$, a gain of
 $+0.0590$ on the cases that CAE identifies as most consequential.
 
-\begin{table}[t]
+\begin{table}[!tbp]
   \caption{ConflictFocalLoss ablation on the wildfire sensitivity split.
   Conflict-F1 is computed on the \texttt{tau = 0.1} disagreement subset, and
   $\Delta$ Conflict-F1 is measured relative to the standard crossview baseline.}
@@ -834,7 +832,7 @@ threshold. Table~\ref{tab:cascade} shows that this selective policy can match
 or exceed full cross-view F1 while calling the paired-view model for only a
 minority of samples.
 
-\begin{table}[t]
+\begin{table}[!tbp]
   \caption{Adaptive inference cascade results. $\delta$ is the routing
   threshold on the absolute probability gap between the street-only and
   remote-only models. Stage-2 rate is the percentage of samples routed to the
@@ -857,26 +855,14 @@ $r = 0.5123$, and $p = 0.0063$. This is a strong spatial-analysis result because
 it converts disagreement between two discriminative models into a spatial damage
 map without using tile-level labels at inference time.
 
-\begin{figure}[t]
+\begin{figure}[!tbp]
   \centering
   \includegraphics[width=\columnwidth]{figures/alignment_gain_correlation.png}
   \Description{A correlation plot summarizes the relation between building-alignment proxy values and crossview correctness. The trend is weak at the per-sample level, which supports a dataset-level rather than sample-level interpretation.}
-\caption{Per-sample alignment correlation is weak, reinforcing that the
+  \caption{Per-sample alignment correlation is weak, reinforcing that the
   alignment effect should be interpreted mainly at the regime level.}
   \label{fig:corr}
 \end{figure}
-
-\FloatBarrier
-
-\begin{figure*}[!tbp]
-  \centering
-  \includegraphics[width=0.98\textwidth]{figures/wildfire_spatial_maps.png}
-  \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
-  \caption{Large-format wildfire spatial maps reveal that high conflict density
-  aligns with high realized damage and therefore supports a tile-level
-  unsupervised spatial damage signal.}
-  \label{fig:spatialmap}
-\end{figure*}
 
 \section{Discussion and Limitations}
 
@@ -933,6 +919,16 @@ unsupervised tile-level damage mapping.
 The broader takeaway is that multimodal disaster assessment should not ask only
 whether fusion helps. It should ask when fusion helps, which modality drives
 the gain, and what spatial regime makes that gain possible.
+
+\begin{figure*}[!p]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/wildfire_spatial_maps.png}
+  \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
+  \caption{Large-format wildfire spatial maps reveal that high conflict density
+  aligns with high realized damage and therefore supports a tile-level
+  unsupervised spatial damage signal.}
+  \label{fig:spatialmap}
+\end{figure*}
 
 \begin{acks}
 The authors used GPT-based writing assistance only for grammar checking and
