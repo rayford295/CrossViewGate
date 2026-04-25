@@ -807,16 +807,6 @@ importantly, the improvement is concentrated on the conflict subset:
 Conflict-F1 increases from 0.6618 to 0.7208 at gamma $= 0.5$, a gain of
 $+0.0590$ on the cases that CAE identifies as most consequential.
 
-\begin{figure*}[!tbp]
-  \centering
-  \includegraphics[width=0.98\textwidth]{figures/wildfire_spatial_maps.png}
-  \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
-  \caption{Large-format wildfire spatial maps reveal that high conflict density
-  aligns with high realized damage and therefore supports a tile-level
-  unsupervised spatial damage signal.}
-  \label{fig:spatialmap}
-\end{figure*}
-
 \begin{table}[t]
   \caption{ConflictFocalLoss ablation on the wildfire sensitivity split.
   Conflict-F1 is computed on the \texttt{tau = 0.1} disagreement subset, and
@@ -877,6 +867,16 @@ map without using tile-level labels at inference time.
 \end{figure}
 
 \FloatBarrier
+
+\begin{figure*}[!tbp]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/wildfire_spatial_maps.png}
+  \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
+  \caption{Large-format wildfire spatial maps reveal that high conflict density
+  aligns with high realized damage and therefore supports a tile-level
+  unsupervised spatial damage signal.}
+  \label{fig:spatialmap}
+\end{figure*}
 
 \section{Discussion and Limitations}
 
