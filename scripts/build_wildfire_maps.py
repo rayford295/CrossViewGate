@@ -99,16 +99,16 @@ def infer_cell_size(values: np.ndarray, fallback: float) -> float:
 
 
 def format_axes(ax: plt.Axes, title: str, bbox: tuple[float, float, float, float]) -> None:
-    ax.set_title(title, loc="left", fontweight="bold", color="#433c34")
+    ax.set_title(title, loc="left", fontweight="bold", color="#222222")
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
     ax.set_xlim(bbox[0], bbox[1])
     ax.set_ylim(bbox[2], bbox[3])
     ax.set_aspect("equal", adjustable="box")
-    ax.grid(True, color="#c7c0b4", linestyle=":", linewidth=0.5, alpha=0.5)
-    ax.set_facecolor("#fbf8f1")
+    ax.grid(False)
+    ax.set_facecolor("#ffffff")
     for spine in ax.spines.values():
-        spine.set_color("#8e8578")
+        spine.set_color("#666666")
         spine.set_linewidth(0.8)
 
 
@@ -128,8 +128,8 @@ def draw_tile_panel(
             (bbox[0], bbox[2]),
             bbox[1] - bbox[0],
             bbox[3] - bbox[2],
-            facecolor="#f7f2e8",
-            edgecolor="#ddd3c3",
+            facecolor="#ffffff",
+            edgecolor="#dddddd",
             linewidth=0.8,
             zorder=0,
         )
@@ -143,7 +143,7 @@ def draw_tile_panel(
         norm=norm,
         s=square_size,
         marker="s",
-        edgecolors="#f4efe6",
+        edgecolors="#ffffff",
         linewidths=0.95,
         alpha=0.97,
         zorder=2,
@@ -200,11 +200,11 @@ def main() -> None:
     )
     conflict_cmap = LinearSegmentedColormap.from_list(
         "wildfire_conflict",
-        ["#f7f5ef", "#d7dde3", "#98b7c8", "#4c8ea3", "#0d5b57"],
+        ["#ffffff", "#d7dde3", "#98b7c8", "#4c8ea3", "#0d5b57"],
     )
     gain_cmap = LinearSegmentedColormap.from_list(
         "wildfire_gain",
-        ["#b53f2e", "#e9c46a", "#f8f4e8", "#93c47d", "#2f7d43"],
+        ["#b53f2e", "#e9c46a", "#ffffff", "#93c47d", "#2f7d43"],
     )
 
     damage_norm = Normalize(vmin=0.0, vmax=1.0)
@@ -215,7 +215,7 @@ def main() -> None:
     gain_norm = TwoSlopeNorm(vmin=gain_min, vcenter=0.0, vmax=gain_max)
 
     fig, axes = plt.subplots(1, 3, figsize=(17.8, 5.7), constrained_layout=True)
-    fig.patch.set_facecolor("#f5f1e8")
+    fig.patch.set_facecolor("#ffffff")
 
     panels = [
         ("damage_rate", "a. Damage Rate", damage_cmap, damage_norm, "Observed positive-label rate"),
@@ -230,18 +230,18 @@ def main() -> None:
         cbar = fig.colorbar(sm, ax=ax, orientation="horizontal", fraction=0.055, pad=0.08)
         cbar.set_label(cbar_label, fontsize=8.5)
         cbar.ax.tick_params(labelsize=8)
-        cbar.outline.set_edgecolor("#8e8578")
+        cbar.outline.set_edgecolor("#666666")
 
-    fig.savefig(outdir / "wildfire_spatial_maps.png", dpi=260, bbox_inches="tight", facecolor=fig.get_facecolor())
-    fig.savefig(outdir / "wildfire_spatial_maps.pdf", dpi=260, bbox_inches="tight", facecolor=fig.get_facecolor())
+    fig.savefig(outdir / "wildfire_spatial_maps.png", dpi=260, bbox_inches="tight", facecolor="white")
+    fig.savefig(outdir / "wildfire_spatial_maps.pdf", dpi=260, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
     fig2, ax = plt.subplots(figsize=(6.8, 5.8), constrained_layout=True)
-    fig2.patch.set_facecolor("#f5f1e8")
+    fig2.patch.set_facecolor("#ffffff")
     dominance_norm = TwoSlopeNorm(vmin=-0.4, vcenter=0.0, vmax=0.4)
     dominance_cmap = LinearSegmentedColormap.from_list(
         "dominance",
-        ["#31688e", "#b8c8d6", "#f8f4e8", "#d3b28b", "#8c4c2e"],
+        ["#31688e", "#b8c8d6", "#ffffff", "#d3b28b", "#8c4c2e"],
     )
     draw_tile_panel(
         ax,
@@ -259,9 +259,9 @@ def main() -> None:
     cbar2 = fig2.colorbar(sm2, ax=ax, orientation="horizontal", fraction=0.065, pad=0.08)
     cbar2.set_label("Street accuracy minus remote accuracy", fontsize=8.5)
     cbar2.ax.tick_params(labelsize=8)
-    cbar2.outline.set_edgecolor("#8e8578")
-    fig2.savefig(outdir / "wildfire_view_dominance_map.png", dpi=260, bbox_inches="tight", facecolor=fig2.get_facecolor())
-    fig2.savefig(outdir / "wildfire_view_dominance_map.pdf", dpi=260, bbox_inches="tight", facecolor=fig2.get_facecolor())
+    cbar2.outline.set_edgecolor("#666666")
+    fig2.savefig(outdir / "wildfire_view_dominance_map.png", dpi=260, bbox_inches="tight", facecolor="white")
+    fig2.savefig(outdir / "wildfire_view_dominance_map.pdf", dpi=260, bbox_inches="tight", facecolor="white")
     plt.close(fig2)
 
     print(f"Saved tile metrics to {outdir / 'wildfire_tile_map_metrics.csv'}")

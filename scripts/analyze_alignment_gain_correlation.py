@@ -79,6 +79,8 @@ def _summarize(df: pd.DataFrame, feature: str, permutations: int, seed: int) -> 
 
 def _save_plot(combined: pd.DataFrame, output_path: Path) -> None:
     fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
     rng = np.random.default_rng(42)
     for dataset, color in [("wildfire", "#d95f02"), ("hurricane", "#1b9e77")]:
         subset = combined[combined["dataset"] == dataset].copy()
@@ -101,8 +103,9 @@ def _save_plot(combined: pd.DataFrame, output_path: Path) -> None:
     ax.set_ylabel("Crossview correct on conflict subset")
     ax.set_title("Alignment proxy vs crossview conflict resolution")
     ax.set_ylim(-0.1, 1.1)
-    ax.legend()
-    fig.savefig(output_path, dpi=200)
+    ax.grid(False)
+    ax.legend(frameon=False)
+    fig.savefig(output_path, dpi=200, facecolor="white")
     plt.close(fig)
 
 
