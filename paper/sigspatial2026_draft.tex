@@ -8,6 +8,16 @@
 \usepackage{booktabs}
 \usepackage{amssymb}
 \usepackage{mathtools}
+\usepackage[section]{placeins}
+\usepackage{dblfloatfix}
+
+\raggedbottom
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.85}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.85}
 
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\concat}{\mathbin\Vert}
@@ -150,7 +160,7 @@ The broader implication is that cross-view disaster intelligence should not be
 modeled as generic multimodal fusion. It should be understood as conflict-aware,
 regime-aware spatial reasoning.
 
-\begin{figure*}[t]
+\begin{figure*}[!tbp]
   \centering
   \includegraphics[width=0.98\textwidth]{figures/figure1_overview.png}
   \Description{Overview figure for the paper. The top row shows the study regions in the United States and the local wildfire tile footprint. The bottom row contrasts paired remote and street-view examples for wildfire and hurricane observation regimes.}
@@ -404,7 +414,7 @@ Conceptually, CAE reframes the task. Instead of asking whether multimodal
 fusion improves average classification, CAE asks whether fusion helps when the
 single-view models disagree and which modality drives that improvement.
 
-\begin{table*}[t]
+\begin{table*}[!tbp]
   \caption{Conflict-Aware Evaluation (CAE) summary across completed settings. Wildfire rows report the stricter sensitivity split, which yields the most informative wildfire conflict subset for CAE. Hurricane endpoint (grouped clean) is the leakage-controlled grouped rerun of the same MinorDamage-versus-SevereDamage hurricane endpoint task. Conflict-F1 is computed only on samples where the street-only and remote-only predicted probabilities differ by more than $\tau=0.1$. Crossview gain is reported on crossview rows as Conflict-F1(crossview) minus the larger Conflict-F1 of the two single-view baselines; dashes indicate quantities that are not applicable for that row.}
   \label{tab:cae}
   \centering
@@ -647,7 +657,7 @@ dominant on the conflict subset there. This is exactly why CAE matters: it
 separates easy average performance from the harder disagreement cases that
 actually drive the mechanism story.
 
-\begin{figure*}[t]
+\begin{figure*}[!tbp]
   \centering
   \includegraphics[width=0.97\textwidth]{figures/qualitative_conflict_examples.png}
   \Description{A qualitative figure shows representative conflict cases with ground-view images, overhead patches, and model predictions, highlighting when crossview resolves single-view disagreement.}
@@ -734,7 +744,7 @@ $= 0.7266$, and crossview $= 0.7500$, with both permutation tests yielding
 \texttt{p < 1e-4}. This confirms that the disagreement-centered effect is not
 an artifact of a single hard-threshold definition.
 
-\begin{figure*}[t]
+\begin{figure*}[!tbp]
   \centering
   \includegraphics[width=0.48\textwidth]{figures/wildfire_threshold_sensitivity.png}
   \hfill
@@ -759,6 +769,8 @@ standard deviation are 0.9689 $\pm$ 0.0011 for crossview, 0.9657 $\pm$ 0.0001
 for street\_only, and 0.9654 $\pm$ 0.0015 for remote\_only. Hurricane
 multi-seed values are 0.9455 $\pm$ 0.0063, 0.9433 $\pm$ 0.0012, and
 0.8959 $\pm$ 0.0065, respectively.
+
+\FloatBarrier
 
 \paragraph{Label Sensitivity and Clean Hurricane Control}
 
@@ -794,6 +806,16 @@ best setting improves the wildfire sensitivity task by $+0.0047$ F1. More
 importantly, the improvement is concentrated on the conflict subset:
 Conflict-F1 increases from 0.6618 to 0.7208 at gamma $= 0.5$, a gain of
 $+0.0590$ on the cases that CAE identifies as most consequential.
+
+\begin{figure*}[!tbp]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/wildfire_spatial_maps.png}
+  \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
+  \caption{Large-format wildfire spatial maps reveal that high conflict density
+  aligns with high realized damage and therefore supports a tile-level
+  unsupervised spatial damage signal.}
+  \label{fig:spatialmap}
+\end{figure*}
 
 \begin{table}[t]
   \caption{ConflictFocalLoss ablation on the wildfire sensitivity split.
@@ -849,20 +871,12 @@ map without using tile-level labels at inference time.
   \centering
   \includegraphics[width=\columnwidth]{figures/alignment_gain_correlation.png}
   \Description{A correlation plot summarizes the relation between building-alignment proxy values and crossview correctness. The trend is weak at the per-sample level, which supports a dataset-level rather than sample-level interpretation.}
-  \caption{Per-sample alignment correlation is weak, reinforcing that the
+\caption{Per-sample alignment correlation is weak, reinforcing that the
   alignment effect should be interpreted mainly at the regime level.}
   \label{fig:corr}
 \end{figure}
 
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.98\textwidth]{figures/wildfire_spatial_maps.png}
-  \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
-  \caption{Large-format wildfire spatial maps reveal that high conflict density
-  aligns with high realized damage and therefore supports a tile-level
-  unsupervised spatial damage signal.}
-  \label{fig:spatialmap}
-\end{figure*}
+\FloatBarrier
 
 \section{Discussion and Limitations}
 
