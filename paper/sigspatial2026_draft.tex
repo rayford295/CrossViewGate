@@ -23,7 +23,7 @@
 \newcommand{\concat}{\mathbin\Vert}
 \newcommand{\conf}{\mathcal{C}_{\tau}}
 
-\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:16 CDT}
+\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:24 CDT}
 
 \author{Yifan Yang}
 \authornote{Ph.D. student, Department of Geography.}
@@ -78,6 +78,14 @@ multimodal classification.
 \begin{document}
 
 \maketitle
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/figure1_overview.png}
+  \Description{Overview figure for the paper. The top row shows the study regions in the United States and the local wildfire tile footprint. The bottom row contrasts paired remote and street-view examples for wildfire and hurricane observation regimes.}
+  \caption{Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint. In the footprint panel, each square represents one overhead-image tile used by one or more paired wildfire samples; square color encodes the observed positive-label damage rate within that tile, and the center dot scales with the number of samples assigned to the tile. The bottom row shows paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.}
+  \label{fig:overview}
+\end{figure*}
 
 \section{Introduction}
 
@@ -159,14 +167,6 @@ This study makes four contributions:
 The broader implication is that cross-view disaster intelligence should not be
 modeled as generic multimodal fusion. It should be understood as conflict-aware,
 regime-aware spatial reasoning.
-
-\begin{figure*}[!tbp]
-  \centering
-  \includegraphics[width=0.98\textwidth]{figures/figure1_overview.png}
-  \Description{Overview figure for the paper. The top row shows the study regions in the United States and the local wildfire tile footprint. The bottom row contrasts paired remote and street-view examples for wildfire and hurricane observation regimes.}
-  \caption{Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint. In the footprint panel, each square represents one overhead-image tile used by one or more paired wildfire samples; square color encodes the observed positive-label damage rate within that tile, and the center dot scales with the number of samples assigned to the tile. The bottom row shows paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.}
-  \label{fig:overview}
-\end{figure*}
 
 \section{Related Work}
 
@@ -845,15 +845,6 @@ $r = 0.5123$, and $p = 0.0063$. This is a strong spatial-analysis result because
 it converts disagreement between two discriminative models into a spatial damage
 map without using tile-level labels at inference time.
 
-\begin{figure}[!tbp]
-  \centering
-  \includegraphics[width=\columnwidth]{figures/alignment_gain_correlation.png}
-  \Description{A correlation plot summarizes the relation between building-alignment proxy values and crossview correctness. The trend is weak at the per-sample level, which supports a dataset-level rather than sample-level interpretation.}
-  \caption{Per-sample alignment correlation is weak, reinforcing that the
-  alignment effect should be interpreted mainly at the regime level.}
-  \label{fig:corr}
-\end{figure}
-
 \section{Discussion and Limitations}
 
 The results support a different way of thinking about cross-view fusion in
@@ -918,6 +909,15 @@ the gain, and what spatial regime makes that gain possible.
   The panel illustrates how cross-view fusion resolves disagreement when the
   two single-view models provide competing evidence.}
   \label{fig:qual}
+\end{figure*}
+
+\begin{figure*}[!p]
+  \centering
+  \includegraphics[width=0.74\textwidth]{figures/alignment_gain_correlation.png}
+  \Description{A correlation plot summarizes the relation between building-alignment proxy values and crossview correctness. The trend is weak at the per-sample level, which supports a dataset-level rather than sample-level interpretation.}
+  \caption{Per-sample alignment correlation is weak, reinforcing that the
+  alignment effect should be interpreted mainly at the regime level.}
+  \label{fig:corr}
 \end{figure*}
 
 \begin{figure*}[!p]
