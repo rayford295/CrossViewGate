@@ -1,7 +1,7 @@
 \documentclass[sigconf]{acmart}
 
 \setcopyright{none}
-\settopmatter{printacmref=false}
+\settopmatter{printacmref=false, printfolios=true}
 \renewcommand\footnotetextcopyrightpermission[1]{}
 \pagestyle{plain}
 
@@ -23,10 +23,9 @@
 \newcommand{\concat}{\mathbin\Vert}
 \newcommand{\conf}{\mathcal{C}_{\tau}}
 
-\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:24 CDT}
+\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:35 CDT}
 
 \author{Yifan Yang}
-\authornote{Ph.D. student, Department of Geography.}
 \affiliation{%
   \department{Department of Geography}
   \institution{Texas A\&M University}
@@ -36,7 +35,6 @@
 }
 
 \author{Lei Zou}
-\authornote{Corresponding author.}
 \affiliation{%
   \department{Department of Geography}
   \institution{Texas A\&M University}
@@ -78,14 +76,6 @@ multimodal classification.
 \begin{document}
 
 \maketitle
-
-\begin{figure*}[!t]
-  \centering
-  \includegraphics[width=0.98\textwidth]{figures/figure1_overview.png}
-  \Description{Overview figure for the paper. The top row shows the study regions in the United States and the local wildfire tile footprint. The bottom row contrasts paired remote and street-view examples for wildfire and hurricane observation regimes.}
-  \caption{Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint. In the footprint panel, each square represents one overhead-image tile used by one or more paired wildfire samples; square color encodes the observed positive-label damage rate within that tile, and the center dot scales with the number of samples assigned to the tile. The bottom row shows paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.}
-  \label{fig:overview}
-\end{figure*}
 
 \section{Introduction}
 
@@ -304,6 +294,14 @@ and shows the local tile footprint in the Altadena / Eaton Fire area. This
 context matters because the wildfire benchmark is neighborhood-scale and
 spatially compact, which is precisely what enables the tile-level spatial
 analysis later in the paper.
+
+\begin{figure*}[!tbp]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/figure1_overview.png}
+  \Description{Overview figure for the paper. The top row shows the study regions in the United States and the local wildfire tile footprint. The bottom row contrasts paired remote and street-view examples for wildfire and hurricane observation regimes.}
+  \caption{Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint. In the footprint panel, each square represents one overhead-image tile used by one or more paired wildfire samples; square color encodes the observed positive-label damage rate within that tile, and the center dot scales with the number of samples assigned to the tile. The bottom row shows paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.}
+  \label{fig:overview}
+\end{figure*}
 
 \paragraph{Hurricane Ian Benchmark}
 
