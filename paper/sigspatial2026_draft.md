@@ -7,9 +7,9 @@ accuracy, even though the practical value of paired ground and overhead imagery
 appears most clearly when the two views disagree. We study this problem through
 a conflict-centered lens on two paired disaster datasets with different spatial
 observation regimes: an Eaton/Altadena wildfire dataset contributed by this
-paper, built from property-centric inspection imagery and overhead patches, and
-a Hurricane Ian benchmark reused from prior cross-view work, built from
-panoramic ground imagery and overhead patches. We introduce a Conflict-Aware
+paper from property-centric inspection imagery and overhead patches, and the
+Hurricane Ian CVDisaster benchmark introduced by Li et al., which pairs
+panoramic ground imagery with overhead patches. We introduce a Conflict-Aware
 Evaluation Protocol (CAE) that reports overall F1, conflict-subset F1 under a
 soft disagreement threshold, and the gain of cross-view fusion over the best
 single-view model. CAE reveals a regime-dependent pattern we call view
@@ -52,9 +52,10 @@ observation regime of the ground-view imagery. A property-centric inspection
 photo and a panoramic environmental photo are both "ground-view" images, but
 they encode very different relationships to the target building.
 
-We investigate this hypothesis on two paired disaster datasets. The first is an
-Eaton/Altadena wildfire dataset built from property-centric inspection imagery
-paired with overhead patches. The second is a Hurricane Ian benchmark built
+We investigate this hypothesis on two paired disaster datasets with different
+provenance. The first is our contributed Eaton/Altadena wildfire dataset, built
+from property-centric inspection imagery paired with overhead patches. The
+second is the Hurricane Ian CVDisaster benchmark introduced by Li et al., built
 from panoramic ground imagery paired with overhead patches. These datasets do
 not merely differ by disaster type. More importantly, they differ by spatial
 observation regime: the wildfire ground view is usually tightly aligned with the
@@ -104,7 +105,7 @@ regime-aware spatial reasoning.
 
 ![Figure 1 overview](figures/figure1_overview.png)
 
-*Figure 1. Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint used for tile-level analysis. The bottom row contrasts paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.*
+*Figure 1. Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint. In the footprint panel, each square represents one overhead-image tile used by one or more paired wildfire samples; square color encodes the observed positive-label damage rate within that tile, and the center dot scales with the number of samples assigned to the tile. The bottom row contrasts paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.*
 
 ## 2. Related Work
 
@@ -121,12 +122,13 @@ non-uniform coverage, and dependence on how well the captured scene aligns with
 the target structure.
 
 Recent cross-view disaster work begins to bridge these modalities by pairing
-ground and overhead imagery. The closest prior direction uses Hurricane Ian
-ground imagery with overhead imagery for cross-view disaster perception. That
-line of work demonstrates that paired-view learning is feasible and useful, but
-it still evaluates mainly by aggregate classification performance. It does not
-separate easy cases from disagreement cases, and it does not ask whether the
-dominant evidence source changes across spatial observation regimes.
+ground and overhead imagery. The closest prior direction is CVDisaster by Li et
+al., which uses Hurricane Ian ground imagery with overhead imagery for
+cross-view disaster perception. That line of work demonstrates that paired-view
+learning is feasible and useful, but it still evaluates mainly by aggregate
+classification performance. It does not separate easy cases from disagreement
+cases, and it does not ask whether the dominant evidence source changes across
+spatial observation regimes.
 
 More broadly, multimodal fusion in vision and geospatial learning often assumes
 that the modalities should be fused symmetrically. In disaster settings, that
@@ -160,11 +162,12 @@ We consider three model settings under a shared training protocol:
 
 ### 3.2 Eaton/Altadena Wildfire Dataset
 
-Our wildfire dataset pairs property-centric inspection imagery with overhead
-patches. The ground images are typically taken from close range and are visually
-anchored to the target property. This gives the dataset strong target alignment
-and makes it a natural setting to study whether local facade evidence helps
-resolve conflicts in overhead interpretation.
+This paper contributes the Eaton/Altadena wildfire dataset used in our
+experiments. The dataset pairs property-centric inspection imagery with
+overhead patches. The ground images are typically taken from close range and
+are visually anchored to the target property. This gives the dataset strong
+target alignment and makes it a natural setting to study whether local facade
+evidence helps resolve conflicts in overhead interpretation.
 
 For the primary wildfire binary triage task, we use:
 
@@ -177,15 +180,27 @@ We also evaluate a stricter sensitivity split:
 - 1 = Affected + Minor + Major + Destroyed
 
 The wildfire dataset additionally contains reliable spatial grouping metadata,
-which allows tile-level geographic analysis and map-based outputs.
+which allows tile-level geographic analysis and map-based outputs. A tile is
+one fixed overhead-image patch, identified in the metadata by its remote-tile
+filename. Multiple property-level samples can share the same tile when they are
+paired with the same overhead patch. Tile-level analysis therefore aggregates
+labels or predictions across all samples assigned to that overhead patch. In
+Figure 1, each tile is plotted at a representative geographic location derived
+from its paired sample coordinates; square color shows the tile's observed
+positive-label damage rate, and the center dot indicates the tile sample count.
 
 ### 3.3 Hurricane Ian Benchmark
 
-The hurricane benchmark pairs panoramic ground imagery with overhead patches.
+The hurricane benchmark is the Hurricane Ian CVDisaster dataset introduced by
+Li et al. We use it as an external paired-view benchmark for cross-regime
+comparison. The benchmark pairs panoramic ground imagery with overhead patches.
 Unlike the wildfire dataset, the ground view here is not tightly centered on a
 single property. It often includes broader street context, neighboring
 structures, and environmental clutter. We therefore treat it as a panoramic or
-environment-centric observation regime.
+environment-centric observation regime. The benchmark does not provide the same
+tile-level geographic metadata needed for our local GIS footprint maps, so the
+tile-level spatial analysis in this paper is conducted on the contributed
+wildfire dataset.
 
 For the endpoint binary setting, we use:
 
@@ -223,11 +238,11 @@ For a given setting, let $\mathcal{C}_\tau = \{i : |p^\text{street}_i - p^\text{
 
 1. **Overall-F1**: standard F1 over the full test set.
 2. **Conflict-F1**: F1 restricted to $\mathcal{C}_\tau$, measuring cross-view performance where single-view models disagree.
-3. **Δ_view**: the gain of cross-view fusion over the stronger single-view model on $\mathcal{C}_\tau$:
+3. **Delta_view**: the gain of cross-view fusion over the stronger single-view model on $\mathcal{C}_\tau$:
 
 $$\Delta_\text{view} = \text{F1}_\text{cross-view}(\mathcal{C}_\tau) - \max\!\bigl(\text{F1}_\text{street}(\mathcal{C}_\tau),\, \text{F1}_\text{remote}(\mathcal{C}_\tau)\bigr)$$
 
-In our main experiments, we use τ = 0.1. This soft conflict definition is more robust than a hard binary disagreement test and yields usable conflict-subset sizes for both datasets. Under this threshold, the conflict subset contains 435 wildfire samples and 128 hurricane sensitivity samples, both with permutation-test *p* < 10⁻⁴.
+In our main experiments, we use tau = 0.1. This soft conflict definition is more robust than a hard binary disagreement test and yields usable conflict-subset sizes for both datasets. Under this threshold, the conflict subset contains 435 wildfire samples and 128 hurricane sensitivity samples, both with permutation-test *p* < 1e-4.
 
 Conceptually, CAE reframes the task. Instead of asking whether multimodal
 fusion improves average classification, CAE asks whether fusion helps when the
@@ -257,8 +272,8 @@ Given CAE, we analyze conflict cases by asking which single-view model is more
 accurate within that subset. We also decompose conflicts into directional
 correction types:
 
-- S→O: street is correct, overhead is wrong
-- O→S: overhead is correct, street is wrong
+- S->O: street is correct, overhead is wrong
+- O->S: overhead is correct, street is wrong
 - "both wrong"
 - "both correct" under the soft disagreement threshold
 
@@ -280,7 +295,7 @@ where $d_i = |p^\text{street}_i - p^\text{remote}_i|$ is the single-view conflic
 magnitude for sample $i$ and $\gamma \geq 0$ controls the conflict emphasis.
 At $\gamma = 0$, the loss reduces to standard binary cross-entropy.
 
-We evaluate a γ sweep over:
+We evaluate a gamma sweep over:
 
 - 0.1
 - 0.25
@@ -347,26 +362,31 @@ one place.
 
 | Method | Dataset | Split | Overall-F1 | Conflict-F1 (`tau=0.1`) | `Delta_view` | Notes |
 | --- | --- | --- | ---: | ---: | ---: | --- |
-| street_only | Wildfire | endpoint | 0.9604 | — | — | main benchmark |
-| remote_only | Wildfire | endpoint | 0.9653 | — | — | main benchmark |
-| crossview | Wildfire | endpoint | 0.9713 | — | — | main benchmark |
-| voting ensemble | Wildfire | sensitive | 0.9396 | — | — | probability average |
-| street_only | Wildfire | sensitive | 0.9392 | 0.6230 | — | CAE split |
-| remote_only | Wildfire | sensitive | 0.9238 | 0.5237 | — | CAE split |
+| street_only | Wildfire | endpoint | 0.9604 | -- | -- | main benchmark |
+| remote_only | Wildfire | endpoint | 0.9653 | -- | -- | main benchmark |
+| crossview | Wildfire | endpoint | 0.9713 | -- | -- | main benchmark |
+| voting ensemble | Wildfire | sensitive | 0.9396 | -- | -- | probability average |
+| street_only | Wildfire | sensitive | 0.9392 | 0.6230 | -- | CAE split |
+| remote_only | Wildfire | sensitive | 0.9238 | 0.5237 | -- | CAE split |
 | crossview | Wildfire | sensitive | 0.9473 | 0.6618 | +0.0388 | CAE split |
-| crossview + ConflictFocalLoss (`gamma = 0.5`) | Wildfire | sensitive | 0.9520 | 0.7208 | — | best CFL run |
-| street_only | Hurricane | endpoint | 0.9055 | 0.6842 | — | CAE split |
-| remote_only | Hurricane | endpoint | 0.8969 | 0.5806 | — | CAE split |
+| crossview + ConflictFocalLoss (`gamma = 0.5`) | Wildfire | sensitive | 0.9520 | 0.7208 | -- | best CFL run |
+| street_only | Hurricane | endpoint | 0.9055 | 0.6842 | -- | CAE split |
+| remote_only | Hurricane | endpoint | 0.8969 | 0.5806 | -- | CAE split |
 | crossview | Hurricane | endpoint | 0.9192 | 0.7647 | +0.0805 | CAE split |
-| voting ensemble | Hurricane | endpoint | 0.9100 | — | — | probability average |
-| street_only | Hurricane | moderate+severe | 0.8738 | 0.7324 | — | broader positive class |
-| remote_only | Hurricane | moderate+severe | 0.8873 | 0.7742 | — | broader positive class |
+| voting ensemble | Hurricane | endpoint | 0.9100 | -- | -- | probability average |
+| street_only | Hurricane | moderate+severe | 0.8738 | 0.7324 | -- | broader positive class |
+| remote_only | Hurricane | moderate+severe | 0.8873 | 0.7742 | -- | broader positive class |
 | crossview | Hurricane | moderate+severe | 0.8915 | 0.7867 | +0.0125 | broader positive class |
-| voting ensemble | Hurricane | moderate+severe | 0.8936 | — | — | probability average |
-| street_only | Hurricane | grouped clean | 0.9016 | 0.8101 | — | objectid-clean rerun |
-| remote_only | Hurricane | grouped clean | 0.8385 | 0.6526 | — | objectid-clean rerun |
+| voting ensemble | Hurricane | moderate+severe | 0.8936 | -- | -- | probability average |
+| street_only | Hurricane | grouped clean | 0.9016 | 0.8101 | -- | objectid-clean rerun |
+| remote_only | Hurricane | grouped clean | 0.8385 | 0.6526 | -- | objectid-clean rerun |
 | crossview | Hurricane | grouped clean | 0.9008 | 0.7949 | -0.0153 | objectid-clean rerun |
-| voting ensemble | Hurricane | grouped clean | 0.8800 | — | — | probability average |
+| voting ensemble | Hurricane | grouped clean | 0.8800 | -- | -- | probability average |
+
+Here, `Delta_view` is reported only when the row is a cross-view setting; it is
+defined as Conflict-F1(cross-view) minus the larger Conflict-F1 of the two
+single-view baselines. Dashes indicate quantities that are not applicable for
+that row.
 
 Two patterns from Table 1 matter most. First, the practical value of
 cross-view fusion is concentrated in conflict cases rather than in easy average
@@ -394,28 +414,28 @@ subset. On the wildfire sensitive setting, the conflict-set F1 values are:
 - *street-only* = 0.6230
 - *remote-only* = 0.5237
 - *cross-view* = 0.6618
-- Δ_view = +0.0388
+- Delta_view = +0.0388
 
 On hurricane endpoint:
 
 - *street-only* = 0.6842
 - *remote-only* = 0.5806
 - *cross-view* = 0.7647
-- Δ_view = +0.0805
+- Delta_view = +0.0805
 
 On hurricane moderate+severe sensitivity:
 
 - *street-only* = 0.7324
 - *remote-only* = 0.7742
 - *cross-view* = 0.7867
-- Δ_view = +0.0125
+- Delta_view = +0.0125
 
 On the clean grouped hurricane split:
 
 - *street-only* = 0.8101
 - *remote-only* = 0.6526
 - *cross-view* = 0.7949
-- Δ_view = -0.0153
+- Delta_view = -0.0153
 
 This is an important corrective result. The clean grouped split shows that
 cross-view is not universally dominant across all hurricane conditions.
@@ -585,7 +605,7 @@ unsupervised damage proxy:
 - Spearman *r* = 0.512
 - *p = 0.0063*
 
-Tile-level conflict density thus converts model disagreement into an unsupervised spatial damage signal without requiring tile-level annotations at inference time—a property directly relevant to rapid post-disaster GIS assessment.
+Tile-level conflict density thus converts model disagreement into an unsupervised spatial damage signal without requiring tile-level annotations at inference time, a property directly relevant to rapid post-disaster GIS assessment.
 
 ## 8. Discussion
 

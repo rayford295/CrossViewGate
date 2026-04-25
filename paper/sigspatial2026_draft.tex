@@ -42,9 +42,10 @@ average test performance. That perspective obscures the cases in which fusion
 is most valuable: samples for which the single-view predictors disagree. This
 study examines cross-view disaster triage through that conflict-centered lens on
 two paired datasets with distinct spatial observation regimes: an
-Eaton/Altadena wildfire dataset built from property-centric inspection imagery
-and overhead patches, and a Hurricane Ian benchmark built from panoramic
-ground imagery and paired overhead patches. We introduce a Conflict-Aware
+Eaton/Altadena wildfire dataset introduced in this study from
+property-centric inspection imagery and overhead patches, and the Hurricane Ian
+CVDisaster benchmark introduced by Li et al. \cite{li2025cross}, which pairs
+panoramic ground imagery with overhead patches. We introduce a Conflict-Aware
 Evaluation protocol (CAE) that reports overall F1, conflict-subset F1 under a
 soft disagreement threshold, and the conflict gain of cross-view fusion over
 the best single-view model. CAE shows that fusion is most useful on
@@ -95,14 +96,16 @@ observation regime of the ground-view imagery. A property-centric inspection
 photo and a panoramic environmental photo are both ground-view images, but they
 encode very different relationships to the target building.
 
-We investigate this hypothesis on two paired disaster datasets. The first is an
-Eaton/Altadena wildfire dataset built from property-centric inspection imagery
-paired with overhead patches. The second is a Hurricane Ian benchmark built
-from panoramic ground imagery paired with overhead patches. These datasets do
-not merely differ by disaster type. More importantly, they differ by spatial
-observation regime: the wildfire ground view is usually tightly aligned with
-the target property, whereas the hurricane ground view often contains broader
-environmental context and weaker target alignment.
+We investigate this hypothesis on two paired disaster datasets with different
+provenance. The first is our contributed Eaton/Altadena wildfire dataset, built
+from property-centric inspection imagery paired with overhead patches. The
+second is the Hurricane Ian CVDisaster benchmark introduced by Li et al.
+\cite{li2025cross}, built from panoramic ground imagery paired with overhead
+patches. These datasets do not merely differ by disaster type. More
+importantly, they differ by spatial observation regime: the wildfire ground
+view is usually tightly aligned with the target property, whereas the hurricane
+ground view often contains broader environmental context and weaker target
+alignment.
 
 To study these settings, we introduce a Conflict-Aware Evaluation protocol
 (CAE). CAE reports: (1) standard overall F1 on the full test set, (2)
@@ -151,7 +154,7 @@ regime-aware spatial reasoning.
   \centering
   \includegraphics[width=0.98\textwidth]{figures/figure1_overview.png}
   \Description{Overview figure for the paper. The top row shows the study regions in the United States and the local wildfire tile footprint. The bottom row contrasts paired remote and street-view examples for wildfire and hurricane observation regimes.}
-  \caption{Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint used for tile-level analysis. The bottom row shows paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.}
+  \caption{Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint. In the footprint panel, each square represents one overhead-image tile used by one or more paired wildfire samples; square color encodes the observed positive-label damage rate within that tile, and the center dot scales with the number of samples assigned to the tile. The bottom row shows paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.}
   \label{fig:overview}
 \end{figure*}
 
@@ -256,11 +259,12 @@ We consider three model settings under a shared training protocol:
 
 \paragraph{Eaton/Altadena Wildfire Dataset}
 
-Our wildfire dataset pairs property-centric inspection imagery with overhead
-patches. The ground images are typically taken from close range and are
-visually anchored to the target property. This gives the dataset strong target
-alignment and makes it a natural setting to study whether local facade evidence
-helps resolve conflicts in overhead interpretation.
+This paper contributes the Eaton/Altadena wildfire dataset used in our
+experiments. The dataset pairs property-centric inspection imagery with
+overhead patches. The ground images are typically taken from close range and
+are visually anchored to the target property. This gives the dataset strong
+target alignment and makes it a natural setting to study whether local facade
+evidence helps resolve conflicts in overhead interpretation.
 
 For the primary wildfire binary triage task, we use:
 \begin{itemize}
@@ -276,9 +280,14 @@ We also evaluate a stricter sensitivity split:
 
 The wildfire dataset additionally contains spatial grouping metadata, which
 allows tile-level geographic analysis and map-based outputs. Here a
-\emph{tile} denotes a fixed overhead-image patch and its associated spatial
-unit in the wildfire benchmark, so tile-level analysis means aggregating
-sample-level predictions within the same remote-sensing patch.
+\emph{tile} denotes one fixed overhead-image patch, identified in the metadata
+by its remote-tile filename. Multiple property-level samples can share the same
+tile when they are paired with the same overhead patch. Tile-level analysis
+therefore means aggregating labels or predictions across all samples assigned
+to that overhead patch. In Figure~\ref{fig:overview}, each tile is plotted at a
+representative geographic location derived from its paired sample coordinates;
+the square color shows the tile's observed positive-label damage rate, and the
+center dot indicates the tile sample count.
 
 Figure~\ref{fig:overview} places the wildfire benchmark in geographic context
 and shows the local tile footprint in the Altadena / Eaton Fire area. This
@@ -288,11 +297,16 @@ analysis later in the paper.
 
 \paragraph{Hurricane Ian Benchmark}
 
-The hurricane benchmark pairs panoramic ground imagery with overhead patches.
-Unlike the wildfire dataset, the ground view here is not tightly centered on a
-single property. It often includes broader street context, neighboring
-structures, and environmental clutter. We therefore treat it as a panoramic or
-environment-centric observation regime.
+The hurricane benchmark is the Hurricane Ian CVDisaster dataset introduced by
+Li et al. \cite{li2025cross}. We use it as an external paired-view benchmark
+for cross-regime comparison. The benchmark pairs panoramic ground imagery with
+overhead patches. Unlike the wildfire dataset, the ground view here is not
+tightly centered on a single property. It often includes broader street
+context, neighboring structures, and environmental clutter. We therefore treat
+it as a panoramic or environment-centric observation regime. The benchmark does
+not provide the same tile-level geographic metadata needed for our local GIS
+footprint maps, so the tile-level spatial analysis in this paper is conducted
+on the contributed wildfire dataset.
 
 For the endpoint binary setting, we use:
 \begin{itemize}
@@ -380,7 +394,7 @@ fusion improves average classification, CAE asks whether fusion helps when the
 single-view models disagree and which modality drives that improvement.
 
 \begin{table*}[t]
-  \caption{Conflict-Aware Evaluation (CAE) summary across completed settings. Wildfire rows report the stricter sensitivity split, which yields the most informative wildfire conflict subset for CAE.}
+  \caption{Conflict-Aware Evaluation (CAE) summary across completed settings. Wildfire rows report the stricter sensitivity split, which yields the most informative wildfire conflict subset for CAE. Conflict-F1 is computed only on samples where the street-only and remote-only predicted probabilities differ by more than $\tau=0.1$. Crossview gain is reported on crossview rows as Conflict-F1(crossview) minus the larger Conflict-F1 of the two single-view baselines; dashes indicate quantities that are not applicable for that row.}
   \label{tab:cae}
   \centering
   \begin{tabular}{llrrrr}
@@ -641,9 +655,10 @@ and the broader hurricane sensitivity split.
 
 \begin{table}[t]
   \caption{View dominance switching analysis under the \texttt{tau = 0.1}
-  conflict definition. $S{\rightarrow}O$ denotes street-correct /
+  conflict definition. $n_c$ is the number of conflict samples. $S{\rightarrow}O$ denotes street-correct /
   overhead-wrong conflicts, and $O{\rightarrow}S$ denotes overhead-correct /
-  street-wrong conflicts.}
+  street-wrong conflicts. The Dominant column names the stronger single-view
+  model on the conflict subset, not necessarily the final best fused model.}
   \label{tab:dominance}
   \centering
   \begin{tabular}{lrrrl}
@@ -770,7 +785,8 @@ $+0.0590$ on the cases that CAE identifies as most consequential.
 
 \begin{table}[t]
   \caption{ConflictFocalLoss ablation on the wildfire sensitivity split.
-  Conflict-F1 is computed on the \texttt{tau = 0.1} disagreement subset.}
+  Conflict-F1 is computed on the \texttt{tau = 0.1} disagreement subset, and
+  $\Delta$ Conflict-F1 is measured relative to the standard crossview baseline.}
   \label{tab:cfl}
   \centering
   \begin{tabular}{lrrr}
@@ -795,8 +811,10 @@ or exceed full cross-view F1 while calling the paired-view model for only a
 minority of samples.
 
 \begin{table}[t]
-  \caption{Adaptive inference cascade results. Stage-2 rate is the percentage
-  of samples routed to the cross-view model.}
+  \caption{Adaptive inference cascade results. $\delta$ is the routing
+  threshold on the absolute probability gap between the street-only and
+  remote-only models. Stage-2 rate is the percentage of samples routed to the
+  cross-view model.}
   \label{tab:cascade}
   \centering
   \begin{tabular}{lrrrr}
