@@ -100,6 +100,10 @@ The broader implication is that cross-view disaster intelligence should not be
 modeled as generic multimodal fusion. It should be understood as conflict-aware,
 regime-aware spatial reasoning.
 
+![Figure 1 overview](figures/figure1_overview.png)
+
+*Figure 1. Overview of the study design and spatial observation regimes. The top row provides geographic context through the U.S. study-region locator map and the local wildfire tile footprint used for tile-level analysis. The bottom row contrasts paired remote and ground views for the wildfire and hurricane settings, illustrating the property-centric wildfire regime and the panoramic hurricane regime considered throughout the paper.*
+
 ## 2. Related Work
 
 Research on post-disaster visual assessment has largely focused on single-view
