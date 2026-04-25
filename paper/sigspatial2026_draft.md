@@ -212,9 +212,15 @@ We also evaluate a broader sensitivity setting:
 - 0 = MinorDamage
 - 1 = ModerateDamage + SevereDamage
 
-The original hurricane endpoint split showed object-level leakage. We therefore
-rebuilt a clean grouped split and use it as the more reliable hurricane control
-condition.
+The original hurricane endpoint split showed object-level leakage, meaning that
+imagery associated with the same damaged object could appear across train and
+test partitions. To check whether the endpoint result survives a stricter
+partition, we therefore rebuild the same endpoint label definition as a
+**grouped clean** split, where samples are grouped by object identifier before
+splitting. In the result tables, **Hurricane endpoint** refers to the original
+endpoint split, while **Hurricane endpoint (grouped clean)** refers to this
+leakage-controlled rerun. It is not a third label definition; it is a cleaner
+split of the same MinorDamage-versus-SevereDamage hurricane task.
 
 ### 3.4 Why This Comparison Matters
 
@@ -243,6 +249,11 @@ For a given setting, let $\mathcal{C}_\tau = \{i : |p^\text{street}_i - p^\text{
 $$\Delta_\text{view} = \text{F1}_\text{cross-view}(\mathcal{C}_\tau) - \max\!\bigl(\text{F1}_\text{street}(\mathcal{C}_\tau),\, \text{F1}_\text{remote}(\mathcal{C}_\tau)\bigr)$$
 
 In our main experiments, we use tau = 0.1. This soft conflict definition is more robust than a hard binary disagreement test and yields usable conflict-subset sizes for both datasets. Under this threshold, the conflict subset contains 435 wildfire samples and 128 hurricane sensitivity samples, both with permutation-test *p* < 1e-4.
+
+To keep table labels compact, **Wildfire sensitive** denotes the stricter
+wildfire split defined above, **Hurricane moderate+severe** denotes the broader
+hurricane positive class, and **Hurricane endpoint (grouped clean)** denotes the
+leakage-controlled rerun of the original hurricane endpoint task.
 
 Conceptually, CAE reframes the task. Instead of asking whether multimodal
 fusion improves average classification, CAE asks whether fusion helps when the
@@ -338,7 +349,7 @@ To evaluate robustness, we run:
 
 - multi-seed experiments on wildfire and hurricane
 - label-sensitivity experiments on both datasets
-- a clean grouped rerun on hurricane
+- a grouped-clean rerun of the hurricane endpoint task
 - threshold-sensitivity and permutation tests on the conflict subset
 
 For statistical checks, we use:
@@ -378,10 +389,10 @@ one place.
 | remote_only | Hurricane | moderate+severe | 0.8873 | 0.7742 | -- | broader positive class |
 | crossview | Hurricane | moderate+severe | 0.8915 | 0.7867 | +0.0125 | broader positive class |
 | voting ensemble | Hurricane | moderate+severe | 0.8936 | -- | -- | probability average |
-| street_only | Hurricane | grouped clean | 0.9016 | 0.8101 | -- | objectid-clean rerun |
-| remote_only | Hurricane | grouped clean | 0.8385 | 0.6526 | -- | objectid-clean rerun |
-| crossview | Hurricane | grouped clean | 0.9008 | 0.7949 | -0.0153 | objectid-clean rerun |
-| voting ensemble | Hurricane | grouped clean | 0.8800 | -- | -- | probability average |
+| street_only | Hurricane | endpoint (grouped clean) | 0.9016 | 0.8101 | -- | objectid-clean rerun |
+| remote_only | Hurricane | endpoint (grouped clean) | 0.8385 | 0.6526 | -- | objectid-clean rerun |
+| crossview | Hurricane | endpoint (grouped clean) | 0.9008 | 0.7949 | -0.0153 | objectid-clean rerun |
+| voting ensemble | Hurricane | endpoint (grouped clean) | 0.8800 | -- | -- | probability average |
 
 Here, `Delta_view` is reported only when the row is a cross-view setting; it is
 defined as Conflict-F1(cross-view) minus the larger Conflict-F1 of the two
@@ -430,15 +441,15 @@ On hurricane moderate+severe sensitivity:
 - *cross-view* = 0.7867
 - Delta_view = +0.0125
 
-On the clean grouped hurricane split:
+On the grouped-clean hurricane endpoint split:
 
 - *street-only* = 0.8101
 - *remote-only* = 0.6526
 - *cross-view* = 0.7949
 - Delta_view = -0.0153
 
-This is an important corrective result. The clean grouped split shows that
-cross-view is not universally dominant across all hurricane conditions.
+This is an important corrective result. The grouped-clean endpoint split shows
+that cross-view is not universally dominant across all hurricane conditions.
 However, the protocol still makes the disagreement structure visible. Without
 CAE, this nuanced picture would be hidden by a single overall score.
 
@@ -555,16 +566,22 @@ The broader wildfire binary mapping also preserves the ordering:
 These sensitivity checks are important because they show that the cross-view
 story is not limited to one exact label collapse.
 
-### 7.9 Clean Hurricane Grouped Split
+### 7.9 Grouped-Clean Hurricane Endpoint Split
 
 After fixing object-level leakage in the hurricane endpoint split, we reran the
-core baselines on a clean grouped split:
+core baselines on the same endpoint label definition using the grouped-clean
+partition:
 
 - *cross-view* = 0.9008
 - *street-only* = 0.9016
 - *remote-only* = 0.8385
 
-The clean split shows that cross-view does not universally dominate under leakage-free conditions. The defensible claim is that cross-view remains useful as a conflict-aware comparator and clearly outperforms remote-only, while its advantage over street-only depends on task definition and split rigor. We treat this conservative result as a feature of the paper's honesty rather than a weakness.
+The grouped-clean endpoint split shows that cross-view does not universally
+dominate under leakage-free conditions. The defensible claim is that cross-view
+remains useful as a conflict-aware comparator and clearly outperforms
+remote-only, while its advantage over street-only depends on task definition and
+split rigor. We treat this conservative result as a feature of the paper's
+honesty rather than a weakness.
 
 ### 7.10 ConflictFocalLoss
 
@@ -633,9 +650,10 @@ of spatial observation regime. In one regime, the ground view offers strong
 target-specific corrections. In another, the overhead image can remain the more
 trustworthy single-view source.
 
-This regime-centered explanation is especially relevant for GeoAI. The central
-question is not just how to combine modalities, but how the spatial alignment
-between the observer and the target changes the utility of each modality.
+This regime-centered explanation is especially relevant for geographic AI and
+remote sensing, but the paper's claim is more specific than a generic GeoAI
+label. The central question is how the spatial alignment between the observer
+and the target changes the utility of each modality.
 
 ## 9. Limitations
 
@@ -647,7 +665,7 @@ reliable tile-level spatial metadata and coordinates. We therefore treat
 wildfire as the primary GIS-native spatial analysis dataset and hurricane as a
 cross-regime comparison benchmark.
 
-Second, the clean grouped hurricane split leads to a more conservative result
+Second, the grouped-clean hurricane endpoint split leads to a more conservative result
 than the original endpoint split. This leakage-controlled split is a necessary
 boundary condition for the study: the paper should emphasize conflict-aware
 value and regime comparison rather than a blanket assertion that cross-view
@@ -704,12 +722,12 @@ work.
 - This draft is intentionally written as a content-complete conference paper
   draft before final bibliography cleanup.
 - The next pass should add finalized citations for satellite-only disaster
-  benchmarks, cross-view hurricane baselines, and the GeoAI/GIS evaluation
+  benchmarks, cross-view hurricane baselines, and the spatial evaluation
   context.
 - After citation cleanup, this draft can be converted to ACM SIGSPATIAL LaTeX
   format with only minor structural edits.
 sensitivity split does not imply that every hurricane split is strictly
-overhead-dominant. On the clean grouped hurricane endpoint split, the conflict
+overhead-dominant. On the grouped-clean hurricane endpoint split, the conflict
 decomposition is closer to balanced than to strongly remote-dominant. The
 stable statement is therefore weaker and more honest: wildfire is clearly
 street-dominant, while hurricane is regime-sensitive and can move toward remote

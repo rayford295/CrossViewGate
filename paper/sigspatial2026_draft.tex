@@ -292,7 +292,7 @@ center dot indicates the tile sample count.
 Figure~\ref{fig:overview} places the wildfire benchmark in geographic context
 and shows the local tile footprint in the Altadena / Eaton Fire area. This
 context matters because the wildfire benchmark is neighborhood-scale and
-spatially compact, which is precisely what enables the tile-level GeoAI
+spatially compact, which is precisely what enables the tile-level spatial
 analysis later in the paper.
 
 \paragraph{Hurricane Ian Benchmark}
@@ -320,9 +320,15 @@ We also evaluate a broader sensitivity setting:
   \item \texttt{1 = ModerateDamage + SevereDamage}
 \end{itemize}
 
-The original hurricane endpoint split showed object-level leakage. We therefore
-rebuilt a clean grouped split and use it as the more reliable hurricane control
-condition.
+The original hurricane endpoint split showed object-level leakage, meaning that
+imagery associated with the same damaged object could appear across train and
+test partitions. To check whether the endpoint result survives a stricter
+partition, we therefore rebuild the same endpoint label definition as a
+\emph{grouped clean} split, where samples are grouped by object identifier
+before splitting. In the result tables, ``Hurricane endpoint'' refers to the
+original endpoint split, while ``Hurricane endpoint (grouped clean)'' refers to
+this leakage-controlled rerun. It is not a third label definition; it is a
+cleaner split of the same MinorDamage-versus-SevereDamage hurricane task.
 
 \paragraph{Why This Comparison Matters}
 
@@ -364,6 +370,11 @@ comparisons; both have label-independence permutation-test significance below
 broader primary wildfire collapse because the stricter split creates a more
 informative disagreement subset for the CAE analysis.
 
+To keep the table labels compact, ``Wildfire sensitive'' denotes the stricter
+wildfire split defined above, ``Hurricane moderate+severe'' denotes the broader
+hurricane positive class, and ``Hurricane endpoint (grouped clean)'' denotes the
+leakage-controlled rerun of the original hurricane endpoint task.
+
 More precisely, the conflict subset is
 \begin{equation}
 \conf=\left\{i:\left|p_i^{(s)}-p_i^{(r)}\right|>\tau\right\},
@@ -394,7 +405,7 @@ fusion improves average classification, CAE asks whether fusion helps when the
 single-view models disagree and which modality drives that improvement.
 
 \begin{table*}[t]
-  \caption{Conflict-Aware Evaluation (CAE) summary across completed settings. Wildfire rows report the stricter sensitivity split, which yields the most informative wildfire conflict subset for CAE. Conflict-F1 is computed only on samples where the street-only and remote-only predicted probabilities differ by more than $\tau=0.1$. Crossview gain is reported on crossview rows as Conflict-F1(crossview) minus the larger Conflict-F1 of the two single-view baselines; dashes indicate quantities that are not applicable for that row.}
+  \caption{Conflict-Aware Evaluation (CAE) summary across completed settings. Wildfire rows report the stricter sensitivity split, which yields the most informative wildfire conflict subset for CAE. Hurricane endpoint (grouped clean) is the leakage-controlled grouped rerun of the same MinorDamage-versus-SevereDamage hurricane endpoint task. Conflict-F1 is computed only on samples where the street-only and remote-only predicted probabilities differ by more than $\tau=0.1$. Crossview gain is reported on crossview rows as Conflict-F1(crossview) minus the larger Conflict-F1 of the two single-view baselines; dashes indicate quantities that are not applicable for that row.}
   \label{tab:cae}
   \centering
   \begin{tabular}{llrrrr}
@@ -410,9 +421,9 @@ single-view models disagree and which modality drives that improvement.
     Hurricane moderate+severe & street\_only & 0.8738 & 0.7324 & -- & 128 \\
     Hurricane moderate+severe & remote\_only & 0.8873 & 0.7742 & -- & 128 \\
     Hurricane moderate+severe & crossview & 0.8915 & 0.7867 & +0.0125 & 128 \\
-    Hurricane grouped clean & street\_only & 0.9016 & 0.8101 & -- & 80 \\
-    Hurricane grouped clean & remote\_only & 0.8385 & 0.6526 & -- & 80 \\
-    Hurricane grouped clean & crossview & 0.9008 & 0.7949 & -0.0153 & 80 \\
+    Hurricane endpoint (grouped clean) & street\_only & 0.9016 & 0.8101 & -- & 80 \\
+    Hurricane endpoint (grouped clean) & remote\_only & 0.8385 & 0.6526 & -- & 80 \\
+    Hurricane endpoint (grouped clean) & crossview & 0.9008 & 0.7949 & -0.0153 & 80 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -584,7 +595,7 @@ and the corresponding empirical damage rate is
 \sum_{i\in\mathcal{I}(t)} y_i.
 \label{eq:damagerate}
 \end{equation}
-We then test the GeoAI hypothesis using Spearman correlation between
+We then test the spatial-regime hypothesis using Spearman correlation between
 $\mathrm{conflict\_density}(t)$ and $\mathrm{damage\_rate}(t)$ over tiles.
 
 \subsection{Experimental Setup}
@@ -630,7 +641,7 @@ Table~\ref{tab:cae} summarizes the full CAE view. Three patterns stand out.
 First, crossview remains strongest on the wildfire sensitive split and on the
 original hurricane endpoint setting under the CAE protocol. Second, the broader
 hurricane sensitivity setting still shows a positive but smaller
-\texttt{Delta\_view}. Third, the clean grouped hurricane split is more conservative:
+\texttt{Delta\_view}. Third, the grouped-clean hurricane endpoint split is more conservative:
 it remains a useful benchmark, but CAE shows that crossview is no longer
 dominant on the conflict subset there. This is exactly why CAE matters: it
 separates easy average performance from the harder disagreement cases that
@@ -759,7 +770,8 @@ These sensitivity checks matter because they show that the cross-view story is
 not limited to one exact label collapse.
 
 After fixing object-level leakage in the hurricane endpoint split, we reran the
-core baselines on a clean grouped split. The resulting test F1 values are
+core baselines on the same endpoint label definition using the grouped-clean
+partition. The resulting test F1 values are
 crossview $= 0.9008$, street\_only $= 0.9016$, and remote\_only $= 0.8385$.
 This is one of the most important sanity checks in the study because it
 prevents overclaiming. The clean split shows that the defensible claim is not
@@ -768,7 +780,7 @@ conflict-aware comparator and clearly outperforms remote-only on the clean
 split, while its advantage over street-only can shrink depending on the task
 definition and split rigor.
 
-\subsection{Method Extensions and GeoAI Outputs}
+\subsection{Method Extensions and Spatial Analysis}
 
 \paragraph{ConflictFocalLoss, Adaptive Cascade, and Spatial Maps}
 
@@ -829,8 +841,8 @@ minority of samples.
 
 On the wildfire dataset, tile-level conflict density also forms a significant
 unsupervised damage proxy: \texttt{n\_tiles = 27}, Spearman
-$r = 0.5123$, and $p = 0.0063$. This is a strong GeoAI result because it
-converts disagreement between two discriminative models into a spatial damage
+$r = 0.5123$, and $p = 0.0063$. This is a strong spatial-analysis result because
+it converts disagreement between two discriminative models into a spatial damage
 map without using tile-level labels at inference time.
 
 \begin{figure}[t]
@@ -868,11 +880,12 @@ target-specific corrections. In another, the overhead image can remain the more
 trustworthy single-view source, or the balance can become split-sensitive
 depending on label construction and data leakage control.
 
-This regime-centered explanation is especially relevant for GeoAI. The central
-question is not just how to combine modalities, but how the spatial alignment
-between the observer and the target changes the utility of each modality. That
-framing also creates room for adaptive inference policies, where expensive
-cross-view reasoning is reserved for the cases that actually need it.
+This regime-centered explanation is especially relevant for geographic AI and
+remote sensing, but the paper's claim is more specific than a generic GeoAI
+label. The central question is how the spatial alignment between the observer
+and the target changes the utility of each modality. That framing also creates
+room for adaptive inference policies, where expensive cross-view reasoning is
+reserved for the cases that actually need it.
 
 The current study has several limitations. First, the spatial-map contribution is
 currently validated strongly for wildfire but not yet for hurricane, because
@@ -881,7 +894,7 @@ geographic structure for the same analysis. We therefore treat wildfire as the
 primary GIS-native spatial analysis dataset and hurricane as a cross-regime
 comparison benchmark.
 
-Second, the clean grouped hurricane split leads to a more conservative result
+Second, the grouped-clean hurricane endpoint split leads to a more conservative result
 than the original endpoint split. This leakage-controlled split is a necessary
 boundary condition for the study: it shows that the argument should emphasize
 conflict-aware value and regime comparison rather than a blanket assertion
