@@ -422,6 +422,12 @@ cross-view is not universally dominant across all hurricane conditions.
 However, the protocol still makes the disagreement structure visible. Without
 CAE, this nuanced picture would be hidden by a single overall score.
 
+![Qualitative conflict examples](figures/qualitative_conflict_examples.png)
+
+*Figure. Qualitative conflict cases across wildfire and hurricane regimes. The
+panel illustrates how cross-view fusion resolves disagreement when the two
+single-view models provide competing evidence.*
+
 ### 7.3 View Dominance Switching
 
 Under the broader wildfire sensitivity setting and the broader hurricane
