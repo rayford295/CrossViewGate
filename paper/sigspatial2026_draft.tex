@@ -10,6 +10,7 @@
 \usepackage{mathtools}
 \usepackage[section]{placeins}
 \usepackage{dblfloatfix}
+\usepackage{balance}
 
 \raggedbottom
 \renewcommand{\topfraction}{0.92}
@@ -23,7 +24,7 @@
 \newcommand{\concat}{\mathbin\Vert}
 \newcommand{\conf}{\mathcal{C}_{\tau}}
 
-\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-24 22:35 CDT}
+\title{When Cross-View Helps Most: Conflict-Aware Disaster Triage Across Spatial Observation Regimes\\\large\mdseries Draft updated: 2026-04-30 16:15 CDT}
 
 \author{Yifan Yang}
 \affiliation{%
@@ -412,29 +413,6 @@ Conceptually, CAE reframes the task. Instead of asking whether multimodal
 fusion improves average classification, CAE asks whether fusion helps when the
 single-view models disagree and which modality drives that improvement.
 
-\begin{table*}[!tbp]
-  \caption{Conflict-Aware Evaluation (CAE) summary across completed settings. Wildfire rows report the stricter sensitivity split, which yields the most informative wildfire conflict subset for CAE. Hurricane endpoint (grouped clean) is the leakage-controlled grouped rerun of the same MinorDamage-versus-SevereDamage hurricane endpoint task. Conflict-F1 is computed only on samples where the street-only and remote-only predicted probabilities differ by more than $\tau=0.1$. Crossview gain is reported on crossview rows as Conflict-F1(crossview) minus the larger Conflict-F1 of the two single-view baselines; dashes indicate quantities that are not applicable for that row.}
-  \label{tab:cae}
-  \centering
-  \begin{tabular}{llrrrr}
-    \toprule
-    Setting & Mode & Overall-F1 & Conflict-F1 ($\tau=0.1$) & Crossview gain & $n_{\mathrm{conflict}}$ \\
-    \midrule
-    Wildfire sensitive & street\_only & 0.9392 & 0.6230 & -- & 435 \\
-    Wildfire sensitive & remote\_only & 0.9238 & 0.5237 & -- & 435 \\
-    Wildfire sensitive & crossview & 0.9473 & 0.6618 & +0.0388 & 435 \\
-    Hurricane endpoint & street\_only & 0.9055 & 0.6842 & -- & 32 \\
-    Hurricane endpoint & remote\_only & 0.8969 & 0.5806 & -- & 32 \\
-    Hurricane endpoint & crossview & 0.9192 & 0.7647 & +0.0805 & 32 \\
-    Hurricane moderate+severe & street\_only & 0.8738 & 0.7324 & -- & 128 \\
-    Hurricane moderate+severe & remote\_only & 0.8873 & 0.7742 & -- & 128 \\
-    Hurricane moderate+severe & crossview & 0.8915 & 0.7867 & +0.0125 & 128 \\
-    Hurricane endpoint (grouped clean) & street\_only & 0.9016 & 0.8101 & -- & 80 \\
-    Hurricane endpoint (grouped clean) & remote\_only & 0.8385 & 0.6526 & -- & 80 \\
-    Hurricane endpoint (grouped clean) & crossview & 0.9008 & 0.7949 & -0.0153 & 80 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
 
 \section{Methodology}
 
@@ -519,6 +497,8 @@ Their normalized frequencies,
 \end{equation}
 act as a compact measure of which single view is the stronger conflict-set
 arbitrator.
+
+
 
 \paragraph{ConflictFocalLoss}
 
@@ -681,6 +661,30 @@ and the broader hurricane sensitivity split.
   \end{tabular}
 \end{table}
 
+\begin{table*}[!tbp]
+  \caption{Conflict-Aware Evaluation (CAE) summary across completed settings. Wildfire rows report the stricter sensitivity split, which yields the most informative wildfire conflict subset for CAE. Hurricane endpoint (grouped clean) is the leakage-controlled grouped rerun of the same MinorDamage-versus-SevereDamage hurricane endpoint task. Conflict-F1 is computed only on samples where the street-only and remote-only predicted probabilities differ by more than $\tau=0.1$. Crossview gain is reported on crossview rows as Conflict-F1(crossview) minus the larger Conflict-F1 of the two single-view baselines; dashes indicate quantities that are not applicable for that row.}
+  \label{tab:cae}
+  \centering
+  \begin{tabular}{llrrrr}
+    \toprule
+    Setting & Mode & Overall-F1 & Conflict-F1 ($\tau=0.1$) & Crossview gain & $n_{\mathrm{conflict}}$ \\
+    \midrule
+    Wildfire sensitive & street\_only & 0.9392 & 0.6230 & -- & 435 \\
+    Wildfire sensitive & remote\_only & 0.9238 & 0.5237 & -- & 435 \\
+    Wildfire sensitive & crossview & 0.9473 & 0.6618 & +0.0388 & 435 \\
+    Hurricane endpoint & street\_only & 0.9055 & 0.6842 & -- & 32 \\
+    Hurricane endpoint & remote\_only & 0.8969 & 0.5806 & -- & 32 \\
+    Hurricane endpoint & crossview & 0.9192 & 0.7647 & +0.0805 & 32 \\
+    Hurricane moderate+severe & street\_only & 0.8738 & 0.7324 & -- & 128 \\
+    Hurricane moderate+severe & remote\_only & 0.8873 & 0.7742 & -- & 128 \\
+    Hurricane moderate+severe & crossview & 0.8915 & 0.7867 & +0.0125 & 128 \\
+    Hurricane endpoint (grouped clean) & street\_only & 0.9016 & 0.8101 & -- & 80 \\
+    Hurricane endpoint (grouped clean) & remote\_only & 0.8385 & 0.6526 & -- & 80 \\
+    Hurricane endpoint (grouped clean) & crossview & 0.9008 & 0.7949 & -0.0153 & 80 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
 Wildfire still shows the clearest street-dominant conflict regime. On the
 hurricane endpoint split, however, the decomposition is much closer to balanced
 than the broader \texttt{minor vs (moderate+severe)} sensitivity split, where
@@ -793,6 +797,7 @@ importantly, the improvement is concentrated on the conflict subset:
 Conflict-F1 increases from 0.6618 to 0.7208 at gamma $= 0.5$, a gain of
 $+0.0590$ on the cases that CAE identifies as most consequential.
 
+
 \begin{table}[!tbp]
   \caption{ConflictFocalLoss ablation on the wildfire sensitivity split.
   Conflict-F1 is computed on the \texttt{tau = 0.1} disagreement subset, and
@@ -827,15 +832,18 @@ minority of samples.
   cross-view model.}
   \label{tab:cascade}
   \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
   \begin{tabular}{lrrrr}
     \toprule
-    Split & $\delta$ & Stage-2 & Full CV F1 & Cascade F1 \\
+    Split & $\delta$ & Stage-2 & CV F1 & Casc. F1 \\
     \midrule
-    Wildfire sensitive & 0.50 & 9.5\% & 0.9473 & 0.9498 \\
-    Hurricane moderate+severe & 0.20 & 22.3\% & 0.8915 & 0.8990 \\
+    Wildfire sens. & 0.50 & 9.5\% & 0.9473 & 0.9498 \\
+    Hurricane mod.+sev. & 0.20 & 22.3\% & 0.8915 & 0.8990 \\
     \bottomrule
   \end{tabular}
 \end{table}
+
 
 On the wildfire dataset, tile-level conflict density also forms a significant
 unsupervised damage proxy: \texttt{n\_tiles = 27}, Spearman
@@ -873,6 +881,7 @@ geographic structure for the same analysis. We therefore treat wildfire as the
 primary GIS-native spatial analysis dataset and hurricane as a cross-regime
 comparison benchmark.
 
+
 Second, the grouped-clean hurricane endpoint split leads to a more conservative result
 than the original endpoint split. This leakage-controlled split is a necessary
 boundary condition for the study: it shows that the argument should emphasize
@@ -882,6 +891,16 @@ that cross-view always dominates every baseline.
 Third, ConflictFocalLoss is currently validated only on the wildfire sensitive
 setting. The positive signal is encouraging, but broader validation remains
 future work.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/alignment_gain_correlation.png}
+  \Description{A correlation plot summarizes the relation between building-alignment proxy values and cross-view correctness. The trend is weak at the per-sample level, which supports a dataset-level rather than sample-level interpretation.}
+  \caption{Per-sample alignment correlation is weak, reinforcing that the
+  alignment effect should be interpreted mainly at the regime level.}
+  \label{fig:corr}
+\end{figure}
+
 
 \section{Conclusion}
 
@@ -899,38 +918,9 @@ The broader takeaway is that multimodal disaster assessment should not ask only
 whether fusion helps. It should ask when fusion helps, which modality drives
 the gain, and what spatial regime makes that gain possible.
 
-\begin{figure*}[!p]
-  \centering
-  \includegraphics[width=0.97\textwidth]{figures/qualitative_conflict_examples.png}
-  \Description{A qualitative figure shows representative conflict cases with ground-view images, overhead patches, and model predictions, highlighting when crossview resolves single-view disagreement.}
-  \caption{Qualitative conflict cases across wildfire and hurricane regimes.
-  The panel illustrates how cross-view fusion resolves disagreement when the
-  two single-view models provide competing evidence.}
-  \label{fig:qual}
-\end{figure*}
-
-\begin{figure*}[!p]
-  \centering
-  \includegraphics[width=0.74\textwidth]{figures/alignment_gain_correlation.png}
-  \Description{A correlation plot summarizes the relation between building-alignment proxy values and crossview correctness. The trend is weak at the per-sample level, which supports a dataset-level rather than sample-level interpretation.}
-  \caption{Per-sample alignment correlation is weak, reinforcing that the
-  alignment effect should be interpreted mainly at the regime level.}
-  \label{fig:corr}
-\end{figure*}
-
-\begin{figure*}[!p]
-  \centering
-  \includegraphics[width=0.98\textwidth]{figures/wildfire_spatial_maps.png}
-  \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
-  \caption{Large-format wildfire spatial maps reveal that high conflict density
-  aligns with high realized damage and therefore supports a tile-level
-  unsupervised spatial damage signal.}
-  \label{fig:spatialmap}
-\end{figure*}
-
 \begin{acks}
 The authors used GPT-based writing assistance only for grammar checking and
-language polishing of author-written manuscript text. These tools were not used
+language polishing of the author-written manuscript text. These tools were not used
 as sources of scientific evidence or to autonomously generate the study design,
 datasets, experimental results, figures, tables, interpretations, or
 conclusions. All analyses, visualizations, and manuscript content were reviewed,
@@ -938,6 +928,37 @@ verified, and approved by the authors, who take full responsibility for the
 work.
 \end{acks}
 
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[
+    width=0.78\textwidth,
+    height=0.56\textheight,
+    keepaspectratio
+  ]{figures/qualitative_conflict_examples.png}
+  \Description{A qualitative figure shows representative conflict cases with ground-view images, overhead patches, and model predictions, highlighting when cross-view resolves single-view disagreement.}
+  \caption{Qualitative conflict cases across wildfire and hurricane regimes.
+  The panel illustrates how cross-view fusion resolves disagreement when the
+  two single-view models provide competing evidence.}
+  \label{fig:qual}
+\end{figure*}
+
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[
+    width=0.94\textwidth,
+    height=0.42\textheight,
+    keepaspectratio
+  ]{figures/wildfire_spatial_maps.png}
+  \Description{A multi-panel wildfire map compares spatial damage rate, conflict density, and related tile-level analysis outputs. Areas with higher conflict density co-locate with higher damage intensity.}
+  \caption{Large-format wildfire spatial maps reveal that high conflict density
+  aligns with high realized damage and therefore supports a tile-level
+  unsupervised spatial damage signal.}
+  \label{fig:spatialmap}
+\end{figure*}
+
+
+\balance
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 
