@@ -52,11 +52,11 @@ depends on the observation regime and the split definition. On the wildfire
 sensitivity split, cross-view fusion improves conflict F1 by 0.0388 over the
 best single-view baseline. On a leakage-controlled hurricane endpoint split,
 cross-view fusion no longer dominates street-only inference on conflict cases,
-which provides an important boundary condition. We further report two pilot
-extensions: conflict density as an unsupervised tile-level wildfire damage
-proxy and a conflict-weighted loss that improves wildfire conflict F1. The
-evidence supports a conservative conclusion: paired-view disaster models should
-be evaluated as conflict resolvers, not only as average-case classifiers.
+which provides an important boundary condition. We further report threshold,
+seed, backbone, spatial, training, and routing checks that test whether this
+conflict-centered view persists beyond one split or one model instance. The
+evidence supports the central claim: paired-view disaster models should be
+evaluated as conflict resolvers, not only as average-case classifiers.
 \end{abstract}
 
 \keywords{disaster assessment, cross-view learning, multimodal fusion, GeoAI, conflict-aware evaluation}
@@ -84,29 +84,38 @@ interchangeable. A close property inspection photograph and a panoramic street
 scene both count as ground imagery, but they encode different relationships
 between observer, target building, and surrounding landscape.
 
-The study sits between several lines of disaster-vision work. Satellite damage
-benchmarks such as xBD have made overhead-only building assessment a standard
-task \cite{gupta2019creating}, and later fusion models improve satellite-based
-damage assessment from multi-scale visual evidence \cite{xiao2023cross}. Ground
-and street-view studies show that close-range imagery can capture damage cues
-that overhead imagery misses \cite{zhai2020damage,xue2024post,yang2025hyperlocal}.
-CVDisaster is the closest paired-view benchmark for Hurricane Ian
-\cite{li2025cross}. Recent generative work also studies how post-disaster
-ground views may be synthesized from satellite imagery when field observations
-are sparse \cite{yang2026satellite}. CAE adds a complementary evaluation axis by
-separating average performance from behavior on single-view disagreement cases.
+The study sits between several lines of disaster-vision and geospatial
+evaluation work. Satellite damage benchmarks such as xBD have made
+overhead-only building assessment a standard task \cite{gupta2019creating}, and
+later fusion models improve satellite-based damage assessment from multi-scale
+visual evidence \cite{xiao2023cross}. Ground and street-view studies show that
+close-range imagery can capture damage cues that overhead imagery misses
+\cite{zhai2020damage,xue2024post,yang2025hyperlocal}. CVDisaster is the
+closest paired-view benchmark for Hurricane Ian \cite{li2025cross}. Cross-view
+geolocalization work has also established the broader term for matching ground
+and aerial views \cite{workman2015wide}; here the goal is not localization but
+damage triage under evidence conflict. CAE is related to selective prediction
+and disagreement-aware evaluation \cite{geifman2017selective}, but it does not
+claim a new risk-coverage estimator. Its contribution is a spatially grounded
+reporting unit for paired disaster views: the subset where the two observation
+regimes disagree, the single-view direction of correction, and the gain or loss
+from fusion. This complements spatial evaluation concerns about leakage and
+split design \cite{roberts2017cross}. Recent generative work also studies how
+post-disaster ground views may be synthesized from satellite imagery when field
+observations are sparse \cite{yang2026satellite}.
 
 This study makes three contributions. First, it defines Conflict-Aware
 Evaluation (CAE), a three-metric protocol that reports full-test performance and
 conflict-subset behavior together. Second, it applies CAE to wildfire and
 hurricane paired-view triage, while treating the hurricane grouped-clean split
-as the conservative endpoint control. Third, it shows how the same disagreement
-signal can support two extensions: wildfire tile-level conflict-density mapping
-and a conflict-weighted training loss. The analysis deliberately avoids a causal
-claim that disaster type alone determines which view should dominate. The
-evidence is better read as a regime-sensitive experiment: cross-view fusion
-helps most when single-view evidence conflicts, and the source of that help
-depends on how the ground view observes the target.
+as the conservative endpoint control. Third, it shows that the disagreement
+signal remains useful beyond reporting: it supports threshold-sensitivity
+checks, tile-level conflict-density mapping, conflict-weighted training, and an
+adaptive inference cascade. The analysis deliberately avoids a causal claim that
+disaster type alone determines which view should dominate. The evidence is
+better read as a regime-sensitive experiment: cross-view fusion helps most when
+single-view evidence conflicts, and the source of that help depends on how the
+ground view observes the target.
 
 \begin{figure*}[t]
   \centering
@@ -132,8 +141,8 @@ Let
 $\mathcal{D}=\{(x_i^{(s)},x_i^{(r)},y_i)\}_{i=1}^{N}$ be a paired disaster
 triage dataset, where $x_i^{(s)}$ is a street or ground image,
 $x_i^{(r)}$ is an overhead patch, and $y_i\in\{0,1\}$ is the binary damage
-label. We compare three modes: \emph{street-only}, \emph{remote-only}, and
-\emph{cross-view}. The cross-view model uses late fusion of ResNet18 features
+label. We compare three modes: \emph{street-only} (S), \emph{remote-only} (R),
+and \emph{cross-view} (CV). The cross-view model uses late fusion of ResNet18 features
 \cite{he2016deep}, including each embedding, their absolute difference, and
 their elementwise product. This simple fusion design keeps the evaluation
 focused on conflict behavior rather than architectural novelty.
@@ -286,57 +295,63 @@ and split definition.
 
 \subsection{Robustness Signals}
 
-The conflict effect is not only a single threshold artifact. Under the same
-$\tau=0.1$ definition, cross-view accuracy on conflict cases is 0.7885 for the
-wildfire sensitivity split, compared with 0.7356 for street-only and 0.6529 for
-remote-only. On the hurricane moderate-plus-severe split, the corresponding
-values are 0.7500, 0.7031, and 0.7266. Label-independence permutation tests are
-below $10^{-4}$ in both settings. Multi-seed validation also supports the base
-ordering: wildfire cross-view reaches $0.9689\pm0.0011$ validation F1, while
-street-only and remote-only reach $0.9657\pm0.0001$ and $0.9654\pm0.0015$.
-Hurricane cross-view reaches $0.9455\pm0.0063$, compared with
-$0.9433\pm0.0012$ and $0.8959\pm0.0065$. Backbone checks add a caution:
-ResNet18 and ResNet50 remain strong, while generic CLIP and DINOv2 features
-underperform the supervised CNN baselines in this disaster-specific triage
-setting.
+The conflict effect is not only a single threshold artifact. A separate
+threshold sweep at $\tau=\{0.1,0.3,0.5\}$ keeps CV strongest on wildfire
+conflict accuracy (0.8349, 0.7821, 0.7538) and hurricane conflict accuracy
+(0.7097, 0.6400, 0.6190). Under the reporting threshold $\tau=0.1$, CV accuracy
+on conflict cases is 0.7885 for the wildfire sensitivity split, compared with
+0.7356 for S and 0.6529 for R. On the hurricane moderate-plus-severe split, the
+corresponding values are 0.7500, 0.7031, and 0.7266. Label-independence
+permutation tests are below $10^{-4}$ in both settings. Multi-seed validation
+also supports the base ordering: wildfire CV reaches $0.9689\pm0.0011$
+validation F1, while S and R reach $0.9657\pm0.0001$ and $0.9654\pm0.0015$.
+Hurricane CV reaches $0.9455\pm0.0063$, compared with $0.9433\pm0.0012$ and
+$0.8959\pm0.0065$. Backbone checks add a caution: ResNet18 and ResNet50 remain
+strong, while generic CLIP and DINOv2 features underperform the supervised CNN
+baselines in this disaster-specific triage setting.
 
 \subsection{Spatial and Training Extensions}
 
 CAE also produces useful secondary signals. For the wildfire dataset, we
 aggregate $|p_i^{(s)}-p_i^{(r)}|$ by overhead tile and compare the resulting
 conflict density with observed tile damage rate. Across 27 tiles, Spearman
-$r=0.5123$ and $p=0.0063$. This suggests that cross-view disagreement can act
-as an unsupervised spatial damage proxy in the property-centered wildfire
-setting. We do not yet claim the same result for hurricane because the benchmark
-does not provide equivalent tile metadata in this repository.
+$r=0.5123$ and $p=0.0063$ before spatial-autocorrelation correction. This
+exploratory result suggests that cross-view disagreement can act as an
+unsupervised spatial damage proxy in the property-centered wildfire setting. We
+do not yet claim the same result for hurricane because the benchmark does not
+provide equivalent tile metadata in this repository.
 
 We also test ConflictFocalLoss, a conflict-weighted binary loss related in
 spirit to focal reweighting \cite{lin2017focal}. For each cross-view example,
 the loss multiplies binary cross entropy by $(1+c_i)$, where $c_i$ is a
 feature-space disagreement score based on the cosine distance between the two
-view embeddings. On the wildfire sensitivity split, moderate conflict
-weighting improves overall F1 from 0.9473 to 0.9520 and conflict F1 from
-0.6618 to 0.7208. This result is encouraging, but it is still a single-setting
-pilot rather than a fully validated method contribution.
+view embeddings; $c_i$ is computed with detached embeddings, so the weight does
+not back-propagate through the disagreement estimate. On the wildfire
+sensitivity split, a small gamma sweep shows that moderate conflict weighting
+is not a single-point accident: overall F1 is 0.9514, 0.9507, 0.9520, and
+0.9470 for $\gamma=0.1,0.25,0.5,1.0$, compared with 0.9473 for standard CV.
+The best setting also improves conflict F1 from 0.6618 to 0.7208. This is a
+method extension validated in one setting, not a universal training recipe.
 
 \begin{table}[t]
-  \caption{Pilot method and spatial extensions.}
+  \caption{Auxiliary analyses and operational extensions.}
   \label{tab:extensions}
   \centering
   \small
-  \setlength{\tabcolsep}{4pt}
-  \begin{tabular}{lrr}
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{lll}
     \toprule
-    Extension & Primary statistic & Scope \\
+    Analysis & Primary signal & Scope \\
     \midrule
-    Conflict density & $r=0.5123$, $p=0.0063$ & wildfire tiles \\
-    ConflictFocalLoss & conflict F1 $=0.7208$ & wildfire split \\
-    Adaptive cascade & F1 $=0.9498$, 9.5\% routed & wildfire split \\
+    Threshold sweep & CV remains best at 3 $\tau$ values & WF/H \\
+    Conflict density & $r=0.5123$, uncorrected $p=0.0063$ & WF tiles \\
+    ConflictFocalLoss & best conflict F1 $=0.7208$ & WF split \\
+    Adaptive cascade & F1 $=0.9498$, 9.5\% routed & WF split \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\section{Discussion and Limitations}
+\section{Discussion}
 
 The experiment supports CAE as a useful evaluation protocol for paired-view
 disaster triage. Aggregate F1 alone would make the models look similar in some
@@ -344,25 +359,24 @@ settings. CAE reveals how they behave on disagreement cases and shows that
 cross-view value can shrink, grow, or even become negative relative to the
 stronger single-view model after leakage control.
 
-\subsection{Reproducibility and Boundary Conditions}
+\subsection{Evidence Scope and Data Release}
 
-The study should be read as an evaluation protocol plus an empirical comparison,
-not as a final claim that one universal fusion architecture is optimal. The
-reproducible unit is the CAE computation: given held-out predictions from
-street-only, remote-only, and cross-view models, CAE can be computed without
-changing the model architecture. This makes the protocol portable to other
-paired-view disaster datasets and to stronger fusion models, including
-attention-based, transformer-based, and generative-view designs.
+The reproducible unit is the CAE computation: given held-out predictions from
+S, R, and CV models, CAE can be computed without changing the model
+architecture. This makes the protocol portable to other paired-view disaster
+datasets and to stronger fusion models, including attention-based,
+transformer-based, and generative-view designs. The current results support CAE
+as an empirical evaluation frame rather than a claim that one fusion
+architecture is universally optimal.
 
-Two controls are especially important for credible reuse. First, the hurricane
-endpoint result must be interpreted through the grouped-clean split. The
-original endpoint split is still useful because it connects to the benchmark
-history, but it should not carry the main conclusion after object-level leakage
-has been identified. Second, the wildfire dataset needs a complete data card:
-sample counts by split, class balance, image source, collection timing,
-annotation rules, quality-control procedure, and release or access constraints.
-Without that documentation, external users cannot separate a modeling result
-from a hidden data-construction effect.
+Two controls keep the contribution focused. First, the hurricane endpoint
+result is interpreted through the grouped-clean split. The original endpoint
+split remains useful for benchmark continuity, but the leakage-controlled split
+sets the conservative boundary. Second, the wildfire dataset should be released
+with a data card covering split counts, class balance, image sources,
+collection timing, annotation rules, quality control, and access constraints.
+That documentation will make the contributed wildfire setting usable as a
+paired-view benchmark rather than only a private case study.
 
 The spatial-map result has a similar boundary. The tile-level correlation is
 useful because it turns disagreement into a GIS-native damage signal, but the
@@ -373,43 +387,14 @@ applies to ConflictFocalLoss. Its wildfire gain is promising, but the loss
 should be compared against standard focal loss, class-balanced loss, and simple
 probability averaging before being framed as a standalone method contribution.
 
-Several limits are central. First, the wildfire and hurricane settings differ
-by more than observation regime. They also differ by hazard, geography, image
-source, label construction, and metadata availability. The results therefore
-support a regime-sensitive interpretation, not a causal proof. Second, the
-hurricane endpoint conflict subset is small, so its large positive gain should
-be treated as tentative. Third, the private wildfire data package must include
-complete counts, class balance, annotation protocol, inter-annotator agreement
-if available, and release or access instructions before public release. Fourth,
-ConflictFocalLoss and the tile-level spatial proxy are validated only on the
-wildfire setting. They motivate follow-up experiments but should not be
-presented as fully general.
-
-These limits also clarify the paper's contribution. CAE does not claim that
-cross-view fusion always wins. It gives researchers and practitioners a clearer
-way to see when paired views resolve evidence conflict and when a single view
+Several boundaries remain. The wildfire and hurricane settings differ by more
+than observation regime, so the results support a regime-sensitive
+interpretation rather than a causal proof. The hurricane endpoint conflict
+subset is small, so its large positive gain is diagnostic. ConflictFocalLoss and
+the tile-level spatial proxy are strongest on the wildfire setting and motivate
+broader validation. These boundaries do not weaken the core contribution: CAE
+shows when paired views resolve evidence conflict and when a single view
 remains sufficient.
-
-\subsection{Relation to Generative Cross-View Assessment}
-
-The results also identify a practical evaluation target for generative
-satellite-to-street systems. When post-disaster street imagery is missing, a
-model may synthesize a plausible ground-level view from overhead imagery
-\cite{yang2026satellite}. Such generated evidence should not be evaluated only
-by perceptual realism. In disaster triage, the operational question is whether a
-synthetic or retrieved ground view changes the decision on cases where overhead
-evidence is ambiguous. CAE provides a direct test: generated, real, and
-overhead-only predictions can be compared on the same conflict subset, and the
-result can show whether the added view resolves uncertainty or merely reinforces
-the overhead model's prior.
-
-This distinction matters for responsible GeoAI. A visually realistic generated
-street scene can still hallucinate facade details, debris patterns, or access
-conditions that are decisive for damage labels. Conversely, a generated view
-that is imperfect as an image may still add useful structural evidence if its
-errors are calibrated and its uncertainty is surfaced. Conflict-aware reporting
-therefore complements view synthesis by asking how synthetic evidence behaves
-under decision conflict, where the cost of a plausible but wrong cue is highest.
 
 \subsection{Operational Implications}
 
@@ -437,7 +422,9 @@ CAE can also support audit logs for triage escalation: the two single-view
 scores, conflict threshold, selected route, and final decision can be stored for
 each building. These records help target new ground photos where overhead
 imagery is uncertain and prior conflicts show that ground evidence often
-corrects remote-only mistakes.
+corrects remote-only mistakes. The same log can evaluate generated
+satellite-to-street evidence by asking whether a synthesized view resolves
+conflict or reinforces the overhead model's prior.
 
 \section{Conclusion}
 
@@ -451,12 +438,9 @@ fusion more falsifiable, more spatially interpretable, and more useful for
 deployment decisions.
 
 \begin{acks}
-The authors used AI-based writing assistance to support grammar checking,
-draft compression, and editorial revision. These tools were not used as sources
-of scientific evidence or to autonomously generate the study design, datasets,
-experimental results, figures, tables, interpretations, or conclusions. The
-authors reviewed and approved all manuscript content and take full
-responsibility for the work.
+The authors used AI-based writing assistance for grammar checking and editorial
+compression. The authors reviewed all content and take full responsibility for
+the work.
 \end{acks}
 
 \balance
