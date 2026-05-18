@@ -41,9 +41,9 @@
 Cross-view disaster assessment combines ground-level and overhead imagery to
 infer building damage. Aggregate F1 scores, however, hide the cases where
 fusion matters most: examples for which the single-view predictors disagree.
-This short paper introduces a Conflict-Aware Evaluation protocol (CAE) for
-paired-view disaster triage. CAE reports overall F1, conflict-subset F1, and
-the conflict gain of cross-view fusion over the stronger single-view baseline.
+This study introduces a Conflict-Aware Evaluation protocol (CAE) for paired-view
+disaster triage. CAE reports overall F1, conflict-subset F1, and the conflict
+gain of cross-view fusion over the stronger single-view baseline.
 We apply CAE to two paired disaster settings: an Eaton/Altadena wildfire dataset
 with property-centered ground imagery and the Hurricane Ian CVDisaster benchmark
 with panoramic ground imagery. The results show that cross-view fusion is most
@@ -91,20 +91,22 @@ damage assessment from multi-scale visual evidence \cite{xiao2023cross}. Ground
 and street-view studies show that close-range imagery can capture damage cues
 that overhead imagery misses \cite{zhai2020damage,xue2024post,yang2025hyperlocal}.
 CVDisaster is the closest paired-view benchmark for Hurricane Ian
-\cite{li2025cross}. CAE adds a different evaluation axis by separating average
-performance from behavior on single-view disagreement cases.
+\cite{li2025cross}. Recent generative work also studies how post-disaster
+ground views may be synthesized from satellite imagery when field observations
+are sparse \cite{yang2026satellite}. CAE adds a complementary evaluation axis by
+separating average performance from behavior on single-view disagreement cases.
 
-We contribute a compact evaluation study for ACM SIGSPATIAL short-paper review.
-First, we define Conflict-Aware Evaluation (CAE), a three-metric protocol that
-reports full-test performance and conflict-subset behavior together. Second, we
-apply CAE to wildfire and hurricane paired-view triage, while treating the
-hurricane grouped-clean split as the conservative endpoint control. Third, we
-show how the same disagreement signal can support two extensions: wildfire
-tile-level conflict-density mapping and a conflict-weighted training loss. The
-paper deliberately avoids a causal claim that disaster type alone determines
-which view should dominate. The evidence is better read as a regime-sensitive
-experiment: cross-view fusion helps most when single-view evidence conflicts,
-and the source of that help depends on how the ground view observes the target.
+This study makes three contributions. First, it defines Conflict-Aware
+Evaluation (CAE), a three-metric protocol that reports full-test performance and
+conflict-subset behavior together. Second, it applies CAE to wildfire and
+hurricane paired-view triage, while treating the hurricane grouped-clean split
+as the conservative endpoint control. Third, it shows how the same disagreement
+signal can support two extensions: wildfire tile-level conflict-density mapping
+and a conflict-weighted training loss. The analysis deliberately avoids a causal
+claim that disaster type alone determines which view should dominate. The
+evidence is better read as a regime-sensitive experiment: cross-view fusion
+helps most when single-view evidence conflicts, and the source of that help
+depends on how the ground view observes the target.
 
 \begin{figure*}[t]
   \centering
@@ -344,23 +346,23 @@ stronger single-view model after leakage control.
 
 \subsection{Reproducibility and Boundary Conditions}
 
-The short-paper version should be read as an evaluation protocol plus a compact
-empirical study, not as a final claim that one universal fusion architecture is
-optimal. The reproducible unit is the CAE computation: given held-out
-predictions from street-only, remote-only, and cross-view models, CAE can be
-computed without changing the model architecture. This makes the protocol
-portable to other paired-view disaster datasets and to stronger fusion models,
-including attention-based or transformer-based designs.
+The study should be read as an evaluation protocol plus an empirical comparison,
+not as a final claim that one universal fusion architecture is optimal. The
+reproducible unit is the CAE computation: given held-out predictions from
+street-only, remote-only, and cross-view models, CAE can be computed without
+changing the model architecture. This makes the protocol portable to other
+paired-view disaster datasets and to stronger fusion models, including
+attention-based, transformer-based, and generative-view designs.
 
-Two controls are especially important for a credible submission. First, the
-hurricane endpoint result must be interpreted through the grouped-clean split.
-The original endpoint split is still useful because it connects to the
-benchmark history, but it should not carry the main conclusion after
-object-level leakage has been identified. Second, the wildfire dataset needs a
-complete data card before upload: sample counts by split, class balance, image
-source, collection timing, annotation rules, quality-control procedure, and
-release or access constraints. Without that documentation, reviewers cannot
-separate a modeling result from a hidden data-construction effect.
+Two controls are especially important for credible reuse. First, the hurricane
+endpoint result must be interpreted through the grouped-clean split. The
+original endpoint split is still useful because it connects to the benchmark
+history, but it should not carry the main conclusion after object-level leakage
+has been identified. Second, the wildfire dataset needs a complete data card:
+sample counts by split, class balance, image source, collection timing,
+annotation rules, quality-control procedure, and release or access constraints.
+Without that documentation, external users cannot separate a modeling result
+from a hidden data-construction effect.
 
 The spatial-map result has a similar boundary. The tile-level correlation is
 useful because it turns disagreement into a GIS-native damage signal, but the
@@ -378,15 +380,36 @@ support a regime-sensitive interpretation, not a causal proof. Second, the
 hurricane endpoint conflict subset is small, so its large positive gain should
 be treated as tentative. Third, the private wildfire data package must include
 complete counts, class balance, annotation protocol, inter-annotator agreement
-if available, and release or access instructions before final submission.
-Fourth, ConflictFocalLoss and the tile-level spatial proxy are validated only
-on the wildfire setting. They motivate follow-up experiments but should not be
+if available, and release or access instructions before public release. Fourth,
+ConflictFocalLoss and the tile-level spatial proxy are validated only on the
+wildfire setting. They motivate follow-up experiments but should not be
 presented as fully general.
 
 These limits also clarify the paper's contribution. CAE does not claim that
-cross-view fusion always wins. It gives reviewers and practitioners a clearer
+cross-view fusion always wins. It gives researchers and practitioners a clearer
 way to see when paired views resolve evidence conflict and when a single view
 remains sufficient.
+
+\subsection{Relation to Generative Cross-View Assessment}
+
+The results also identify a practical evaluation target for generative
+satellite-to-street systems. When post-disaster street imagery is missing, a
+model may synthesize a plausible ground-level view from overhead imagery
+\cite{yang2026satellite}. Such generated evidence should not be evaluated only
+by perceptual realism. In disaster triage, the operational question is whether a
+synthetic or retrieved ground view changes the decision on cases where overhead
+evidence is ambiguous. CAE provides a direct test: generated, real, and
+overhead-only predictions can be compared on the same conflict subset, and the
+result can show whether the added view resolves uncertainty or merely reinforces
+the overhead model's prior.
+
+This distinction matters for responsible GeoAI. A visually realistic generated
+street scene can still hallucinate facade details, debris patterns, or access
+conditions that are decisive for damage labels. Conversely, a generated view
+that is imperfect as an image may still add useful structural evidence if its
+errors are calibrated and its uncertainty is surfaced. Conflict-aware reporting
+therefore complements view synthesis by asking how synthetic evidence behaves
+under decision conflict, where the cost of a plausible but wrong cue is highest.
 
 \subsection{Operational Implications}
 
@@ -406,14 +429,20 @@ observation-regime effects directly, it should collect property-centered and
 panoramic ground imagery for the same disaster and the same target buildings.
 That design would remove many of the confounders in the current comparison and
 would let CAE test whether target alignment, rather than hazard type or data
-source, drives the dominant-view switch. In this sense, the current paper is a
-compact empirical warning and a protocol proposal: average F1 is not enough for
+source, drives the dominant-view switch. In this sense, the study offers an
+empirical warning and an evaluation protocol: average F1 is not enough for
 multimodal disaster assessment when the views disagree.
+
+CAE can also support audit logs for triage escalation: the two single-view
+scores, conflict threshold, selected route, and final decision can be stored for
+each building. These records help target new ground photos where overhead
+imagery is uncertain and prior conflicts show that ground evidence often
+corrects remote-only mistakes.
 
 \section{Conclusion}
 
-This short paper reframes paired-view disaster triage as conflict-aware
-evaluation. Across wildfire and hurricane paired-view settings, cross-view
+This work reframes paired-view disaster triage as conflict-aware evaluation.
+Across wildfire and hurricane paired-view settings, cross-view
 fusion is most informative on disagreement cases, but the stronger single-view
 arbitrator changes with observation regime, split definition, and leakage
 control. The resulting lesson is practical: disaster benchmarks should report
