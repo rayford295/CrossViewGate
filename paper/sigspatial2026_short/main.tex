@@ -148,15 +148,44 @@ their elementwise product. This simple fusion design keeps the evaluation
 focused on conflict behavior rather than architectural novelty.
 
 The wildfire setting uses an Eaton/Altadena paired dataset assembled for this
-project. Its ground imagery is property-centered inspection imagery paired with
-overhead patches. This observation regime often places the target building near
-the visual center of the ground image. The hurricane setting uses the Hurricane
-Ian CVDisaster benchmark \cite{li2025cross}, which pairs panoramic ground
-imagery with very high resolution overhead imagery. This observation regime
-often includes wider street context, adjacent buildings, and weaker target
-alignment. The comparison therefore mixes disaster type, geography, source, and
-collection protocol; those factors limit causal interpretation and motivate the
-conservative language used below.
+project from property-level inspection photographs and matched overhead crops in
+the Eaton Fire area. The local source index contains 19,780 inspection-image
+attachments with damage categories, object identifiers, coordinates, image
+attachment URLs, matched overhead-tile filenames, crop boxes, pixel locations,
+and coverage metadata. The experimental manifest retains 19,753 paired records,
+of which 19,720 have usable binary labels after excluding inaccessible cases.
+It includes 18,393 unique object identifiers and 38 unique overhead tiles. This
+metadata is important for two reasons: it allows object-level grouped splitting,
+and it lets us aggregate predictions by overhead tile for spatial analysis. For
+the sensitivity setting emphasized in this short paper, the binary mapping is
+\texttt{0 = No Damage} and \texttt{1 = Affected + Minor + Major + Destroyed}.
+The resulting ground-view regime is property-centric: inspection photographs
+are typically aimed at the target structure, so facade damage, burn marks, and
+other local structural cues are often visible near the image center.
+
+The hurricane setting uses the Hurricane Ian CVDisaster benchmark
+\cite{li2025cross}. Our local copy contains 4,121 paired samples with three
+severity classes: 1,407 \texttt{MinorDamage}, 1,538 \texttt{ModerateDamage},
+and 1,176 \texttt{SevereDamage}. The released train/test partition contains
+3,821 training samples and a balanced 300-sample test set with 100 examples per
+class. We derive two binary tasks from this label space. The endpoint task uses
+\texttt{0 = MinorDamage} and \texttt{1 = SevereDamage}, excluding moderate
+cases to maximize label separation. The broader sensitivity task uses
+\texttt{0 = MinorDamage} and \texttt{1 = ModerateDamage + SevereDamage}. Each
+record links a street-view or panoramic image to an overhead image. Unlike the
+wildfire inspection photographs, the hurricane ground view often contains a
+wide street scene, neighboring buildings, vegetation, parked vehicles, standing
+water, and debris. Therefore the target structure is less consistently centered
+or even visually dominant.
+
+The comparison is consequently not a clean causal comparison of ``wildfire
+versus hurricane.'' It compares two real disaster datasets that differ in event
+type, geography, image source, and collection protocol. We use this contrast
+because those differences instantiate two operational observation regimes:
+property-centric inspection imagery and panoramic environment-centric imagery.
+This distinction is the empirical object of the paper. It explains why the same
+cross-view model can behave differently across settings and why we report the
+leakage-controlled hurricane split as a conservative boundary condition.
 
 Table~\ref{tab:settings} records the experimental settings and the control role
 of each split. This is important because the paper should not choose a split
@@ -166,19 +195,19 @@ disagreement subset. The hurricane grouped-clean endpoint split is included
 because it controls object-level leakage in the original endpoint partition.
 
 \begin{table}[t]
-  \caption{Evaluation settings and leakage controls.}
+  \caption{Evaluation settings, sample counts, and leakage controls.}
   \label{tab:settings}
   \centering
   \scriptsize
-  \setlength{\tabcolsep}{3pt}
-  \begin{tabular}{llll}
+  \setlength{\tabcolsep}{2.5pt}
+  \begin{tabular}{lllrl}
     \toprule
-    Setting & Positive class & Ground regime & Role \\
+    Setting & Positive class & Ground regime & $N$ & Role \\
     \midrule
-    WF sens. & affected+ & property & main CAE \\
-    H end. & severe & panoramic & diagnostic \\
-    H mod.+sev. & moderate+ & panoramic & sensitivity \\
-    H clean & severe & panoramic & leakage control \\
+    WF sens. & affected+ & property & 19{,}720 & main CAE \\
+    H end. & severe & panoramic & 2{,}583 & diagnostic \\
+    H mod.+sev. & moderate+ & panoramic & 4{,}121 & sensitivity \\
+    H clean & severe & panoramic & 2{,}583 & leakage control \\
     \bottomrule
   \end{tabular}
 \end{table}
