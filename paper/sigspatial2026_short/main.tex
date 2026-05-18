@@ -364,11 +364,14 @@ boundary is needed. Reporting both prevents the paper from choosing the
 partition that makes fusion look strongest.
 
 The same principle applies to the wildfire dataset. Its positive result is
-credible because it is paired with a release requirement rather than treated as
-a black box. A usable data card should document split counts, class balance,
-image sources, collection timing, annotation rules, quality control, and access
-constraints. That documentation will make the wildfire setting a reusable
-paired-view benchmark rather than only a private case study.
+credible only if the dataset is not treated as a black box. The paper artifact
+will therefore release wildfire split manifests and a data-card summary with
+train/validation/test counts, class balance under the sensitive label mapping,
+objectid grouping, image-source fields, coordinate fields, missing-pair
+filtering rules, and access notes for the raw imagery. The raw images are not
+tracked directly in the GitHub repository, so this metadata release is the
+reproducible unit for verifying the split and reconstructing the paired-view
+benchmark.
 
 \subsection{Spatial Observation Regime}
 
