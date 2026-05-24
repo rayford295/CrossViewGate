@@ -8,6 +8,9 @@
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\setlength{\textfloatsep}{7pt plus 1pt minus 2pt}
+\setlength{\floatsep}{6pt plus 1pt minus 1pt}
+\setlength{\intextsep}{6pt plus 1pt minus 1pt}
 
 \acmConference[ACM SIGSPATIAL '26]{The 34th ACM International Conference on Advances in Geographic Information Systems}{November 3--6, 2026}{Riverside, CA, USA}
 \acmYear{2026}
@@ -38,24 +41,20 @@
 
 \begin{abstract}
 Cross-view disaster assessment combines ground-level and overhead imagery to
-infer building damage. Aggregate F1 scores, however, hide the cases that matter
-most for deployment: examples where the single-view predictors disagree. This
-study introduces Conflict-Aware Evaluation (CAE), a protocol that reports
-overall F1, conflict-subset F1, and the conflict gain of cross-view fusion over
-the stronger single-view baseline. We apply CAE to two paired disaster
-settings: an Eaton/Altadena wildfire dataset with property-centered ground
-imagery and the Hurricane Ian CVDisaster benchmark with panoramic ground
-imagery. The results show both the promise and the boundary of fusion. On the
-wildfire sensitivity split, cross-view fusion improves conflict F1 by 0.0388
-over the best single-view baseline. On the leakage-controlled hurricane
-endpoint split, however, the gain becomes negative ($\dview=-0.0153$), even
-though aggregate F1 makes cross-view and street-only inference look nearly
-equivalent. A directional decomposition explains the switch: wildfire conflicts
-more often involve street-correct and overhead-wrong cases, while the broader
-hurricane split reverses this pattern. These findings support a simple
-evaluation shift: paired-view disaster models should be judged first on the
-conflict cases that expose their boundary conditions, not only on average-case
-scores.
+infer building damage, but aggregate F1 hides examples where the two views
+disagree. This short paper introduces Conflict-Aware Evaluation (CAE), a
+reporting protocol that measures overall F1, conflict-subset F1, cross-view gain
+over the stronger single-view baseline, and the direction in which one view
+corrects the other. We apply CAE to an Eaton/Altadena wildfire dataset with
+property-centered ground imagery and to the Hurricane Ian CVDisaster benchmark
+with panoramic ground imagery. The main result is deliberately mixed. On the
+wildfire sensitivity split, cross-view fusion improves conflict F1 by 0.0388.
+On the leakage-controlled hurricane endpoint split, the gain becomes negative
+($\dview=-0.0153$), although aggregate F1 makes cross-view and street-only
+models look nearly tied. Directional and alignment diagnostics show that fusion
+helps when the ground view observes the target building, but can lose value when
+the ground view becomes panoramic context. CAE therefore turns paired-view
+triage into a stress test for when fusion helps, fails, or should defer.
 \end{abstract}
 
 \keywords{disaster assessment, cross-view learning, multimodal fusion, GeoAI, conflict-aware evaluation}
@@ -67,64 +66,37 @@ scores.
 \section{Introduction}
 
 Post-disaster building assessment increasingly uses several visual viewpoints.
-Overhead imagery gives broad spatial coverage, while ground imagery can expose
-facade condition, debris, and local structural cues. Cross-view models seek to
-combine these signals, but prior evaluation often reduces their value to one
-aggregate test metric. That view is too coarse for operational disaster triage.
-Many buildings are easy in both views. The harder and more consequential cases
-are those where the two views provide competing evidence.
+Overhead imagery gives broad coverage, while ground imagery can expose facade
+condition, debris, and local structural cues. Cross-view models seek to combine
+these signals, but average test scores hide the cases that matter most for
+deployment: buildings where the views disagree.
 
-This paper studies cross-view fusion as a conflict-resolution problem. We focus
-on paired examples that contain a ground image, an overhead patch, and a binary
-damage label. Instead of asking only whether paired-view fusion improves
-average F1, we ask whether fusion resolves the subset where the two single-view
-models disagree. That framing matters for geographic AI because observation
-conditions are not interchangeable. A close property inspection photograph and
-a panoramic street scene both count as ground imagery, but they encode
-different relationships between observer, target building, and surrounding
-landscape.
+This paper treats paired-view triage as conflict resolution. Each example has a
+ground image, an overhead patch, and a binary damage label. We ask whether
+fusion improves the subset where the single-view predictors disagree, rather
+than whether it only improves average F1. This framing matters because a
+property inspection photograph and a panoramic street scene are both ground
+views, yet they observe the labeled building in different ways.
 
-The study sits between several lines of disaster-vision and geospatial
-evaluation work. Satellite damage benchmarks such as xBD have made
-overhead-only building assessment a standard task \cite{gupta2019creating}, and
-later fusion models improve satellite-based damage assessment from multi-scale
-visual evidence \cite{xiao2023cross}. Ground and street-view studies show that
-close-range imagery can capture damage cues that overhead imagery misses
-\cite{zhai2020damage,xue2024post,yang2025hyperlocal}. CVDisaster is the
-closest paired-view benchmark for Hurricane Ian \cite{li2025cross}. Cross-view
-geolocalization work has also established the broader term for matching ground
-and aerial views \cite{workman2015wide}; here the goal is not localization but
-damage triage under evidence conflict. CAE is related to selective prediction
-and disagreement-aware evaluation \cite{geifman2017selective}, but it does not
-claim a new risk-coverage estimator. Its contribution is a spatially grounded
-reporting unit for paired disaster views: the subset where the two observation
-regimes disagree, the single-view direction of correction, and the gain or loss
-from fusion. This complements spatial evaluation concerns about leakage and
-split design \cite{roberts2017cross}. Recent generative work also studies how
-post-disaster ground views may be synthesized from satellite imagery when field
-observations are sparse \cite{yang2026satellite}.
-
-This study makes three contributions. First, it defines Conflict-Aware
-Evaluation (CAE), a three-metric protocol that reports full-test performance and
-conflict-subset behavior together. Second, it applies CAE to wildfire and
-hurricane paired-view triage and treats the hurricane grouped-clean split as the
-conservative endpoint control. This control produces the central negative
-result: fusion is not always the best conflict resolver after leakage is
-removed. Third, it introduces spatial observation regime as the explanation
-scale for this boundary. The analysis deliberately avoids a causal claim that
-disaster type alone determines which view should dominate. The evidence is
-better read as a regime-sensitive experiment: cross-view fusion helps most when
-single-view evidence conflicts, and the source of that help depends on how the
-ground view observes the target building.
+The work builds on overhead damage benchmarks \cite{gupta2019creating}, fusion
+models for disaster assessment \cite{xiao2023cross}, ground-view damage studies
+\cite{zhai2020damage,xue2024post,yang2025hyperlocal}, and the paired Hurricane
+Ian CVDisaster benchmark \cite{li2025cross}. CAE is related to selective and
+disagreement-aware evaluation \cite{geifman2017selective}, but its reporting
+unit is spatial: the disagreement subset, the single-view correction direction,
+and the gain or loss from fusion under a given observation regime. The paper
+makes three claims: CAE exposes conflict behavior, leakage-controlled hurricane
+results set a negative boundary for fusion, and spatial observation regime helps
+explain the dominant-view switch.
 
 \begin{figure*}[t]
   \centering
   \includegraphics[
-    width=0.96\textwidth,
-    height=0.29\textheight,
+    width=\textwidth,
+    height=0.19\textheight,
     keepaspectratio
-  ]{../figures/figure1_overview.png}
-  \Description{Overview figure showing the United States study regions, the local wildfire tile footprint, and paired overhead and ground-view examples for wildfire and hurricane settings.}
+  ]{../figures/figure1_overview_compact.png}
+  \Description{Compact overview figure showing wildfire paired overhead and property-centered ground-view examples on the left, a United States study-region map in the center, and hurricane paired overhead and panoramic ground-view examples on the right.}
   \caption{Study design and spatial observation regimes. The wildfire setting
   uses property-centered inspection imagery paired with overhead patches,
   whereas the hurricane setting uses panoramic ground imagery paired with
@@ -135,64 +107,42 @@ ground view observes the target building.
 
 \section{Data and Protocol}
 
+\begin{figure*}[t]
+  \centering
+  \includegraphics[
+    width=\textwidth,
+    height=0.24\textheight,
+    keepaspectratio
+  ]{../figures/methodology_cae_pipeline_final.png}
+  \Description{Methodology figure showing four stages: paired overhead and ground-view evidence, comparable single-view and cross-view predictors, a conflict gate that isolates examples with single-view probability disagreement, and a CAE readout with overall F1, conflict F1, cross-view conflict gain, and directional arbitration.}
+  \caption{Conflict-Aware Evaluation (CAE) protocol. CAE isolates examples where
+  street-only and remote-only predictors disagree, then reports whether
+  cross-view fusion improves conflict-subset F1 over the stronger single-view
+  baseline. Directional arbitration links model behavior to spatial observation
+  regime.}
+  \label{fig:methodology}
+\end{figure*}
+
 \subsection{Paired-View Triage Settings}
 
-Let
-$\mathcal{D}=\{(x_i^{(s)},x_i^{(r)},y_i)\}_{i=1}^{N}$ be a paired disaster
-triage dataset, where $x_i^{(s)}$ is a street or ground image,
-$x_i^{(r)}$ is an overhead patch, and $y_i\in\{0,1\}$ is the binary damage
-label. We compare three modes: \emph{street-only} (S), \emph{remote-only} (R),
-and \emph{cross-view} (CV). The cross-view model uses late fusion of ResNet18 features
-\cite{he2016deep}, including each embedding, their absolute difference, and
-their elementwise product. This simple fusion design keeps the evaluation
-focused on conflict behavior rather than architectural novelty.
+Let $\mathcal{D}=\{(x_i^{(s)},x_i^{(r)},y_i)\}_{i=1}^{N}$ be a paired disaster
+triage dataset with a ground image, an overhead patch, and a binary label. We
+compare street-only (S), remote-only (R), and cross-view (CV) predictors. CV
+uses late fusion of ResNet18 features \cite{he2016deep}: both embeddings, their
+absolute difference, and their elementwise product.
 
-The wildfire setting uses an Eaton/Altadena paired dataset assembled for this
-project from property-level inspection photographs and matched overhead crops in
-the Eaton Fire area. The local source index contains 19,780 inspection-image
-attachments with damage categories, object identifiers, coordinates, image
-attachment URLs, matched overhead-tile filenames, crop boxes, pixel locations,
-and coverage metadata. The experimental manifest retains 19,753 paired records,
-of which 19,720 have usable binary labels after excluding inaccessible cases.
-It includes 18,393 unique object identifiers and 38 unique overhead tiles. This
-metadata is important for two reasons: it allows object-level grouped splitting,
-and it lets us aggregate predictions by overhead tile for spatial analysis. For
-the sensitivity setting emphasized in this short paper, the binary mapping is
-\texttt{0 = No Damage} and \texttt{1 = Affected + Minor + Major + Destroyed}.
-The resulting ground-view regime is property-centric: inspection photographs
-are typically aimed at the target structure, so facade damage, burn marks, and
-other local structural cues are often visible near the image center.
-
-The hurricane setting uses the Hurricane Ian CVDisaster benchmark
-\cite{li2025cross}. Our local copy contains 4,121 paired samples with three
-severity classes: 1,407 \texttt{MinorDamage}, 1,538 \texttt{ModerateDamage},
-and 1,176 \texttt{SevereDamage}. The released train/test partition contains
-3,821 training samples and a balanced 300-sample test set with 100 examples per
-class. We derive two binary tasks from this label space. The endpoint task uses
-\texttt{0 = MinorDamage} and \texttt{1 = SevereDamage}, excluding moderate
-cases to maximize label separation. The broader sensitivity task uses
-\texttt{0 = MinorDamage} and \texttt{1 = ModerateDamage + SevereDamage}. Each
-record links a street-view or panoramic image to an overhead image. Unlike the
-wildfire inspection photographs, the hurricane ground view often contains a
-wide street scene, neighboring buildings, vegetation, parked vehicles, standing
-water, and debris. Therefore the target structure is less consistently centered
-or even visually dominant.
-
-The comparison is consequently not a clean causal comparison of ``wildfire
-versus hurricane.'' It compares two real disaster datasets that differ in event
-type, geography, image source, and collection protocol. We use this contrast
-because those differences instantiate two operational observation regimes:
-property-centric inspection imagery and panoramic environment-centric imagery.
-This distinction is the empirical object of the paper. It explains why the same
-cross-view model can behave differently across settings and why we report the
-leakage-controlled hurricane split as a conservative boundary condition.
-
-Table~\ref{tab:settings} records the experimental settings and the control role
-of each split. This is important because the paper should not choose a split
-after observing which one makes the conflict story look strongest. The wildfire
-sensitivity split is used because it gives a larger and more informative
-disagreement subset. The hurricane grouped-clean endpoint split is included
-because it controls object-level leakage in the original endpoint partition.
+Table~\ref{tab:settings} summarizes the four evaluation settings. The wildfire
+setting uses 19,720 usable Eaton/Altadena paired records derived from
+property-level inspection photographs and matched overhead crops. The source
+index retains object identifiers, coordinates, crop boxes, overhead tile IDs,
+and coverage metadata, enabling object-level grouping and tile-level spatial
+aggregation. The positive class is \texttt{Affected + Minor + Major +
+Destroyed}. The hurricane setting uses the Hurricane Ian CVDisaster benchmark
+\cite{li2025cross}, with 4,121 paired samples across minor, moderate, and severe
+damage. We evaluate both the endpoint task (minor versus severe) and a broader
+moderate-plus-severe task. The comparison is not a causal test of wildfire
+versus hurricane; it contrasts property-centric and panoramic observation
+regimes.
 
 \begin{table}[t]
   \caption{Evaluation settings, sample counts, and leakage controls.}
@@ -230,51 +180,48 @@ gain
 \max\{\mathrm{F1}(\mathrm{street};\conf),
 \mathrm{F1}(\mathrm{remote};\conf)\}.
 \end{equation}
-This protocol exposes whether paired-view fusion resolves disagreement cases
-rather than only improving easy average cases.
-
-We also decompose conflicts by correction direction. $S{\rightarrow}O$ denotes
-cases where the street-only model is correct and the remote-only model is
-wrong; $O{\rightarrow}S$ denotes the reverse. These fractions identify the
-stronger single-view arbitrator inside the conflict subset. Because a prior
-hurricane endpoint split had object-level leakage, we report the grouped-clean
-endpoint split as a required control rather than as an optional robustness run.
+The compact CAE report for each model is therefore
+\begin{equation}
+\mathbf{r}_{\tau}(m)=
+\left(\mathrm{F1}(m;\mathcal{D}),\,
+\mathrm{F1}(m;\conf),\, n_c/N\right),
+\quad n_c=|\conf|.
+\end{equation}
+We also decompose conflicts by correction direction. Let
+$\hat{y}_i^{(s)}=\mathbf{1}\{p_i^{(s)}\ge0.5\}$ and define
+$\hat{y}_i^{(r)}$ analogously. With
+$c_i^{(v)}=\mathbf{1}\{\hat{y}_i^{(v)}=y_i\}$, the two arbitration rates are
+\begin{align}
+\rho_{S{\rightarrow}O} &=
+\frac{1}{n_c}\sum_{i\in\conf}c_i^{(s)}(1-c_i^{(r)}),\\
+\rho_{O{\rightarrow}S} &=
+\frac{1}{n_c}\sum_{i\in\conf}c_i^{(r)}(1-c_i^{(s)}).
+\end{align}
+$S{\rightarrow}O$ denotes street-correct and remote-wrong cases, and
+$O{\rightarrow}S$ denotes the reverse. Because a prior hurricane endpoint split
+had object-level leakage, the grouped-clean endpoint split is the conservative
+control.
 
 \subsection{Implementation Details}
 
-All modes use the same triage implementation. Images are resized to 224 by 224
-pixels and normalized for the selected backbone. The main runs use ImageNet
-pretrained ResNet18 encoders. Each view embedding is projected to 256
-dimensions; the cross-view classifier receives the street embedding, overhead
-embedding, absolute difference, and elementwise product. Models are optimized
-with AdamW using learning rate $10^{-4}$ for 10 epochs, and the checkpoint with
-the best validation F1 is evaluated on the held-out test split. This keeps the
-comparison between street-only, remote-only, and cross-view models tied to the
-same training protocol.
+Images are resized to 224 by 224 pixels and normalized for ImageNet-pretrained
+ResNet18 encoders. Each view embedding is projected to 256 dimensions. Models
+use AdamW with learning rate $10^{-4}$ for 10 epochs, and the best-validation-F1
+checkpoint is evaluated on the held-out test split.
+
+For reproducibility, the wildfire release is organized around split manifests
+and a data-card summary rather than raw-image redistribution. The manifests keep
+object IDs, image-source fields, coordinates, matched overhead tile names,
+binary labels, and filtering flags. This makes the grouped split auditable and
+lets future work reconstruct the paired-view benchmark from the original
+imagery sources when access permits.
 
 \section{Results}
 
-\subsection{CAE Summary}
-
-Table~\ref{tab:cae} reports the core CAE results. If the analysis only reported
-overall F1, the conclusion would be incomplete: cross-view fusion is slightly
-better in wildfire, slightly better on two hurricane splits, and nearly tied
-with street-only on the grouped-clean hurricane endpoint split. CAE changes the
-question. It asks whether fusion helps on the cases where the two single-view
-models disagree.
-
-The answer is useful because it is not uniformly positive. The wildfire
-sensitivity split has the clearest positive conflict gain: cross-view fusion
-reaches 0.6618 conflict F1, which is 0.0388 above the better single-view
-baseline. The original hurricane endpoint split also shows a large gain, but
-its small conflict subset ($n=32$) and leakage history make it diagnostic
-rather than primary evidence. The broader hurricane moderate-plus-severe split
-keeps a smaller positive gain. The grouped-clean endpoint split provides the
-most important boundary condition: cross-view fusion remains nearly tied with
-street-only overall (0.9008 versus 0.9016), but on conflict cases it falls below
-street-only by 0.0153. This negative result is not a failure of CAE; it is the
-reason CAE is needed. It shows that aggregate scores can hide the point at
-which fusion stops being the best conflict resolver.
+Table~\ref{tab:cae} is the CAE scorecard. Average F1 alone would make CV look
+mostly helpful or tied. Conflict F1 changes the reading. Wildfire has a clear
+positive conflict gain (+0.0388), while the leakage-controlled hurricane split
+has a negative gain (-0.0153) even though S and CV are nearly tied overall.
 
 \begin{table}[t]
   \caption{Conflict-Aware Evaluation summary. Conflict F1 uses $\conf$ with
@@ -304,176 +251,170 @@ which fusion stops being the best conflict resolver.
   \end{tabular}
 \end{table}
 
-\subsection{Dominant-View Switch}
-
-The directional decomposition in Table~\ref{tab:dominance} explains why the
-conflict gain changes across settings. On wildfire, $S{\rightarrow}O$ conflicts
-are more common than $O{\rightarrow}S$ conflicts (0.2713 versus 0.1885), so the
-ground image is the stronger single-view arbitrator. This matches the
-observation regime: property-centered ground imagery often places the target
-building near the image center and exposes facade, debris, and local damage
-cues that an overhead patch can miss.
-
-The hurricane settings behave differently. On the endpoint split, the two
-directions are near tied (0.3750 versus 0.3438), which helps explain the large
-but unstable positive gain. On the broader hurricane split, the ordering
-reverses (0.1094 versus 0.1328), making the overhead view the stronger
-single-view arbitrator. This does not mean that hurricanes favor overhead
-imagery in general. It means that panoramic ground imagery, with wider scene
-context and weaker target alignment, can behave differently from
-property-centered inspection imagery. The stable finding is the switch itself:
-dominant-view behavior changes with spatial observation regime and split
-definition.
-
-\begin{table}[t]
-  \caption{Directional conflict decomposition at $\tau=0.1$. $S{\rightarrow}O$
-  is street-correct and remote-wrong; $O{\rightarrow}S$ is the reverse.}
-  \label{tab:dominance}
+\begin{figure*}[t]
   \centering
-  \scriptsize
-  \setlength{\tabcolsep}{4pt}
-  \begin{tabular}{lrrrl}
-    \toprule
-    Split & $n_c$ & $S{\rightarrow}O$ & $O{\rightarrow}S$ & Stronger view \\
-    \midrule
-    WF sens. & 435 & 0.2713 & 0.1885 & street \\
-    H end. & 32 & 0.3750 & 0.3438 & near-tie \\
-    H mod.+sev. & 128 & 0.1094 & 0.1328 & remote \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+  \begin{minipage}[t]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=0.135\textheight,keepaspectratio]{../figures/view_dominance_switch_tau0.1.pdf}
+    \par\scriptsize\textbf{(a)} Dominant-view switch at $\tau=0.1$.
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=0.135\textheight,keepaspectratio]{../figures/wildfire_threshold_sensitivity.png}
+    \par\scriptsize\textbf{(b)} Wildfire conflict sensitivity.
+  \end{minipage}
 
-\subsection{Sensitivity Checks}
+  \vspace{0.25em}
+  \begin{minipage}[t]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=0.155\textheight,keepaspectratio]{../figures/alignment_gain_correlation.png}
+    \par\scriptsize\textbf{(c)} Alignment proxy versus conflict resolution.
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\linewidth,height=0.155\textheight,keepaspectratio]{../figures/building_alignment_comparison.png}
+    \par\scriptsize\textbf{(d)} Building alignment distributions.
+  \end{minipage}
 
-The conflict-centered interpretation is not only a threshold artifact. A
-separate sweep at $\tau=\{0.1,0.3,0.5\}$ keeps CV strongest on wildfire
-conflict accuracy (0.8349, 0.7821, 0.7538) and on the hurricane
-moderate-plus-severe conflict subset (0.7097, 0.6400, 0.6190). Under the
-reporting threshold $\tau=0.1$, CV accuracy on conflict cases is 0.7885 for the
-wildfire sensitivity split, compared with 0.7356 for S and 0.6529 for R. On
-the hurricane moderate-plus-severe split, the corresponding values are 0.7500,
-0.7031, and 0.7266. Label-independence permutation tests are below $10^{-4}$ in
-both settings.
+  \vspace{0.25em}
+  \includegraphics[width=\textwidth,height=0.12\textheight,keepaspectratio]{../figures/wildfire_spatial_maps.png}
+  \par\scriptsize\textbf{(e)} Tile-level wildfire spatial diagnostics.
+  \Description{Five-panel results figure showing dominant-view switches, conflict-threshold sensitivity, the relationship between building alignment and cross-view conflict resolution, alignment-distribution differences between wildfire and hurricane settings, and tile-level wildfire maps of damage rate, conflict density, and cross-view gain.}
+  \caption{Result diagnostics. (a) Directional conflicts show the dominant-view
+  switch. (b) Wildfire CV remains strongest across thresholds. (c--d) Alignment
+  diagnostics support the regime interpretation. (e) Tile-level maps localize
+  where fusion helps or fails.}
+  \label{fig:result-diagnostics}
+\end{figure*}
 
-Multi-seed validation supports the base ordering without changing the main
-claim. Wildfire CV reaches $0.9689\pm0.0011$ validation F1, while S and R
-reach $0.9657\pm0.0001$ and $0.9654\pm0.0015$. Hurricane CV reaches
-$0.9455\pm0.0063$, compared with $0.9433\pm0.0012$ and $0.8959\pm0.0065$.
-Backbone checks add a practical caution: ResNet18 and ResNet50 remain strong,
-while generic CLIP and DINOv2 features underperform the supervised CNN
-baselines in this disaster-specific triage setting. These checks support the
-evaluation lens, but they are not the primary contribution. The primary
-contribution is the positive-and-negative conflict pattern exposed by
-Tables~\ref{tab:cae} and~\ref{tab:dominance}.
+Figure~\ref{fig:result-diagnostics} explains why the mixed gains are useful
+rather than inconvenient. In wildfire, $S{\rightarrow}O$ conflicts are more
+common than $O{\rightarrow}S$ conflicts, so property-centered ground imagery is
+the stronger arbitrator. In the broader hurricane split, the ordering reverses,
+which is consistent with panoramic views that contain more scene context and
+weaker target alignment. The threshold sweep and alignment diagnostics show
+that the CAE pattern is not only a single-threshold artifact.
+
+Additional checks support the same ordering without changing the claim. At
+$\tau=\{0.1,0.3,0.5\}$, CV remains strongest on wildfire conflict accuracy
+(0.8349, 0.7821, 0.7538). At $\tau=0.1$, wildfire conflict accuracy is 0.7885
+for CV, 0.7356 for S, and 0.6529 for R; the hurricane moderate-plus-severe split
+gives 0.7500, 0.7031, and 0.7266. Multi-seed validation also keeps CV slightly
+ahead in base F1, while generic CLIP and DINOv2 features underperform the
+supervised CNN baselines in this disaster-specific setting.
+
+The tile-level panel adds a geographic check on this interpretation. Wildfire
+damage, disagreement density, and cross-view gain are spatially uneven across
+overhead tiles. High damage rate does not automatically imply high conflict,
+and high conflict does not automatically imply positive CV gain. This matters
+for disaster response because deployment errors are rarely spread uniformly
+over a region. A model can look strong on a pooled metric while failing in a
+cluster of parcels with unusual viewing angle, smoke shadow, vegetation cover,
+or partial structure visibility. CAE therefore works as both a model-comparison
+metric and a spatial audit layer: it identifies where the disagreement cases
+are, which view wins there, and whether the fused model resolves or amplifies
+the local ambiguity.
 
 \section{Discussion}
 
-The experiment supports CAE as a useful evaluation protocol for paired-view
-disaster triage. Aggregate F1 alone would make the models look similar in some
-settings. CAE reveals how they behave on disagreement cases and shows that
-cross-view value can shrink, grow, or become negative relative to the stronger
-single-view model after leakage control.
+The grouped-clean hurricane result is the key stress test: more visual evidence
+does not always improve decisions once object-level leakage is controlled. CAE
+therefore exposes a deployment boundary, not only a performance gain.
 
-\subsection{Boundary Conditions Are Results}
+The conflict subset is not meant to replace the full test set. It is a second
+readout that asks a narrower deployment question: when the two available views
+would support different decisions, does fusion add useful evidence or blur the
+better view? This differs from selecting examples by loss or label difficulty
+after evaluating CV. The gate is defined only by the two single-view probability
+outputs, so it can be computed before choosing whether to trust fusion. The
+directional counts then make the error source visible. If most conflicts are
+$S{\rightarrow}O$, the street view supplies the missing local cue; if most are
+$O{\rightarrow}S$, the overhead view is the stronger arbitrator. A useful
+paired-view benchmark should report both cases because a positive average gain
+can hide a failure on the examples where fusion is expected to help.
 
-The grouped-clean hurricane result is the most important stress test in the
-paper. It shows that more visual evidence does not automatically produce a
-better decision once the evaluation split removes object-level leakage. This is
-not a weakness of the study. It is the kind of result that deployment-oriented
-GeoAI needs: a condition under which a plausible multimodal assumption stops
-holding. In disaster response, the costly mistake is not only using too little
-information. It is also trusting a fused model in the subset where a simpler
-single-view model is already the better arbitrator.
+Spatial observation regime makes this boundary plausible. In the wildfire
+records, the photographer usually stands near the parcel and aims at the
+structure that receives the label. The ground image can therefore carry direct
+evidence about charred walls, damaged openings, debris against the facade, or
+an intact exterior. In the hurricane records, the panoramic image often captures
+the street segment rather than a single labeled footprint. It may show flooded
+roads, vegetation loss, roof debris, and neighboring buildings, but the target
+building can be small, peripheral, or occluded. The mechanism is therefore how
+each view observes the target, not simply ``street versus satellite.'' The same
+architecture sees two views in both settings, but the semantic access of each
+view differs.
 
-This framing also clarifies the role of the original hurricane endpoint split.
-The endpoint result remains useful for benchmark continuity, but it should not
-carry the main conclusion once the grouped-clean split is available. The clean
-split sets the conservative boundary; the endpoint split shows why that
-boundary is needed. Reporting both prevents the paper from choosing the
-partition that makes fusion look strongest.
+Operationally, cases where S and R agree may use the agreement decision; cases
+where they disagree should route to CV or human review. Future datasets should
+collect property-centered and panoramic views for the same target buildings to
+test target alignment directly.
 
-The same principle applies to the wildfire dataset. Its positive result is
-credible only if the dataset is not treated as a black box. The paper artifact
-will therefore release wildfire split manifests and a data-card summary with
-train/validation/test counts, class balance under the sensitive label mapping,
-objectid grouping, image-source fields, coordinate fields, missing-pair
-filtering rules, and access notes for the raw imagery. The raw images are not
-tracked directly in the GitHub repository, so this metadata release is the
-reproducible unit for verifying the split and reconstructing the paired-view
-benchmark.
+The threshold $\tau$ should be interpreted as an operating knob rather than a
+fixed scientific constant. A small threshold sends more examples into the
+conflict set and measures broad disagreement. A larger threshold keeps only the
+strongest single-view contradictions, which may be more suitable when human
+review capacity is limited. The main analysis uses $\tau=0.1$ because it leaves
+enough examples for stable reporting while still isolating visible disagreement.
+The threshold sweep in Figure~\ref{fig:result-diagnostics} is therefore part of
+the claim. It shows whether the conclusion survives when the triage system
+keeps fewer but harder cases.
 
-\subsection{Spatial Observation Regime}
+The study still has limits. The wildfire and hurricane settings differ in
+hazard type, geography, collection protocol, and label construction, so the
+paper treats observation regime as an explanatory lens rather than a causal
+proof. The compact image-alignment proxies in Figure~\ref{fig:result-diagnostics}
+are diagnostic, not a replacement for field-verified viewpoint geometry. A
+stronger benchmark would collect several ground-view regimes for the same
+buildings and report CAE under identical spatial splits.
 
-The dominant-view switch suggests that \emph{ground imagery} is too broad a category
-for paired-view disaster assessment. Property-centered ground imagery and
-panoramic street imagery observe target buildings differently. The former often
-aligns the camera with the damaged structure and can expose close facade and
-debris cues. The latter provides wider street context, adjacent buildings, and
-scene-level evidence, but it may weaken the correspondence between the ground
-view and the labeled overhead footprint.
-
-Spatial observation regime names this difference. It is not a new sensor type
-or model architecture. It is the relationship among observer, target building,
-viewpoint geometry, and surrounding context. CAE makes that relationship
-measurable because it asks which single view corrects the other when they
-conflict. In the wildfire setting, the property-centered view more often
-corrects the overhead view. In the broader hurricane setting, the overhead view
-more often corrects the panoramic view. The mechanism is therefore not simply
-"street versus satellite"; it is how each view observes the target under a
-specific collection regime.
-
-This concept should transfer beyond the two datasets used here. Any multimodal
-GeoAI task that pairs overhead imagery with ground, mobile, or generated views
-faces the same problem: the modalities may agree on easy cases and disagree
-where target alignment, occlusion, context, or collection timing matters. CAE
-turns those disagreements into a reportable unit rather than averaging them
-away.
-
-This wording also avoids a common shortcut in multimodal evaluation. A dataset
-description may say that it contains satellite and street-view imagery, but the
-operational question is more precise: does the ground view observe the labeled
-object, the surrounding block, or only a nearby scene? A benchmark that records
-this observation relation can explain why a fused model succeeds in one place
-and fails in another. Without that record, a single aggregate score can make two
-very different sensing situations look comparable.
-
-\subsection{Implications and Next Steps}
-
-CAE suggests a practical triage policy. If street-only and remote-only
-predictions agree with high confidence, a response system can often use the
-cheaper agreement decision. If they disagree, the case becomes a candidate for
-cross-view fusion or human review. The exact threshold should be tuned for each
-deployment, but the principle is stable: cross-view reasoning is most valuable
-when the evidence is already in tension.
-
-The same view can guide dataset design. A future benchmark should collect
-property-centered and panoramic ground imagery for the same disaster and the
-same target buildings. That design would remove many confounders in the present
-comparison and would let CAE test whether target alignment, rather than hazard
-type or data source, drives the dominant-view switch. It would also support
-spatial diagnostics, such as mapping where conflict density clusters across
-neighborhoods, but those analyses should be treated as follow-up work rather
-than the main contribution of this study.
-
-The main claim is narrower: a paired-view benchmark should first report whether
-fusion resolves existing view disagreements.
+Two implementation details also deserve care in future work. First, the fusion
+model is deliberately simple, so the negative grouped-clean hurricane result
+should not be read as a universal limit of cross-view learning. It shows that
+late fusion can fail to improve the hardest cases after leakage control. Second,
+object grouping matters as much as architecture. If visually similar views of
+the same object appear across splits, a model can appear to learn cross-view
+reasoning while partly memorizing object-specific cues. CAE is most useful when
+paired with grouped splits, transparent manifests, and geographic diagnostics.
+Those controls turn fusion from a single leaderboard number into an auditable
+decision rule.
 
 \section{Conclusion}
 
-This work reframes paired-view disaster triage as conflict-aware evaluation.
-Across wildfire and hurricane paired-view settings, average F1 hides the cases
-that determine whether fusion is useful in practice. CAE exposes those cases.
-It shows a positive wildfire conflict gain, a negative grouped-clean hurricane
-gain, and a dominant-view switch that follows the spatial observation regime.
-The resulting lesson is practical: disaster benchmarks should report
-conflict-subset behavior alongside aggregate scores. Doing so makes multimodal
-fusion more falsifiable, more spatially interpretable, and more useful for
-deployment decisions.
+CAE reframes paired-view disaster triage as a conflict-resolution problem. It
+shows a positive wildfire conflict gain, a negative grouped-clean hurricane
+gain, and a dominant-view switch tied to spatial observation regime. Disaster
+benchmarks should therefore report conflict-subset behavior, directional
+arbitration, and threshold sensitivity alongside aggregate scores. This added
+reporting does not require a new model. It changes what the evaluation asks:
+whether fusion helps exactly where single-view evidence disagrees.
+
+The recommended reporting template is compact. For each split, authors should
+publish full-test F1, conflict F1 for each view and the fused model, the number
+of conflict cases, the cross-view gain over the best single view, and the
+$S{\rightarrow}O$ versus $O{\rightarrow}S$ correction balance. When possible,
+these numbers should be paired with grouped splits and a small spatial summary
+of where conflicts occur. This template would make negative results useful
+rather than embarrassing. If fusion loses on the conflict subset, the benchmark
+has revealed a boundary condition. If fusion wins, the directional counts show
+which view supplied the missing evidence. Either outcome gives disaster
+analysts a more actionable evaluation than a single average score.
+
+For this reason, the contribution is evaluative rather than architectural. The
+paper does not argue that one fusion block is optimal, or that one disaster type
+always favors one view. It argues that paired-view benchmarks need a sharper
+unit of analysis. Conflict cases reveal the operational value of fusion because
+they are the cases where two plausible sensors disagree. Reporting those cases
+also makes future architectural work easier to judge: a stronger model should
+not only improve pooled F1, but also reduce the unresolved conflict left by its
+single-view components.
 
 \begin{acks}
 The authors used AI-based writing assistance for grammar checking and editorial
-compression. The authors reviewed all content and take full responsibility for
-the work.
+compression, reviewed all content, and take full responsibility for the work.
+Supported by the Texas A\&M University Environment and Sustainability
+Initiative (ESI) through the Environment and Sustainability Graduate Fellow
+Award.
 \end{acks}
 
 \bibliographystyle{ACM-Reference-Format}
