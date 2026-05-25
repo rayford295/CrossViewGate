@@ -334,6 +334,12 @@ loss-based hard-case selection, the gate uses only single-view probabilities and
 can be computed before trusting fusion. Directional counts then identify whether
 the street view or overhead view supplies the missing cue.
 
+This distinction matters for method comparison. Overall F1 describes the
+average case, whereas conflict F1 asks whether fusion helps where the pipeline
+is least certain. A fused model can be useful for broad screening yet unsafe
+for escalation if it loses to a single view on $\conf$. CAE keeps these
+interpretations separate.
+
 Spatial observation regime makes this boundary plausible. In the wildfire
 records, the photographer usually stands near the parcel and aims at the
 structure that receives the label. The ground image can therefore carry direct
@@ -363,6 +369,13 @@ small value measures broad disagreement, while a larger value keeps only the
 strongest contradictions when human review capacity is limited. The main
 analysis uses $\tau=0.1$ because it leaves enough examples for stable reporting
 while still isolating visible disagreement.
+
+Negative $\dview$ is therefore informative. It says that the fused
+representation did not preserve the stronger single-view evidence under the
+current observation regime. In response use, this suggests routing: use
+automatic decisions on agreement cases, route high-disagreement cases to CV only
+when validation shows positive conflict gain, and otherwise defer to the
+dominant view or human review.
 
 The study still has limits. The wildfire and hurricane settings differ in
 hazard type, geography, collection protocol, and label construction, so the
