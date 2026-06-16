@@ -147,21 +147,24 @@ split, and a broader moderate-plus-severe task. We use these settings to
 contrast property-centric and panoramic observation regimes.
 
 \paragraph{Wildfire data statement.}
-The wildfire records derive from property-level post-fire inspection
-photographs of the 2025 Eaton/Altadena fire, each matched to an overhead crop
-of the same parcel. Every record retains an object identifier, parcel
-coordinates, the crop box, the overhead tile ID, and coverage flags, so the
-benchmark supports object-level grouping and tile-level spatial aggregation. We
-use an object-grouped 80/10/10 train/validation/test split
-($\approx$15.8k/2.0k/2.0k records) with approximate label stratification. To
-avoid redistributing source imagery, the release is organized around split
-manifests and a data card rather than raw images; the manifests keep object IDs,
-image-source fields, coordinates, matched overhead tile names, binary labels,
-and filtering flags, making the grouped split auditable when future work
-reconstructs the benchmark from the original sources.
-% TODO(authors): insert exact positive/negative class counts per split, the
-% inspection-label provenance, and whether inter-annotator agreement was
-% measured (state it directly if not, and describe the QC used instead).
+The wildfire labels are official CAL~FIRE Damage Inspection (DINS) ratings for
+the 2025 Eaton fire in Altadena, CA, published through the CAL~FIRE incident
+portal.\footnote{\url{https://www.fire.ca.gov/incidents/}} Trained CAL~FIRE
+inspectors assign each structure one of six categories; by ground-photo count
+these are Destroyed (9{,}490), Major (155), Minor (312), Affected (1{,}809),
+No~Damage (7{,}981), and Inaccessible (33), spanning 18{,}388 usable structures.
+We map the four damage classes to the positive label and No~Damage to the
+negative label, and exclude Inaccessible. This leaves 19{,}747 candidate photos
+(11{,}766 positive, 7{,}981 No~Damage); pairing each with its overhead crop and
+dropping the 27 photos without a valid pairing yields the 19{,}720 paired
+records used here. Because these are authoritative field assessments rather than
+crowd annotations, no inter-annotator agreement statistic applies; quality
+control follows the standardized DINS protocol. Every record retains an object
+identifier, parcel coordinates, the crop box, the overhead tile ID, and coverage
+flags, so the benchmark supports object-level grouping and tile-level
+aggregation. We use an object-grouped 80/10/10 split that keeps all photos of a
+structure in one partition, and release split manifests and a data card rather
+than raw imagery so the grouped split stays auditable.
 
 \begin{table}[t]
   \caption{Evaluation settings, sample counts, and leakage controls. The two
