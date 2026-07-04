@@ -2,8 +2,15 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import sys
 
 import pandas as pd
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from crossview_conflict.labels import IAN_HURRICANE_CATEGORIES, build_class_mapping
 
 
 DEFAULT_SEVERITY_TO_BINARY = {
@@ -19,17 +26,23 @@ DEFAULT_SEVERITY_TO_NAME = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build CrossViewConflict-style binary manifests from the IAN hurricane cross-view dataset."
+        description="Build CrossViewConflict-style manifests from the IAN hurricane cross-view dataset."
     )
     parser.add_argument("--dataset-root", required=True, help="Path to the IAN_hurricane dataset root.")
     parser.add_argument("--output-dir", required=True, help="Directory to write train/val/test manifest CSVs.")
     parser.add_argument("--val-fraction", type=float, default=0.15, help="Validation fraction from the provided train split.")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
+        "--task",
+        choices=["original", "binary"],
+        default="original",
+        help="Use original 3-class severity labels by default; binary preserves the legacy collapsed task.",
+    )
+    parser.add_argument(
         "--positive-scheme",
         choices=["severe_only", "moderate_and_severe"],
         default="severe_only",
-        help="Binary mapping for the positive class.",
+        help="Binary mapping for the positive class when --task binary.",
     )
     return parser.parse_args()
 
@@ -57,7 +70,16 @@ def _binary_mapping(positive_scheme: str) -> tuple[dict[str, int], dict[str, str
     return DEFAULT_SEVERITY_TO_BINARY, DEFAULT_SEVERITY_TO_NAME
 
 
-def _filter_binary(df: pd.DataFrame, positive_scheme: str) -> pd.DataFrame:
+def _add_original_labels(df: pd.DataFrame) -> pd.DataFrame:
+    severity_to_label = build_class_mapping(IAN_HURRICANE_CATEGORIES)
+    frame = df[df["severity"].isin(severity_to_label)].copy()
+    frame["category"] = frame["severity"]
+    frame["label"] = frame["severity"].map(severity_to_label).astype(int)
+    frame["label_name"] = frame["severity"]
+    return frame.reset_index(drop=True)
+
+
+def _add_binary_labels(df: pd.DataFrame, positive_scheme: str) -> pd.DataFrame:
     severity_to_binary, severity_to_name = _binary_mapping(positive_scheme)
     frame = df[df["severity"].isin(severity_to_binary)].copy()
     frame["binary_label"] = frame["severity"].map(severity_to_binary).astype(int)
@@ -66,19 +88,19 @@ def _filter_binary(df: pd.DataFrame, positive_scheme: str) -> pd.DataFrame:
     return frame.reset_index(drop=True)
 
 
-def _add_manifest_columns(df: pd.DataFrame) -> pd.DataFrame:
+def _add_manifest_columns(df: pd.DataFrame, task: str) -> pd.DataFrame:
     frame = df.copy().reset_index(drop=True)
     frame["sample_id"] = frame["street_view_path"].map(lambda value: Path(value).stem.replace("_svi", ""))
     frame["objectid"] = range(len(frame))
+    frame["group_id"] = frame["sample_id"]
     frame["latitude"] = pd.NA
     frame["longitude"] = pd.NA
     frame["remote_tile_filename"] = ""
     ordered = [
         "sample_id",
         "objectid",
+        "group_id",
         "category",
-        "binary_label",
-        "binary_name",
         "latitude",
         "longitude",
         "remote_tile_filename",
@@ -86,13 +108,22 @@ def _add_manifest_columns(df: pd.DataFrame) -> pd.DataFrame:
         "remote_sensing_path",
         "severity",
     ]
+    if task == "original":
+        ordered[4:4] = ["label", "label_name"]
+    else:
+        ordered[4:4] = ["binary_label", "binary_name"]
     return frame[ordered]
 
 
-def _stratified_val_split(df: pd.DataFrame, val_fraction: float, seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+def _stratified_val_split(
+    df: pd.DataFrame,
+    val_fraction: float,
+    seed: int,
+    label_col: str,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     train_parts: list[pd.DataFrame] = []
     val_parts: list[pd.DataFrame] = []
-    for _, group in df.groupby("binary_label", sort=True):
+    for _, group in df.groupby(label_col, sort=True):
         group = group.sample(frac=1.0, random_state=seed).reset_index(drop=True)
         val_count = max(1, int(round(len(group) * val_fraction)))
         val_parts.append(group.iloc[:val_count].copy())
@@ -112,9 +143,17 @@ def main() -> None:
     train_split = pd.read_csv(dataset_root / "train_split.csv")
     test_split = pd.read_csv(dataset_root / "test_split.csv")
 
-    train_split = _add_manifest_columns(_filter_binary(_normalize_paths(train_split, image_root), args.positive_scheme))
-    test_split = _add_manifest_columns(_filter_binary(_normalize_paths(test_split, image_root), args.positive_scheme))
-    train_df, val_df = _stratified_val_split(train_split, args.val_fraction, args.seed)
+    train_split = _normalize_paths(train_split, image_root)
+    test_split = _normalize_paths(test_split, image_root)
+    if args.task == "original":
+        label_col = "label"
+        train_split = _add_manifest_columns(_add_original_labels(train_split), args.task)
+        test_split = _add_manifest_columns(_add_original_labels(test_split), args.task)
+    else:
+        label_col = "binary_label"
+        train_split = _add_manifest_columns(_add_binary_labels(train_split, args.positive_scheme), args.task)
+        test_split = _add_manifest_columns(_add_binary_labels(test_split, args.positive_scheme), args.task)
+    train_df, val_df = _stratified_val_split(train_split, args.val_fraction, args.seed, label_col)
 
     train_path = output_dir / "train.csv"
     val_path = output_dir / "val.csv"

@@ -39,19 +39,23 @@ def parse_args() -> argparse.Namespace:
 
 def _load_predictions(path: str | Path, prefix: str) -> pd.DataFrame:
     df = pd.read_csv(path)
-    required = {"sample_id", "target", "probability", "prediction"}
+    required = {"sample_id", "target", "prediction"}
     missing = sorted(required - set(df.columns))
     if missing:
         raise KeyError(f"Missing columns in {path}: {missing}")
+    if "probability" not in df.columns and "confidence" in df.columns:
+        df["probability"] = df["confidence"]
     df["sample_id"] = df["sample_id"].map(_canonical_sample_id)
-    renamed = df.rename(
-        columns={
-            "target": f"{prefix}_target",
-            "probability": f"{prefix}_probability",
-            "prediction": f"{prefix}_prediction",
-            "logit": f"{prefix}_logit",
-        }
-    )
+    rename_columns = {
+        "target": f"{prefix}_target",
+        "target_name": f"{prefix}_target_name",
+        "probability": f"{prefix}_probability",
+        "confidence": f"{prefix}_confidence",
+        "prediction": f"{prefix}_prediction",
+        "prediction_name": f"{prefix}_prediction_name",
+        "logit": f"{prefix}_logit",
+    }
+    renamed = df.rename(columns={column: renamed for column, renamed in rename_columns.items() if column in df.columns})
     return renamed
 
 
@@ -95,6 +99,26 @@ def _bootstrap_accuracy_ci(
     }
 
 
+def _target_distribution(frame: pd.DataFrame, target_column: str) -> dict[str, int]:
+    if frame.empty or target_column not in frame:
+        return {}
+    return {str(key): int(value) for key, value in frame[target_column].value_counts(dropna=False).to_dict().items()}
+
+
+def _conflict_type(row: pd.Series) -> str:
+    street_name = row.get("street_prediction_name")
+    remote_name = row.get("remote_prediction_name")
+    if isinstance(street_name, str) and isinstance(remote_name, str):
+        return f"{street_name}_vs_{remote_name}"
+    street_prediction = row["street_prediction"]
+    remote_prediction = row["remote_prediction"]
+    if street_prediction > remote_prediction:
+        return "street_higher_remote_lower"
+    if street_prediction < remote_prediction:
+        return "street_lower_remote_higher"
+    return "agreement"
+
+
 def main() -> None:
     args = parse_args()
     split_df = pd.read_csv(args.split_csv)
@@ -103,6 +127,8 @@ def main() -> None:
         "sample_id",
         "objectid",
         "category",
+        "label",
+        "label_name",
         "binary_label",
         "binary_name",
         "latitude",
@@ -118,12 +144,7 @@ def main() -> None:
 
     merged = metadata.merge(street, on="sample_id", how="inner").merge(remote, on="sample_id", how="inner")
     merged["conflict"] = merged["street_prediction"] != merged["remote_prediction"]
-    merged["conflict_type"] = merged.apply(
-        lambda row: "street_positive_remote_negative" if row["street_prediction"] > row["remote_prediction"] else (
-            "street_negative_remote_positive" if row["street_prediction"] < row["remote_prediction"] else "agreement"
-        ),
-        axis=1,
-    )
+    merged["conflict_type"] = merged.apply(_conflict_type, axis=1)
 
     if args.crossview_preds_csv:
         crossview = _load_predictions(args.crossview_preds_csv, "crossview")
@@ -134,7 +155,7 @@ def main() -> None:
     ensure_dir(output_csv.parent)
     conflict_df.to_csv(output_csv, index=False)
 
-    target_column = "binary_label" if "binary_label" in conflict_df.columns else "street_target"
+    target_column = "label" if "label" in conflict_df.columns else ("binary_label" if "binary_label" in conflict_df.columns else "street_target")
     summary = {
         "total_examples": int(len(merged)),
         "conflict_examples": int(len(conflict_df)),
@@ -166,9 +187,12 @@ def main() -> None:
             confidence_level=args.confidence_level,
             seed=args.seed,
         ),
-        "positive_rate_on_conflicts": float(conflict_df[target_column].mean()) if len(conflict_df) else None,
+        "target_distribution_on_conflicts": _target_distribution(conflict_df, target_column),
         "conflict_type_counts": conflict_df["conflict_type"].value_counts().to_dict(),
     }
+    unique_targets = set(conflict_df[target_column].dropna().astype(int).tolist()) if len(conflict_df) else set()
+    if unique_targets and unique_targets.issubset({0, 1}):
+        summary["positive_rate_on_conflicts"] = float(conflict_df[target_column].mean())
     save_json(summary, args.summary_json)
     print(summary)
 

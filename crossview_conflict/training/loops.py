@@ -5,7 +5,23 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from crossview_conflict.training.conflict_focal_loss import ConflictFocalLoss
-from crossview_conflict.training.metrics import binary_classification_metrics
+from crossview_conflict.training.metrics import classification_metrics
+
+
+def classification_loss(
+    logits: torch.Tensor,
+    target: torch.Tensor,
+    class_weights: torch.Tensor | None = None,
+) -> torch.Tensor:
+    if logits.ndim == 1 or (logits.ndim == 2 and logits.size(-1) == 1):
+        bce = F.binary_cross_entropy_with_logits(logits.reshape(-1), target.float(), reduction="none")
+        if class_weights is not None and class_weights.numel() >= 2:
+            weights = class_weights.to(logits.device)
+            sample_weights = torch.where(target.long() == 1, weights[1], weights[0])
+            bce = bce * sample_weights
+        return bce.mean()
+    weight = class_weights.to(logits.device) if class_weights is not None else None
+    return F.cross_entropy(logits, target.long(), weight=weight)
 
 
 def train_triage_epoch(
@@ -14,10 +30,15 @@ def train_triage_epoch(
     optimizer: torch.optim.Optimizer,
     device: str,
     conflict_gamma: float | None = None,
+    class_weights: torch.Tensor | None = None,
 ) -> float:
     model.train()
     running_loss = 0.0
-    criterion = ConflictFocalLoss(gamma=conflict_gamma) if conflict_gamma is not None else None
+    criterion = (
+        ConflictFocalLoss(gamma=conflict_gamma, class_weights=class_weights)
+        if conflict_gamma is not None
+        else None
+    )
     for batch in tqdm(dataloader, desc="train-triage", leave=False):
         street = batch["street"].to(device)
         overhead = batch["overhead"].to(device)
@@ -28,12 +49,12 @@ def train_triage_epoch(
         if criterion is not None:
             logits, street_embedding, overhead_embedding = model(return_embeddings=True, **kwargs)
             if street_embedding is None or overhead_embedding is None:
-                loss = F.binary_cross_entropy_with_logits(logits, target)
+                loss = classification_loss(logits, target, class_weights=class_weights)
             else:
                 loss = criterion(logits, target, street_embedding, overhead_embedding)
         else:
             logits = model(**kwargs)
-            loss = F.binary_cross_entropy_with_logits(logits, target)
+            loss = classification_loss(logits, target, class_weights=class_weights)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -46,7 +67,8 @@ def eval_triage(
     model: torch.nn.Module,
     dataloader: torch.utils.data.DataLoader,
     device: str,
-) -> dict[str, float]:
+    class_names: list[str] | None = None,
+) -> dict[str, object]:
     model.eval()
     logits_list = []
     targets_list = []
@@ -60,4 +82,4 @@ def eval_triage(
         logits = model(**kwargs)
         logits_list.append(logits.cpu())
         targets_list.append(target.cpu())
-    return binary_classification_metrics(torch.cat(logits_list), torch.cat(targets_list))
+    return classification_metrics(torch.cat(logits_list), torch.cat(targets_list), class_names=class_names)

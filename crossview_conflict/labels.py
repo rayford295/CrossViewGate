@@ -13,6 +13,18 @@ CANONICAL_CATEGORIES = (
     "Inaccessible",
 )
 
+IAN_HURRICANE_CATEGORIES = (
+    "0_MinorDamage",
+    "1_ModerateDamage",
+    "2_SevereDamage",
+)
+
+MILTON_HURRICANE_CATEGORIES = (
+    "mild_damage",
+    "moderate_damage",
+    "severe_damage",
+)
+
 _CATEGORY_ALIASES = {
     "no_damage": "No Damage",
     "affected_1_9": "Affected (1-9%)",
@@ -74,3 +86,16 @@ def to_binary_name(raw_category: object, scheme: str = "operational") -> str:
     if binary_label is None:
         return "ignored"
     return "damage" if binary_label == 1 else "no_damage"
+
+
+def to_multiclass_label(raw_category: object) -> int:
+    canonical = normalize_category(raw_category)
+    return CANONICAL_CATEGORIES.index(canonical)
+
+
+def to_multiclass_name(raw_category: object) -> str:
+    return normalize_category(raw_category)
+
+
+def build_class_mapping(class_names: tuple[str, ...] | list[str]) -> dict[str, int]:
+    return {str(name): index for index, name in enumerate(class_names)}

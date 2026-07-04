@@ -2,70 +2,85 @@
 
 ## Overview
 
-This paper repo compares two disaster datasets under a unified binary triage
-protocol.
+The original-class experiment compares one wildfire dataset and two hurricane
+datasets without collapsing labels to a binary 0/1 target.
 
-The purpose is not only to compare disasters, but to compare two different
-ground-view regimes:
+The core comparison is still:
 
-- `building/property-centric` ground views
-- `360/panoramic environment-centric` ground views
+- `street_only`
+- `remote_only`
+- `crossview`
+- conflict subset where the two single-view models predict different classes
 
-## 1. Eaton / Altadena wildfire
+## 1. Eaton / Altadena Wildfire
 
-### Data character
+### Data Character
 
 - disaster type: wildfire
 - ground-view regime: property-centric inspection imagery
 - overhead view: paired remote-sensing crop
 
-### Binary triage protocol
+### Original Label Space
 
-- `0 = No Damage + Affected`
-- `1 = Minor + Major + Destroyed`
-- `Inaccessible` excluded
+- `0 = No Damage`
+- `1 = Affected (1-9%)`
+- `2 = Minor (10-25%)`
+- `3 = Major (26-50%)`
+- `4 = Destroyed (>50%)`
+- `5 = Inaccessible`
 
-### Why this dataset matters
+### Why This Dataset Matters
 
 The ground image is usually tightly aligned with the target property, so the
-cross-view bridge is expected to be stronger and more direct.
+cross-view bridge is expected to be stronger and more direct. The original
+6-class setting is highly imbalanced, so macro-F1 and per-class metrics matter
+more than accuracy alone.
 
-## 2. IAN hurricane
+## 2. IAN Hurricane
 
-### Data character
+### Data Character
 
 - disaster type: hurricane
 - ground-view regime: 360 / panoramic environmental views
 - overhead view: paired remote-sensing crop
 
-### Original label space
+### Original Label Space
 
-- `0_MinorDamage`
-- `1_ModerateDamage`
-- `2_SevereDamage`
+- `0 = 0_MinorDamage`
+- `1 = 1_ModerateDamage`
+- `2 = 2_SevereDamage`
 
-### Binary triage protocol used in this repo
-
-- `0 = MinorDamage`
-- `1 = SevereDamage`
-- `ModerateDamage` excluded
-
-We keep only the endpoint classes to maximize label clarity for the cross-regime
-comparison. This avoids turning the hurricane benchmark into a noisier binary
-task where moderate examples can blur the distinction between direct structural
-damage and environmental context.
-
-### Why this dataset matters
+### Why This Dataset Matters
 
 The panoramic ground image contains broader environmental context and weaker
-direct alignment to the target structure. This makes it a useful contrast case
-for the wildfire dataset.
+direct alignment to the target structure. Keeping the moderate class makes the
+task closer to the native dataset and tests whether cross-view conclusions hold
+without endpoint-only simplification.
 
-## Why the comparison is useful
+## 3. Milton Hurricane / GenDisasterSVI
 
-These two datasets let us compare not only disaster types, but also the
-mechanism of cross-view value:
+### Data Character
 
-- Does cross-view help most on conflict cases?
-- Does that help depend on how directly the ground view captures the target
-  building?
+- disaster type: hurricane
+- ground-view regime: generated or curated post-disaster SVI
+- overhead view: paired post-disaster satellite image
+
+### Original Label Space
+
+- `0 = mild_damage`
+- `1 = moderate_damage`
+- `2 = severe_damage`
+
+The manifest builder uses `dataset_with_post_sat.csv`, resolves Windows-local
+paths under `hurrican-milton-GenDisasterSVI`, and pairs post-disaster SVI with
+post-disaster satellite imagery.
+
+## Why the Comparison Is Useful
+
+These three datasets let us compare:
+
+- whether cross-view helps most on conflict cases
+- whether the gain changes between property-centric wildfire and hurricane
+  panoramic / SVI regimes
+- whether the conclusion survives native multiclass labels rather than a binary
+  damage collapse

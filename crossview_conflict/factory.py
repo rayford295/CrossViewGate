@@ -15,6 +15,7 @@ def build_triage(config: dict[str, Any]) -> CrossViewTriageNet:
         pretrained=bool(config.get("pretrained", True)),
         mode=config.get("mode", "crossview"),
         use_generated=bool(config.get("use_generated", False)),
+        num_classes=int(config.get("num_classes", 1)),
     )
 
 

@@ -23,6 +23,17 @@ class _BaseManifestDataset(Dataset):
         return self.df.iloc[index].to_dict()
 
 
+def _resolve_label_column(df: pd.DataFrame, label_col: str | None) -> str:
+    if label_col and label_col != "auto":
+        if label_col not in df.columns:
+            raise KeyError(f"Column '{label_col}' not found in manifest.")
+        return label_col
+    for candidate in ("label", "binary_label"):
+        if candidate in df.columns:
+            return candidate
+    raise KeyError("Manifest must include either a 'label' or 'binary_label' column.")
+
+
 class CrossViewRetrievalDataset(_BaseManifestDataset):
     def __init__(
         self,
@@ -100,8 +111,10 @@ class CrossViewTriageDataset(_BaseManifestDataset):
         overhead_augment: bool = False,
         street_backbone: str = "resnet18",
         overhead_backbone: str = "resnet18",
+        label_col: str | None = "auto",
     ) -> None:
         super().__init__(manifest_csv)
+        self.label_col = _resolve_label_column(self.df, label_col)
         street_mean, street_std = get_backbone_normalization(street_backbone)
         overhead_mean, overhead_std = get_backbone_normalization(overhead_backbone)
         self.street_transform = build_transform(
@@ -126,11 +139,11 @@ class CrossViewTriageDataset(_BaseManifestDataset):
         row = self.df.iloc[index]
         street = self.street_transform(load_rgb_image(row["street_view_path"]))
         overhead = self.overhead_transform(load_rgb_image(row["remote_sensing_path"]))
-        target = int(row["binary_label"])
+        target = int(row[self.label_col])
         batch = {
             "street": street,
             "overhead": overhead,
-            "target": torch.tensor(target, dtype=torch.float32),
+            "target": torch.tensor(target, dtype=torch.long),
             "sample_id": row["sample_id"],
         }
         if self.include_generated and "generated_street_path" in row and isinstance(row["generated_street_path"], str):

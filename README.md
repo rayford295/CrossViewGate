@@ -37,11 +37,13 @@ Expected local datasets used in our experiments:
 
 - `Eaton/Altadena wildfire paired dataset`
 - `IAN_hurricane`
+- `hurrican-milton-GenDisasterSVI`
 
 Example local paths used on our machine:
 
-- `C:/Users/yyang295/Desktop/Altadena_Images`
-- `C:/Users/yyang295/Desktop/IAN_hurricane`
+- `C:/Users/yyang295/Desktop/disaster-dataset-Yifan-all/Altadena_Images`
+- `C:/Users/yyang295/Desktop/disaster-dataset-Yifan-all/IAN_hurricane`
+- `C:/Users/yyang295/Desktop/disaster-dataset-Yifan-all/hurrican-milton-GenDisasterSVI`
 
 ## Repository structure
 
@@ -72,38 +74,43 @@ Core scripts:
 
 - `scripts/build_eaton_manifest.py`
 - `scripts/build_ian_hurricane_manifests.py`
+- `scripts/build_milton_hurricane_manifests.py`
 - `scripts/train_triage.py`
 - `scripts/eval_triage.py`
 - `scripts/build_conflict_subset.py`
+- `scripts/run_original_class_experiments.ps1`
 
-## Binary task definition
+## Original-class task definition
 
 ### Wildfire
 
-Use the Eaton/Altadena wildfire binary scheme:
+The original Eaton/Altadena labels are kept as a 6-class task:
 
-- `0 = No Damage + Affected`
-- `1 = Minor + Major + Destroyed`
-- `Inaccessible` excluded
+- `0 = No Damage`
+- `1 = Affected (1-9%)`
+- `2 = Minor (10-25%)`
+- `3 = Major (26-50%)`
+- `4 = Destroyed (>50%)`
+- `5 = Inaccessible`
 
 ### Hurricane
 
-The original `IAN_hurricane` dataset has three classes:
+The original `IAN_hurricane` dataset is kept as a 3-class task:
 
 - `0_MinorDamage`
 - `1_ModerateDamage`
 - `2_SevereDamage`
 
-For this paper repo, we keep only the two endpoint classes:
+The Milton GenDisasterSVI dataset is also kept as a 3-class task:
 
-- `0 = MinorDamage`
-- `1 = SevereDamage`
+- `mild_damage`
+- `moderate_damage`
+- `severe_damage`
 
-and drop `ModerateDamage` for a cleaner endpoint-to-endpoint comparison.
-
-This choice is intentional. We use endpoint-to-endpoint comparison to maximize
-label clarity and isolate the effect of view regime; `ModerateDamage` is
-excluded because it is semantically ambiguous for both single-view models.
+Legacy binary scripts remain supported through `binary_label`, but new original-
+class experiments use `label` / `label_name`, multiclass CE, softmax
+predictions, macro-F1, weighted-F1, per-class metrics, and multiclass conflict
+subsets.
 
 ## How to run
 
@@ -116,43 +123,26 @@ python -m venv .venv
 pip install -e .
 ```
 
-### 2. Build the IAN hurricane manifests
+### 2. Run original-class experiments
 
 ```powershell
-python scripts\build_ian_hurricane_manifests.py ^
-  --dataset-root "C:\Users\yyang295\Desktop\IAN_hurricane" ^
-  --output-dir "data\splits\ian_hurricane_minor_vs_severe"
+powershell -ExecutionPolicy Bypass -File scripts\run_original_class_experiments.ps1 `
+  -DatasetRoot "C:\Users\yyang295\Desktop\disaster-dataset-Yifan-all" `
+  -DatasetNames "altadena_original,ian_original,milton_original" `
+  -Epochs 10 `
+  -BatchSize 32 `
+  -NumWorkers 4 `
+  -Device cuda
 ```
 
-### 3. Train the three baselines
+The script builds local manifests/splits, trains `street_only`, `remote_only`,
+and `crossview`, evaluates test metrics, builds conflict subsets, and writes
+`docs/original_class_results.md`.
 
-```powershell
-python scripts\train_triage.py --train-csv "data\splits\ian_hurricane_minor_vs_severe\train.csv" --val-csv "data\splits\ian_hurricane_minor_vs_severe\val.csv" --output-dir "outputs\ian_hurricane\triage_crossview_resnet18" --mode crossview --device cuda --batch-size 32 --epochs 10
-python scripts\train_triage.py --train-csv "data\splits\ian_hurricane_minor_vs_severe\train.csv" --val-csv "data\splits\ian_hurricane_minor_vs_severe\val.csv" --output-dir "outputs\ian_hurricane\triage_street_only_resnet18" --mode street_only --device cuda --batch-size 32 --epochs 10
-python scripts\train_triage.py --train-csv "data\splits\ian_hurricane_minor_vs_severe\train.csv" --val-csv "data\splits\ian_hurricane_minor_vs_severe\val.csv" --output-dir "outputs\ian_hurricane\triage_remote_only_resnet18" --mode remote_only --device cuda --batch-size 32 --epochs 10
-```
+## Historical binary findings
 
-### 4. Evaluate on the test split
-
-```powershell
-python scripts\eval_triage.py --checkpoint "outputs\ian_hurricane\triage_crossview_resnet18\triage_best.pt" --split-csv "data\splits\ian_hurricane_minor_vs_severe\test.csv" --output-json "outputs\ian_hurricane\triage_crossview_resnet18\test_metrics.json" --predictions-csv "outputs\ian_hurricane\triage_crossview_resnet18\test_predictions.csv" --device cuda --batch-size 32
-```
-
-Repeat the same command for `street_only` and `remote_only`.
-
-### 5. Build the conflict subset
-
-```powershell
-python scripts\build_conflict_subset.py ^
-  --split-csv "data\splits\ian_hurricane_minor_vs_severe\test.csv" ^
-  --street-preds-csv "outputs\ian_hurricane\triage_street_only_resnet18\test_predictions.csv" ^
-  --remote-preds-csv "outputs\ian_hurricane\triage_remote_only_resnet18\test_predictions.csv" ^
-  --crossview-preds-csv "outputs\ian_hurricane\triage_crossview_resnet18\test_predictions.csv" ^
-  --output-csv "outputs\ian_hurricane\analysis\test_conflicts.csv" ^
-  --summary-json "outputs\ian_hurricane\analysis\test_conflict_summary.json"
-```
-
-## Current findings
+The numbers below are previous binary/collapsed-label results. For native
+original-class pilot results, see `docs/original_class_results.md`.
 
 ### Eaton wildfire building-view benchmark
 

@@ -6,7 +6,7 @@ from typing import Any
 import pandas as pd
 from PIL import Image
 
-from crossview_conflict.labels import normalize_category, to_binary_label, to_binary_name
+from crossview_conflict.labels import normalize_category, to_binary_label, to_binary_name, to_multiclass_label, to_multiclass_name
 from crossview_conflict.utils.io import ensure_dir, save_json
 
 
@@ -48,11 +48,13 @@ def summarize_manifest(df: pd.DataFrame) -> dict[str, Any]:
     summary = {
         "rows": int(len(df)),
         "usable_binary_rows": int(len(usable)),
+        "usable_label_rows": int(df["label"].notna().sum()) if "label" in df else 0,
         "unique_objectids": int(df["objectid"].nunique(dropna=True)) if "objectid" in df else 0,
         "unique_remote_tiles": int(df["remote_tile_filename"].nunique(dropna=True))
         if "remote_tile_filename" in df
         else 0,
         "category_counts": df["category"].value_counts(dropna=False).to_dict() if "category" in df else {},
+        "label_counts": df["label_name"].value_counts(dropna=False).to_dict() if "label_name" in df else {},
         "binary_counts": usable["binary_name"].value_counts(dropna=False).to_dict()
         if "binary_name" in usable
         else {},
@@ -94,6 +96,8 @@ def build_altadena_manifest(
             "objectid": _to_int(row.get("objectid")),
             "attachment_id": _to_int(row.get("attachment_id")),
             "category": category,
+            "label": to_multiclass_label(category),
+            "label_name": to_multiclass_name(category),
             "binary_label": binary_label,
             "binary_name": to_binary_name(category, scheme=binary_scheme),
             "latitude": _to_float(row.get("latitude")),
@@ -142,6 +146,8 @@ def build_eaton_manifest(
                 "objectid": _to_int(row.get("objectid")),
                 "attachment_id": _to_int(row.get("attachment_id")),
                 "category": category,
+                "label": to_multiclass_label(category),
+                "label_name": to_multiclass_name(category),
                 "binary_label": to_binary_label(category, scheme=binary_scheme),
                 "binary_name": to_binary_name(category, scheme=binary_scheme),
                 "latitude": _to_float(row.get("lat")),

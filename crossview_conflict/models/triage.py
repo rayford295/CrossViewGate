@@ -30,10 +30,14 @@ class CrossViewTriageNet(nn.Module):
         pretrained: bool = True,
         mode: str = "crossview",
         use_generated: bool = False,
+        num_classes: int = 1,
     ) -> None:
         super().__init__()
         self.mode = mode
         self.use_generated = use_generated
+        self.num_classes = int(num_classes)
+        if self.num_classes < 1:
+            raise ValueError("num_classes must be positive.")
 
         street_dim = None
         overhead_dim = None
@@ -67,7 +71,7 @@ class CrossViewTriageNet(nn.Module):
             nn.Linear(fusion_dim, embedding_dim),
             nn.ReLU(inplace=True),
             nn.Dropout(0.2),
-            nn.Linear(embedding_dim, 1),
+            nn.Linear(embedding_dim, self.num_classes),
         )
 
     def _encode_street(self, street: torch.Tensor) -> torch.Tensor:
@@ -128,7 +132,9 @@ class CrossViewTriageNet(nn.Module):
                 features.append(generated_embedding)
 
         fused = torch.cat(features, dim=-1)
-        logits = self.classifier(fused).squeeze(-1)
+        logits = self.classifier(fused)
+        if self.num_classes == 1:
+            logits = logits.squeeze(-1)
         if return_embeddings:
             return logits, street_embedding, overhead_embedding
         return logits

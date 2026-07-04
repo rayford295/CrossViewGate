@@ -14,7 +14,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from crossview_conflict.data.datasets import CrossViewTriageDataset
 from crossview_conflict.factory import load_triage_from_checkpoint
-from crossview_conflict.training.metrics import binary_classification_metrics
+from crossview_conflict.training.metrics import classification_metrics, classification_predictions
 from crossview_conflict.utils.io import save_json
 
 
@@ -31,16 +31,27 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _class_name(class_names: list[str], index: int) -> str:
+    if 0 <= index < len(class_names):
+        return class_names[index]
+    return str(index)
+
+
 def main() -> None:
     args = parse_args()
     model, checkpoint = load_triage_from_checkpoint(args.checkpoint, device=args.device)
     config = checkpoint.get("config", {})
+    class_names = list(config.get("class_names", []))
+    num_classes = int(config.get("num_classes", 1))
+    if not class_names:
+        class_names = [str(index) for index in range(max(num_classes, 2 if num_classes == 1 else num_classes))]
     dataset = CrossViewTriageDataset(
         args.split_csv,
         street_size=args.image_size,
         overhead_size=args.image_size,
         street_backbone=config.get("street_backbone", "resnet18"),
         overhead_backbone=config.get("overhead_backbone", "resnet18"),
+        label_col=config.get("label_col", "auto"),
     )
     loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     model.eval()
@@ -57,28 +68,42 @@ def main() -> None:
             if "generated" in batch:
                 kwargs["generated"] = batch["generated"].to(args.device)
             logits = model(**kwargs)
-            probabilities = torch.sigmoid(logits)
-            predictions = (probabilities >= 0.5).float()
+            predictions, probabilities = classification_predictions(logits)
             logits_list.append(logits.cpu())
             targets_list.append(target.cpu())
-            for sample_id, target_value, logit_value, prob_value, pred_value in zip(
+            for row_index, (sample_id, target_value, pred_value) in enumerate(zip(
                 batch["sample_id"],
                 target.cpu().tolist(),
-                logits.cpu().tolist(),
-                probabilities.cpu().tolist(),
                 predictions.cpu().tolist(),
-            ):
-                prediction_rows.append(
-                    {
-                        "sample_id": str(sample_id),
-                        "target": int(target_value),
-                        "logit": float(logit_value),
-                        "probability": float(prob_value),
-                        "prediction": int(pred_value),
-                    }
-                )
+            )):
+                target_index = int(target_value)
+                prediction_index = int(pred_value)
+                row = {
+                    "sample_id": str(sample_id),
+                    "target": target_index,
+                    "target_name": _class_name(class_names, target_index),
+                    "prediction": prediction_index,
+                    "prediction_name": _class_name(class_names, prediction_index),
+                }
+                if logits.ndim == 1 or (logits.ndim == 2 and logits.size(-1) == 1):
+                    logit_value = float(logits.cpu().reshape(-1)[row_index].item())
+                    probability = float(probabilities.cpu().reshape(-1)[row_index].item())
+                    row.update(
+                        {
+                            "logit": logit_value,
+                            "probability": probability,
+                            "confidence": probability if prediction_index == 1 else 1.0 - probability,
+                        }
+                    )
+                else:
+                    probability_row = probabilities.cpu()[row_index].tolist()
+                    row["confidence"] = float(max(probability_row))
+                    row["probability"] = row["confidence"]
+                    for class_index, probability in enumerate(probability_row):
+                        row[f"prob_{class_index}"] = float(probability)
+                prediction_rows.append(row)
 
-    metrics = binary_classification_metrics(torch.cat(logits_list), torch.cat(targets_list))
+    metrics = classification_metrics(torch.cat(logits_list), torch.cat(targets_list), class_names=class_names)
     metrics["checkpoint_epoch"] = checkpoint.get("epoch")
     print(metrics)
     if args.output_json:

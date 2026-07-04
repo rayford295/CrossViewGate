@@ -166,6 +166,120 @@ def binary_classification_metrics(logits: torch.Tensor, targets: torch.Tensor) -
     }
 
 
+def _safe_divide(numerator: float, denominator: float) -> float:
+    if denominator <= 0:
+        return 0.0
+    return numerator / denominator
+
+
+def classification_predictions(logits: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    if logits.ndim == 1 or (logits.ndim == 2 and logits.size(-1) == 1):
+        probabilities = torch.sigmoid(logits.reshape(-1))
+        predictions = (probabilities >= 0.5).long()
+        return predictions, probabilities
+    probabilities = torch.softmax(logits, dim=-1)
+    predictions = probabilities.argmax(dim=-1)
+    return predictions.long(), probabilities
+
+
+def classification_metrics(
+    logits: torch.Tensor,
+    targets: torch.Tensor,
+    class_names: Sequence[str] | None = None,
+) -> dict[str, object]:
+    predictions, probabilities = classification_predictions(logits)
+    targets = targets.long().reshape(-1)
+    predictions = predictions.long().reshape(-1)
+
+    if logits.ndim == 1 or (logits.ndim == 2 and logits.size(-1) == 1):
+        num_classes = 2
+    else:
+        num_classes = int(logits.size(-1))
+    if len(targets):
+        num_classes = max(num_classes, int(targets.max().item()) + 1, int(predictions.max().item()) + 1)
+
+    if class_names is None:
+        resolved_class_names = [str(index) for index in range(num_classes)]
+    else:
+        resolved_class_names = list(class_names)
+        if len(resolved_class_names) < num_classes:
+            resolved_class_names.extend(str(index) for index in range(len(resolved_class_names), num_classes))
+
+    confusion = torch.zeros((num_classes, num_classes), dtype=torch.long)
+    for target, prediction in zip(targets, predictions):
+        if 0 <= int(target) < num_classes and 0 <= int(prediction) < num_classes:
+            confusion[int(target), int(prediction)] += 1
+
+    total = int(confusion.sum().item())
+    accuracy = _safe_divide(float(confusion.diag().sum().item()), float(total))
+
+    per_class: dict[str, dict[str, float | int]] = {}
+    f1_values: list[float] = []
+    precision_values: list[float] = []
+    recall_values: list[float] = []
+    weighted_f1_sum = 0.0
+    weighted_precision_sum = 0.0
+    weighted_recall_sum = 0.0
+    supported_class_count = 0
+
+    for class_index in range(num_classes):
+        tp = float(confusion[class_index, class_index].item())
+        fp = float(confusion[:, class_index].sum().item() - tp)
+        fn = float(confusion[class_index, :].sum().item() - tp)
+        support = float(confusion[class_index, :].sum().item())
+        precision = _safe_divide(tp, tp + fp)
+        recall = _safe_divide(tp, tp + fn)
+        f1 = _safe_divide(2.0 * precision * recall, precision + recall)
+        class_name = resolved_class_names[class_index]
+        per_class[class_name] = {
+            "support": int(support),
+            "precision": precision,
+            "recall": recall,
+            "f1": f1,
+        }
+        if support > 0:
+            supported_class_count += 1
+            precision_values.append(precision)
+            recall_values.append(recall)
+            f1_values.append(f1)
+            weighted_precision_sum += precision * support
+            weighted_recall_sum += recall * support
+            weighted_f1_sum += f1 * support
+
+    macro_precision = _safe_divide(sum(precision_values), float(supported_class_count))
+    macro_recall = _safe_divide(sum(recall_values), float(supported_class_count))
+    macro_f1 = _safe_divide(sum(f1_values), float(supported_class_count))
+    weighted_precision = _safe_divide(weighted_precision_sum, float(total))
+    weighted_recall = _safe_divide(weighted_recall_sum, float(total))
+    weighted_f1 = _safe_divide(weighted_f1_sum, float(total))
+
+    metrics: dict[str, object] = {
+        "accuracy": accuracy,
+        "precision": macro_precision,
+        "recall": macro_recall,
+        "f1": macro_f1,
+        "macro_precision": macro_precision,
+        "macro_recall": macro_recall,
+        "macro_f1": macro_f1,
+        "weighted_precision": weighted_precision,
+        "weighted_recall": weighted_recall,
+        "weighted_f1": weighted_f1,
+        "num_classes": num_classes,
+        "class_names": resolved_class_names[:num_classes],
+        "per_class": per_class,
+        "confusion_matrix": confusion.tolist(),
+    }
+    if num_classes == 2:
+        positive_name = resolved_class_names[1]
+        metrics["positive_class"] = positive_name
+        metrics["positive_precision"] = per_class[positive_name]["precision"]
+        metrics["positive_recall"] = per_class[positive_name]["recall"]
+        metrics["positive_f1"] = per_class[positive_name]["f1"]
+    if probabilities.ndim == 1:
+        metrics["mean_positive_probability"] = float(probabilities.mean().item()) if len(probabilities) else 0.0
+    return metrics
+
+
 def psnr(predictions: torch.Tensor, targets: torch.Tensor) -> float:
     mse = torch.mean((predictions - targets) ** 2).item()
     if mse <= 1e-12:

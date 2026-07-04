@@ -30,6 +30,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--street-backbone", default="resnet18")
     parser.add_argument("--overhead-backbone", default="resnet18")
     parser.add_argument("--image-size", type=int, default=224)
+    parser.add_argument("--label-col", default="auto")
+    parser.add_argument("--class-weighting", choices=["none", "balanced"], default="none")
     parser.add_argument("--street-augment", action="store_true")
     parser.add_argument("--overhead-augment", action="store_true")
     parser.add_argument("--execute-index", type=int)
@@ -63,6 +65,10 @@ def _build_command(args: argparse.Namespace, mode: str, seed: int) -> list[str]:
         args.overhead_backbone,
         "--image-size",
         str(args.image_size),
+        "--label-col",
+        args.label_col,
+        "--class-weighting",
+        args.class_weighting,
     ]
     if args.street_augment:
         command.append("--street-augment")
