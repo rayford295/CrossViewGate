@@ -27,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--street-backbone", default="resnet18")
     parser.add_argument("--overhead-backbone", default="resnet18")
     parser.add_argument("--embedding-dim", type=int, default=256)
-    parser.add_argument("--mode", default="crossview", choices=["crossview", "street_only", "remote_only"])
+    parser.add_argument("--mode", default="crossview", choices=["crossview", "concat", "street_only", "remote_only"])
     parser.add_argument("--label-col", default="auto", help="Target column. Defaults to 'label' when present, else 'binary_label'.")
     parser.add_argument("--use-generated", action="store_true")
     parser.add_argument("--image-size", type=int, default=224)

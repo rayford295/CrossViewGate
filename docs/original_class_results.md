@@ -49,3 +49,20 @@ The cleanest current story is therefore:
 > Cross-view fusion is strongest and most reliable as a conflict resolver. It
 > clearly helps on the wildfire 3-class setting and Milton, while IAN shows that
 > the identity of the best single view can still be dataset/split dependent.
+
+## Robustness Layer
+
+The paper-facing robustness layer is scripted and summarized through:
+
+- `scripts/run_main_multiseed.ps1`: 3-seed main protocol with `concat`
+  baseline, late-fusion baselines, bootstrap CIs, paired tests, and threshold
+  sweeps. Main summaries are written to `docs/multiseed_main_results.md`,
+  `docs/fusion_baselines_multiseed.md`, and
+  `docs/conflict_statistics_multiseed.md`; threshold stability is summarized in
+  `docs/threshold_sensitivity_multiseed.md`.
+- `scripts/run_label_sensitivity_multiseed.ps1`: wildfire 3-class, wildfire
+  6-class, and legacy binary sensitivity.
+- `scripts/analyze_building_alignment_multi.py`: building pixel ratio,
+  centered-building ratio, target-visibility proxy, and conflict-gain relation.
+- `scripts/run_backbone_sanity.ps1`: ResNet50 or ConvNeXt sanity checks with
+  conflict-subset analysis when single-view and cross-view modes are present.

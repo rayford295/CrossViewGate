@@ -42,6 +42,7 @@ def _rows(outputs_root: Path, datasets: list[str], modes: list[str]) -> list[dic
     conflict_prefix = {
         "street_only": "street",
         "remote_only": "remote",
+        "concat": "concat",
         "crossview": "crossview",
     }
     for dataset in datasets:

@@ -9,6 +9,7 @@ The core comparison is still:
 
 - `street_only`
 - `remote_only`
+- `concat`
 - `crossview`
 - conflict subset where the two single-view models predict different classes
 
@@ -92,3 +93,15 @@ These three datasets let us compare:
   panoramic / SVI regimes
 - whether the conclusion survives ordinal multiclass labels rather than a
   binary damage collapse
+
+## Label Robustness Plan
+
+Reviewer-facing label checks are organized as:
+
+- wildfire 3-class main experiment
+- wildfire 6-class audit
+- legacy binary sensitivity
+
+The key claim should be accepted only if the conflict-resolution pattern remains
+directionally stable across these label settings, even if absolute macro-F1
+changes with class imbalance.

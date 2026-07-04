@@ -79,6 +79,10 @@ Core scripts:
 - `scripts/eval_triage.py`
 - `scripts/build_conflict_subset.py`
 - `scripts/run_original_class_experiments.ps1`
+- `scripts/run_main_multiseed.ps1`
+- `scripts/run_label_sensitivity_multiseed.ps1`
+- `scripts/run_backbone_sanity.ps1`
+- `scripts/analyze_building_alignment_multi.py`
 
 ## Non-binary task definition
 
@@ -112,6 +116,27 @@ non-binary experiments use `label` / `label_name`, multiclass CE, softmax
 predictions, macro-F1, weighted-F1, per-class metrics, and multiclass conflict
 subsets.
 
+## Experimental protocol
+
+The paper-facing protocol keeps three label settings:
+
+- main: wildfire 3-class + IAN 3-class + Milton 3-class
+- audit: wildfire raw 6-class labels
+- sensitivity: legacy binary collapse where historical baselines exist
+
+The main trained modes are:
+
+- `street_only`
+- `remote_only`
+- `concat`: simple feature concatenation
+- `crossview`: concatenation plus absolute-difference and product interactions
+
+Non-trained fusion baselines are evaluated from the single-view predictions:
+
+- late probability averaging
+- late logit averaging
+- confidence voting
+
 ## How to run
 
 ### 1. Install
@@ -136,8 +161,89 @@ powershell -ExecutionPolicy Bypass -File scripts\run_original_class_experiments.
 ```
 
 The script builds local manifests/splits, trains `street_only`, `remote_only`,
-and `crossview`, evaluates test metrics, builds conflict subsets, and writes
-`docs/original_class_results.md`.
+`concat`, and `crossview`, evaluates test metrics, builds conflict subsets, and
+writes `docs/original_class_results.md`.
+
+### 3. Run multiseed main experiments
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\run_main_multiseed.ps1 `
+  -DatasetRoot "C:\Users\yyang295\Desktop\disaster-dataset-Yifan-all" `
+  -Seeds "42,123,456" `
+  -Epochs 3 `
+  -BatchSize 64 `
+  -NumWorkers 8 `
+  -Device cuda
+```
+
+This writes per-seed runs under `outputs/multiseed_main`, plus:
+
+- `outputs/multiseed_main/multiseed_summary.csv`
+- `outputs/multiseed_main/fusion_baselines_summary.csv`
+- `outputs/multiseed_main/conflict_statistics_summary.csv`
+- `outputs/multiseed_main/threshold_sensitivity_summary.csv`
+- `docs/multiseed_main_results.md`
+- `docs/fusion_baselines_multiseed.md`
+- `docs/conflict_statistics_multiseed.md`
+- `docs/threshold_sensitivity_multiseed.md`
+- per-seed fusion baselines, conflict statistics, and threshold sweeps
+
+### 4. Run label-sensitivity experiments
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\run_label_sensitivity_multiseed.ps1 `
+  -Seeds "42,123,456" `
+  -Epochs 3 `
+  -BatchSize 64 `
+  -NumWorkers 8 `
+  -Device cuda
+```
+
+This keeps the wildfire 3-class main setting, wildfire 6-class audit, and
+legacy binary sensitivity in parallel. The default modes are `street_only`,
+`remote_only`, `concat`, and `crossview`, and the script writes both model and
+fusion summaries:
+
+- `outputs/multiseed_label_sensitivity/multiseed_summary.csv`
+- `outputs/multiseed_label_sensitivity/fusion_baselines_summary.csv`
+- `outputs/multiseed_label_sensitivity/conflict_statistics_summary.csv`
+- `docs/label_sensitivity_multiseed_results.md`
+- `docs/label_sensitivity_fusion_baselines.md`
+- `docs/label_sensitivity_conflict_statistics.md`
+
+### 5. Run stronger-backbone sanity checks
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\run_backbone_sanity.ps1 `
+  -Backbones "resnet50" `
+  -Modes "street_only,remote_only,crossview" `
+  -Epochs 3 `
+  -BatchSize 32 `
+  -Device cuda
+```
+
+This trains the selected backbone for the main datasets, builds conflict
+subsets when all three modes are present, and writes:
+
+- `outputs/backbone_sanity/backbone_sanity_summary.csv`
+- `docs/backbone_sanity_results.md`
+
+### 6. Run building-alignment mechanism analysis
+
+```powershell
+python scripts\analyze_building_alignment_multi.py `
+  --dataset altadena_3class=outputs\multiseed_main\altadena_3class\analysis_seed42\test_conflicts.csv `
+  --dataset ian_original=outputs\multiseed_main\ian_original\analysis_seed42\test_conflicts.csv `
+  --dataset milton_original=outputs\multiseed_main\milton_original\analysis_seed42\test_conflicts.csv `
+  --output-dir outputs\analysis\building_alignment_main_seed42 `
+  --model-id nvidia/segformer-b0-finetuned-ade-512-512 `
+  --batch-size 4 `
+  --device cuda
+```
+
+The paper-facing mechanism summary is in
+`docs/building_alignment_main_seed42.md`. A concise interpretation of the full
+experimental package is in `docs/paper_experiment_interpretation.md`.
 
 ## Historical binary findings
 

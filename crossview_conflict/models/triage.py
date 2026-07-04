@@ -42,14 +42,14 @@ class CrossViewTriageNet(nn.Module):
         street_dim = None
         overhead_dim = None
 
-        if mode in {"crossview", "street_only"}:
+        if mode in {"crossview", "concat", "street_only"}:
             self.street_encoder, street_dim = build_backbone(street_backbone, pretrained=pretrained)
             self.street_projector = _EmbeddingProjector(street_dim, embedding_dim)
         else:
             self.street_encoder = None
             self.street_projector = None
 
-        if mode in {"crossview", "remote_only"}:
+        if mode in {"crossview", "concat", "remote_only"}:
             self.overhead_encoder, overhead_dim = build_backbone(overhead_backbone, pretrained=pretrained)
             self.overhead_projector = _EmbeddingProjector(overhead_dim, embedding_dim)
         else:
@@ -61,6 +61,8 @@ class CrossViewTriageNet(nn.Module):
             fusion_dim = embedding_dim
         elif mode == "remote_only":
             fusion_dim = embedding_dim
+        elif mode == "concat":
+            fusion_dim = embedding_dim * 2
         else:
             fusion_dim = embedding_dim * 4
 
@@ -95,11 +97,11 @@ class CrossViewTriageNet(nn.Module):
         street_embedding = None
         overhead_embedding = None
 
-        if self.mode in {"crossview", "street_only"}:
+        if self.mode in {"crossview", "concat", "street_only"}:
             if street is None:
                 raise ValueError("Street tensor is required for the selected triage mode.")
             street_embedding = self._encode_street(street)
-        if self.mode in {"crossview", "remote_only"}:
+        if self.mode in {"crossview", "concat", "remote_only"}:
             if overhead is None:
                 raise ValueError("Overhead tensor is required for the selected triage mode.")
             overhead_embedding = self._encode_overhead(overhead)
@@ -108,6 +110,9 @@ class CrossViewTriageNet(nn.Module):
             features = [street_embedding]
         elif self.mode == "remote_only":
             features = [overhead_embedding]
+        elif self.mode == "concat":
+            assert street_embedding is not None and overhead_embedding is not None
+            features = [street_embedding, overhead_embedding]
         else:
             assert street_embedding is not None and overhead_embedding is not None
             features = [

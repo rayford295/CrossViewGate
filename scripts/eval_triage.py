@@ -97,8 +97,11 @@ def main() -> None:
                     )
                 else:
                     probability_row = probabilities.cpu()[row_index].tolist()
+                    logit_row = logits.cpu()[row_index].tolist()
                     row["confidence"] = float(max(probability_row))
                     row["probability"] = row["confidence"]
+                    for class_index, logit in enumerate(logit_row):
+                        row[f"logit_{class_index}"] = float(logit)
                     for class_index, probability in enumerate(probability_row):
                         row[f"prob_{class_index}"] = float(probability)
                 prediction_rows.append(row)

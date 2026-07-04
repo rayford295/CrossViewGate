@@ -123,6 +123,13 @@ def build_backbone(name: str, pretrained: bool = True) -> Tuple[nn.Module, int]:
         model.classifier = nn.Identity()
         return model, dim
 
+    if normalized_name == "convnext_tiny":
+        weights = models.ConvNeXt_Tiny_Weights.DEFAULT if pretrained else None
+        model = models.convnext_tiny(weights=weights)
+        dim = model.classifier[2].in_features
+        model.classifier = nn.Sequential(model.classifier[0], nn.Flatten(1))
+        return model, dim
+
     if normalized_name == "dinov2_vits14":
         model = _TorchHubEmbeddingBackbone(
             repo="facebookresearch/dinov2",

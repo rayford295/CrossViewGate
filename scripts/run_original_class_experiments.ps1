@@ -9,7 +9,7 @@ param(
   [int]$NumWorkers = 4,
   [string]$Device = "cuda",
   [string]$DatasetNames = "altadena_3class,ian_original,milton_original",
-  [string]$Modes = "street_only,remote_only,crossview",
+  [string]$Modes = "street_only,remote_only,concat,crossview",
   [switch]$SkipTraining,
   [switch]$SkipManifestBuild
 )
@@ -138,15 +138,22 @@ foreach ($dataset in $datasets) {
   New-Item -ItemType Directory -Force -Path $analysisDir | Out-Null
   $streetPreds = Join-Path $OutputRoot (Join-Path $dataset.Name "street_only\test_predictions.csv")
   $remotePreds = Join-Path $OutputRoot (Join-Path $dataset.Name "remote_only\test_predictions.csv")
+  $concatPreds = Join-Path $OutputRoot (Join-Path $dataset.Name "concat\test_predictions.csv")
   $crossviewPreds = Join-Path $OutputRoot (Join-Path $dataset.Name "crossview\test_predictions.csv")
   if ((Test-Path $streetPreds) -and (Test-Path $remotePreds) -and (Test-Path $crossviewPreds)) {
-    python scripts\build_conflict_subset.py `
-      --split-csv $dataset.Test `
-      --street-preds-csv $streetPreds `
-      --remote-preds-csv $remotePreds `
-      --crossview-preds-csv $crossviewPreds `
-      --output-csv (Join-Path $analysisDir "test_conflicts.csv") `
-      --summary-json (Join-Path $analysisDir "test_conflict_summary.json")
+    $conflictArgs = @(
+      "scripts\build_conflict_subset.py",
+      "--split-csv", $dataset.Test,
+      "--street-preds-csv", $streetPreds,
+      "--remote-preds-csv", $remotePreds,
+      "--crossview-preds-csv", $crossviewPreds,
+      "--output-csv", (Join-Path $analysisDir "test_conflicts.csv"),
+      "--summary-json", (Join-Path $analysisDir "test_conflict_summary.json")
+    )
+    if (Test-Path $concatPreds) {
+      $conflictArgs += @("--concat-preds-csv", $concatPreds)
+    }
+    python @conflictArgs
     if ($LASTEXITCODE -ne 0) { throw "Conflict subset build failed for $($dataset.Name)." }
   } else {
     Write-Warning "Skipping conflict subset for $($dataset.Name) because prediction CSVs are missing."

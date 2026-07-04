@@ -31,6 +31,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-csv", required=True)
     parser.add_argument("--summary-json", required=True)
     parser.add_argument("--crossview-preds-csv", help="Optional crossview predictions for conflict-resolution accuracy.")
+    parser.add_argument("--concat-preds-csv", help="Optional simple-concatenation fusion predictions.")
     parser.add_argument("--bootstrap-resamples", type=int, default=2000)
     parser.add_argument("--confidence-level", type=float, default=0.95)
     parser.add_argument("--seed", type=int, default=42)
@@ -55,6 +56,9 @@ def _load_predictions(path: str | Path, prefix: str) -> pd.DataFrame:
         "prediction_name": f"{prefix}_prediction_name",
         "logit": f"{prefix}_logit",
     }
+    for column in df.columns:
+        if re.match(r"^(prob|logit)_\d+$", column):
+            rename_columns[column] = f"{prefix}_{column}"
     renamed = df.rename(columns={column: renamed for column, renamed in rename_columns.items() if column in df.columns})
     return renamed
 
@@ -149,6 +153,9 @@ def main() -> None:
     if args.crossview_preds_csv:
         crossview = _load_predictions(args.crossview_preds_csv, "crossview")
         merged = merged.merge(crossview, on="sample_id", how="left")
+    if args.concat_preds_csv:
+        concat = _load_predictions(args.concat_preds_csv, "concat")
+        merged = merged.merge(concat, on="sample_id", how="left")
 
     conflict_df = merged[merged["conflict"]].copy()
     output_csv = Path(args.output_csv)
@@ -163,9 +170,18 @@ def main() -> None:
         "street_accuracy_on_conflicts": _accuracy(conflict_df, "street_prediction", target_column),
         "remote_accuracy_on_conflicts": _accuracy(conflict_df, "remote_prediction", target_column),
         "crossview_accuracy_on_conflicts": _accuracy(conflict_df, "crossview_prediction", target_column),
+        "concat_accuracy_on_conflicts": _accuracy(conflict_df, "concat_prediction", target_column),
         "street_accuracy_on_conflicts_ci": _bootstrap_accuracy_ci(
             conflict_df,
             "street_prediction",
+            target_column,
+            n_resamples=args.bootstrap_resamples,
+            confidence_level=args.confidence_level,
+            seed=args.seed,
+        ),
+        "concat_accuracy_on_conflicts_ci": _bootstrap_accuracy_ci(
+            conflict_df,
+            "concat_prediction",
             target_column,
             n_resamples=args.bootstrap_resamples,
             confidence_level=args.confidence_level,
