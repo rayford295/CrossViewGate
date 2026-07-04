@@ -80,18 +80,18 @@ Core scripts:
 - `scripts/build_conflict_subset.py`
 - `scripts/run_original_class_experiments.ps1`
 
-## Original-class task definition
+## Non-binary task definition
 
 ### Wildfire
 
-The original Eaton/Altadena labels are kept as a 6-class task:
+The Eaton/Altadena wildfire main experiment uses an ordinal 3-class task:
 
-- `0 = No Damage`
-- `1 = Affected (1-9%)`
-- `2 = Minor (10-25%)`
-- `3 = Major (26-50%)`
-- `4 = Destroyed (>50%)`
-- `5 = Inaccessible`
+- `0 = no_or_trace_damage`: `No Damage + Affected (1-9%)`
+- `1 = damaged_repairable`: `Minor (10-25%) + Major (26-50%)`
+- `2 = destroyed`: `Destroyed (>50%)`
+- `Inaccessible` excluded
+
+The raw 6-class label space is still supported as a native-label audit.
 
 ### Hurricane
 
@@ -107,8 +107,8 @@ The Milton GenDisasterSVI dataset is also kept as a 3-class task:
 - `moderate_damage`
 - `severe_damage`
 
-Legacy binary scripts remain supported through `binary_label`, but new original-
-class experiments use `label` / `label_name`, multiclass CE, softmax
+Legacy binary scripts remain supported through `binary_label`, but new
+non-binary experiments use `label` / `label_name`, multiclass CE, softmax
 predictions, macro-F1, weighted-F1, per-class metrics, and multiclass conflict
 subsets.
 
@@ -123,12 +123,12 @@ python -m venv .venv
 pip install -e .
 ```
 
-### 2. Run original-class experiments
+### 2. Run non-binary experiments
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\run_original_class_experiments.ps1 `
   -DatasetRoot "C:\Users\yyang295\Desktop\disaster-dataset-Yifan-all" `
-  -DatasetNames "altadena_original,ian_original,milton_original" `
+  -DatasetNames "altadena_3class,ian_original,milton_original" `
   -Epochs 10 `
   -BatchSize 32 `
   -NumWorkers 4 `
@@ -141,8 +141,8 @@ and `crossview`, evaluates test metrics, builds conflict subsets, and writes
 
 ## Historical binary findings
 
-The numbers below are previous binary/collapsed-label results. For native
-original-class pilot results, see `docs/original_class_results.md`.
+The numbers below are previous binary/collapsed-label results. For the current
+non-binary results, see `docs/original_class_results.md`.
 
 ### Eaton wildfire building-view benchmark
 

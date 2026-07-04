@@ -8,7 +8,7 @@ param(
   [int]$ImageSize = 224,
   [int]$NumWorkers = 4,
   [string]$Device = "cuda",
-  [string]$DatasetNames = "altadena_original,ian_original,milton_original",
+  [string]$DatasetNames = "altadena_3class,ian_original,milton_original",
   [string]$Modes = "street_only,remote_only,crossview",
   [switch]$SkipTraining,
   [switch]$SkipManifestBuild
@@ -34,10 +34,22 @@ if (-not $SkipManifestBuild) {
     --output-dir data\splits\altadena_original_objectid `
     --group-col objectid `
     --label-col auto `
+    --category-scheme wildfire_original `
     --path-rewrite-from "C:\Users\yyang295\Desktop\Altadena_Images" `
     --path-rewrite-to (Join-Path $DatasetRoot "Altadena_Images") `
     --require-existing-images
   if ($LASTEXITCODE -ne 0) { throw "Failed to build Altadena original splits." }
+
+  python scripts\make_group_splits.py `
+    --manifest-csv $AltadenaManifest `
+    --output-dir data\splits\altadena_3class_objectid `
+    --group-col objectid `
+    --label-col auto `
+    --category-scheme wildfire_3class `
+    --path-rewrite-from "C:\Users\yyang295\Desktop\Altadena_Images" `
+    --path-rewrite-to (Join-Path $DatasetRoot "Altadena_Images") `
+    --require-existing-images
+  if ($LASTEXITCODE -ne 0) { throw "Failed to build Altadena 3-class splits." }
 
   python scripts\build_ian_hurricane_manifests.py `
     --dataset-root (Join-Path $DatasetRoot "IAN_hurricane") `
@@ -57,6 +69,12 @@ $datasets = @(
     Train = "data\splits\altadena_original_objectid\train.csv"
     Val = "data\splits\altadena_original_objectid\val.csv"
     Test = "data\splits\altadena_original_objectid\test.csv"
+  },
+  @{
+    Name = "altadena_3class"
+    Train = "data\splits\altadena_3class_objectid\train.csv"
+    Val = "data\splits\altadena_3class_objectid\val.csv"
+    Test = "data\splits\altadena_3class_objectid\test.csv"
   },
   @{
     Name = "ian_original"

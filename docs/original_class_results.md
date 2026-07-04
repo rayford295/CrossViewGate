@@ -1,19 +1,22 @@
-# Original-Class Results
+# Native/Ordinal-Class Results
 
-These results use each dataset's native class space rather than a binary collapse.
+These results avoid the old binary collapse. Hurricanes keep their native
+3-class labels. The wildfire main setting uses the ordinal 3-class mapping:
 
-Current status:
+- `0 = no_or_trace_damage`: `No Damage + Affected (1-9%)`
+- `1 = damaged_repairable`: `Minor (10-25%) + Major (26-50%)`
+- `2 = destroyed`: `Destroyed (>50%)`
+- `Inaccessible` is excluded
 
-- Altadena / Eaton wildfire is now complete on the full original 6-class split.
-- IAN and Milton are complete on full original 3-class splits.
-- All runs use ResNet18, balanced class weighting, and the three view modes:
-  `street_only`, `remote_only`, and `crossview`.
+The earlier wildfire 6-class run is kept as a native-label audit, but this
+3-class mapping is the cleaner main comparison because the rare intermediate
+classes are too small to support a stable headline result.
 
 | dataset | mode | accuracy | macro_f1 | weighted_f1 | conflict_rate | accuracy_on_conflicts |
 | --- | --- | --- | --- | --- | --- | --- |
-| altadena_original | street_only | 0.84665991902834 | 0.40750110685574964 | 0.8608540373285545 | 0.20951417004048584 | 0.4106280193236715 |
-| altadena_original | remote_only | 0.8446356275303644 | 0.3951352954888799 | 0.8557888162564686 | 0.20951417004048584 | 0.40096618357487923 |
-| altadena_original | crossview | 0.868421052631579 | 0.4345426185357619 | 0.8824993340898941 | 0.20951417004048584 | 0.5434782608695652 |
+| altadena_3class | street_only | 0.8835685483870968 | 0.7018802256996127 | 0.9155221992051884 | 0.14818548387096775 | 0.4217687074829932 |
+| altadena_3class | remote_only | 0.9012096774193549 | 0.6871896564740064 | 0.9230050898968127 | 0.14818548387096775 | 0.5408163265306123 |
+| altadena_3class | crossview | 0.9309475806451613 | 0.7083298743246212 | 0.9422754858383552 | 0.14818548387096775 | 0.7517006802721088 |
 | ian_original | street_only | 0.7433333333333333 | 0.7440966893041887 | 0.7440966893041888 | 0.32666666666666666 | 0.6428571428571429 |
 | ian_original | remote_only | 0.62 | 0.6232960011252409 | 0.6232960011252409 | 0.32666666666666666 | 0.2653061224489796 |
 | ian_original | crossview | 0.7 | 0.7027560021602867 | 0.7027560021602868 | 0.32666666666666666 | 0.6122448979591837 |
@@ -23,26 +26,26 @@ Current status:
 
 ## Reading
 
-Altadena / Eaton wildfire now supports the main cross-view mechanism under the
-native 6-class setting:
+Altadena / Eaton wildfire supports the main cross-view mechanism under the
+3-class ordinal setting:
 
-- `crossview` is best overall by macro-F1 (`0.4345`) and weighted-F1 (`0.8825`)
-- `crossview` is clearly best on conflict cases (`0.5435`)
-- conflict-case gain over the best single view is about `+0.1329`
+- `crossview` is best overall by accuracy, macro-F1, and weighted-F1
+- `crossview` is much stronger on conflict cases: `0.7517`
+- conflict-case gain over the best single view is about `+0.2109`
 
-Milton gives the cleanest hurricane-side cross-view result:
+Milton gives a matching hurricane-side cross-view result:
 
 - `crossview` is best overall by macro-F1 (`0.7757`)
 - `crossview` is also best on conflict cases (`0.6061`)
-- `remote_only` is weaker overall and on conflicts
 
-IAN is the split-sensitive case:
+IAN remains the split-sensitive hurricane case:
 
 - `street_only` is best overall (`0.7441` macro-F1)
-- `crossview` remains much better than `remote_only`, but does not beat
-  `street_only` on this short original-label run
-- on conflict cases, `crossview` is close to `street_only`
+- `crossview` is still much better than `remote_only`, but does not beat the
+  strongest single view in this short native-label pilot
 
-The native-label conclusion is therefore more nuanced than the earlier binary
-story: cross-view clearly helps on Altadena and Milton, while IAN shows that
-the strongest single view can still dominate in some hurricane splits.
+The cleanest current story is therefore:
+
+> Cross-view fusion is strongest and most reliable as a conflict resolver. It
+> clearly helps on the wildfire 3-class setting and Milton, while IAN shows that
+> the identity of the best single view can still be dataset/split dependent.

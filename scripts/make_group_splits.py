@@ -10,7 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from crossview_conflict.labels import to_multiclass_label, to_multiclass_name
+from crossview_conflict.labels import to_category_label, to_category_name
 
 
 def parse_args() -> argparse.Namespace:
@@ -29,6 +29,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--path-rewrite-from", help="Optional path prefix to replace before writing splits.")
     parser.add_argument("--path-rewrite-to", help="Replacement path prefix used with --path-rewrite-from.")
     parser.add_argument("--require-existing-images", action="store_true", help="Drop rows whose street or remote image is missing.")
+    parser.add_argument(
+        "--category-scheme",
+        choices=["wildfire_original", "wildfire_3class"],
+        default="wildfire_original",
+        help="Category-to-label mapping used when --label-col auto derives labels from a category column.",
+    )
     return parser.parse_args()
 
 
@@ -101,8 +107,10 @@ def main() -> None:
             label_col = "label"
         elif "category" in df.columns:
             try:
-                df["label"] = df["category"].map(to_multiclass_label).astype(int)
-                df["label_name"] = df["category"].map(to_multiclass_name)
+                df["label"] = df["category"].map(lambda value: to_category_label(value, args.category_scheme))
+                df["label_name"] = df["category"].map(lambda value: to_category_name(value, args.category_scheme))
+                df = df[df["label"].notna()].copy()
+                df["label"] = df["label"].astype(int)
                 label_col = "label"
             except (KeyError, ValueError):
                 if "binary_label" not in df.columns:

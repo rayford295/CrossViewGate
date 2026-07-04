@@ -25,6 +25,12 @@ MILTON_HURRICANE_CATEGORIES = (
     "severe_damage",
 )
 
+WILDFIRE_3CLASS_CATEGORIES = (
+    "no_or_trace_damage",
+    "damaged_repairable",
+    "destroyed",
+)
+
 _CATEGORY_ALIASES = {
     "no_damage": "No Damage",
     "affected_1_9": "Affected (1-9%)",
@@ -95,6 +101,42 @@ def to_multiclass_label(raw_category: object) -> int:
 
 def to_multiclass_name(raw_category: object) -> str:
     return normalize_category(raw_category)
+
+
+def to_wildfire_3class_label(raw_category: object) -> Optional[int]:
+    canonical = normalize_category(raw_category)
+    mapping = {
+        "No Damage": 0,
+        "Affected (1-9%)": 0,
+        "Minor (10-25%)": 1,
+        "Major (26-50%)": 1,
+        "Destroyed (>50%)": 2,
+        "Inaccessible": None,
+    }
+    return mapping[canonical]
+
+
+def to_wildfire_3class_name(raw_category: object) -> str:
+    label = to_wildfire_3class_label(raw_category)
+    if label is None:
+        return "ignored"
+    return WILDFIRE_3CLASS_CATEGORIES[label]
+
+
+def to_category_label(raw_category: object, scheme: str = "wildfire_original") -> Optional[int]:
+    if scheme == "wildfire_original":
+        return to_multiclass_label(raw_category)
+    if scheme == "wildfire_3class":
+        return to_wildfire_3class_label(raw_category)
+    raise KeyError(f"Unknown category label scheme: {scheme}")
+
+
+def to_category_name(raw_category: object, scheme: str = "wildfire_original") -> str:
+    if scheme == "wildfire_original":
+        return to_multiclass_name(raw_category)
+    if scheme == "wildfire_3class":
+        return to_wildfire_3class_name(raw_category)
+    raise KeyError(f"Unknown category label scheme: {scheme}")
 
 
 def build_class_mapping(class_names: tuple[str, ...] | list[str]) -> dict[str, int]:

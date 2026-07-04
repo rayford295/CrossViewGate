@@ -2,7 +2,7 @@
 
 ## Overview
 
-The original-class experiment compares one wildfire dataset and two hurricane
+The main non-binary experiment compares one wildfire dataset and two hurricane
 datasets without collapsing labels to a binary 0/1 target.
 
 The core comparison is still:
@@ -29,12 +29,20 @@ The core comparison is still:
 - `4 = Destroyed (>50%)`
 - `5 = Inaccessible`
 
+### Main 3-Class Protocol
+
+- `0 = no_or_trace_damage`: `No Damage + Affected (1-9%)`
+- `1 = damaged_repairable`: `Minor (10-25%) + Major (26-50%)`
+- `2 = destroyed`: `Destroyed (>50%)`
+- `Inaccessible` excluded
+
 ### Why This Dataset Matters
 
 The ground image is usually tightly aligned with the target property, so the
-cross-view bridge is expected to be stronger and more direct. The original
-6-class setting is highly imbalanced, so macro-F1 and per-class metrics matter
-more than accuracy alone.
+cross-view bridge is expected to be stronger and more direct. The raw 6-class
+setting is retained as an audit, but the 3-class protocol is the cleaner main
+setting because `Minor`, `Major`, and `Inaccessible` are too sparse for a stable
+headline result.
 
 ## 2. IAN Hurricane
 
@@ -82,5 +90,5 @@ These three datasets let us compare:
 - whether cross-view helps most on conflict cases
 - whether the gain changes between property-centric wildfire and hurricane
   panoramic / SVI regimes
-- whether the conclusion survives native multiclass labels rather than a binary
-  damage collapse
+- whether the conclusion survives ordinal multiclass labels rather than a
+  binary damage collapse
