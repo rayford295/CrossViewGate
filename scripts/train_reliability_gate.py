@@ -122,11 +122,13 @@ class SplitData:
         street_probs: np.ndarray,
         remote_probs: np.ndarray,
         targets: np.ndarray,
+        crossview_probs: np.ndarray | None = None,
     ) -> None:
         self.features = features
         self.street_probs = street_probs
         self.remote_probs = remote_probs
         self.targets = targets
+        self.crossview_probs = crossview_probs
 
 
 def load_split(
@@ -138,7 +140,7 @@ def load_split(
     temperatures: dict[str, float],
 ) -> SplitData:
     frames: dict[str, pd.DataFrame] = {}
-    for mode in ("street_only", "remote_only"):
+    for mode in ("street_only", "remote_only", "crossview"):
         path = root / dataset / f"{mode}_seed{seed}" / f"{split}_predictions.csv"
         df = pd.read_csv(path)
         df["sample_id"] = df["sample_id"].map(_canonical_sample_id)
@@ -148,9 +150,14 @@ def load_split(
     if "error" in visibility.columns:
         visibility = visibility[visibility["error"].isna()]
 
+    crossview_logit_cols = _numbered_columns(frames["crossview"], "logit")
+    crossview_frame = frames["crossview"][["sample_id"] + crossview_logit_cols].rename(
+        columns={col: f"{col}_crossview" for col in crossview_logit_cols}
+    )
     merged = frames["street_only"].merge(
         frames["remote_only"], on="sample_id", suffixes=("_street", "_remote")
     )
+    merged = merged.merge(crossview_frame, on="sample_id", how="inner")
     merged = merged.merge(visibility[["sample_id"] + VISIBILITY_FEATURES], on="sample_id", how="inner")
     if merged.empty:
         raise ValueError(f"Empty merge for {dataset} seed={seed} {split}")
@@ -159,8 +166,10 @@ def load_split(
     remote_logit_cols = [f"{c}_remote" for c in _numbered_columns(frames["remote_only"], "logit")]
     street_logits = merged[street_logit_cols].to_numpy(dtype=np.float64)
     remote_logits = merged[remote_logit_cols].to_numpy(dtype=np.float64)
+    crossview_logits = merged[[f"{c}_crossview" for c in crossview_logit_cols]].to_numpy(dtype=np.float64)
     street_probs = _softmax(street_logits / temperatures["street_only"])
     remote_probs = _softmax(remote_logits / temperatures["remote_only"])
+    crossview_probs = _softmax(crossview_logits / temperatures["crossview"])
     targets = merged["target_street"].to_numpy(dtype=np.int64)
 
     derived = pd.DataFrame(
@@ -178,61 +187,86 @@ def load_split(
         [merged[VISIBILITY_FEATURES].to_numpy(dtype=np.float64), derived.to_numpy(dtype=np.float64)],
         axis=1,
     )
-    return SplitData(features, street_probs, remote_probs, targets)
+    return SplitData(features, street_probs, remote_probs, targets, crossview_probs)
 
 
 class GateModel(nn.Module):
-    def __init__(self, num_features: int, hidden_dim: int) -> None:
+    """num_views=2: sigmoid street weight. num_views>2: softmax mixture weights."""
+
+    def __init__(self, num_features: int, hidden_dim: int, num_views: int = 2) -> None:
         super().__init__()
+        self.num_views = num_views
+        out_dim = 1 if num_views == 2 else num_views
         if hidden_dim > 0:
             self.net = nn.Sequential(
                 nn.Linear(num_features, hidden_dim),
                 nn.ReLU(),
                 nn.Linear(hidden_dim, hidden_dim),
                 nn.ReLU(),
-                nn.Linear(hidden_dim, 1),
+                nn.Linear(hidden_dim, out_dim),
             )
         else:
-            self.net = nn.Linear(num_features, 1)
+            self.net = nn.Linear(num_features, out_dim)
 
     def forward(self, features: torch.Tensor) -> torch.Tensor:
-        return torch.sigmoid(self.net(features)).squeeze(-1)
+        """Returns per-view weights of shape (N, num_views)."""
+        raw = self.net(features)
+        if self.num_views == 2:
+            street = torch.sigmoid(raw).squeeze(-1)
+            return torch.stack([street, 1.0 - street], dim=-1)
+        return torch.softmax(raw, dim=-1)
+
+
+def _view_stack(data: SplitData, num_views: int) -> np.ndarray:
+    views = [data.street_probs, data.remote_probs]
+    if num_views == 3:
+        if data.crossview_probs is None:
+            raise ValueError("crossview probs required for 3-view gate")
+        views.append(data.crossview_probs)
+    return np.stack(views, axis=1)  # (N, num_views, C)
 
 
 def train_gate(
     train_data: SplitData,
-    mean: np.ndarray,
-    std: np.ndarray,
+    features_normalized: np.ndarray,
     hidden_dim: int,
     epochs: int,
     learning_rate: float,
     weight_decay: float,
     seed: int,
+    num_views: int = 2,
+    sample_weights: np.ndarray | None = None,
 ) -> GateModel:
     torch.manual_seed(seed)
-    features = torch.tensor((train_data.features - mean) / std, dtype=torch.float32)
-    street = torch.tensor(train_data.street_probs, dtype=torch.float32)
-    remote = torch.tensor(train_data.remote_probs, dtype=torch.float32)
+    features = torch.tensor(features_normalized, dtype=torch.float32)
+    views = torch.tensor(_view_stack(train_data, num_views), dtype=torch.float32)
     targets = torch.tensor(train_data.targets, dtype=torch.long)
-    model = GateModel(features.shape[1], hidden_dim)
+    weights = None
+    if sample_weights is not None:
+        weights = torch.tensor(sample_weights / sample_weights.mean(), dtype=torch.float32)
+    model = GateModel(features.shape[1], hidden_dim, num_views)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     for _ in range(epochs):
         optimizer.zero_grad()
-        weight = model(features).unsqueeze(-1)
-        mixture = weight * street + (1.0 - weight) * remote
-        loss = nn.functional.nll_loss(torch.log(torch.clamp(mixture, min=1e-12)), targets)
+        view_weights = model(features).unsqueeze(-1)  # (N, num_views, 1)
+        mixture = (view_weights * views).sum(dim=1)
+        log_mixture = torch.log(torch.clamp(mixture, min=1e-12))
+        per_sample = nn.functional.nll_loss(log_mixture, targets, reduction="none")
+        loss = (per_sample * weights).mean() if weights is not None else per_sample.mean()
         loss.backward()
         optimizer.step()
     model.eval()
     return model
 
 
-def apply_gate(model: GateModel, data: SplitData, mean: np.ndarray, std: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    features = torch.tensor((data.features - mean) / std, dtype=torch.float32)
+def apply_gate(
+    model: GateModel, data: SplitData, features_normalized: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    features = torch.tensor(features_normalized, dtype=torch.float32)
     with torch.no_grad():
-        weight = model(features).numpy()
-    mixture = weight[:, None] * data.street_probs + (1.0 - weight[:, None]) * data.remote_probs
-    return mixture.argmax(axis=1), weight
+        view_weights = model(features).numpy()  # (N, num_views)
+    mixture = (view_weights[:, :, None] * _view_stack(data, model.num_views)).sum(axis=1)
+    return mixture.argmax(axis=1), view_weights[:, 0]
 
 
 def mcnemar_p_value(correct_a: np.ndarray, correct_b: np.ndarray) -> float:
@@ -328,7 +362,7 @@ def main() -> None:
     for dataset in datasets:
         for seed in seeds:
             temperatures: dict[str, float] = {}
-            for mode in ("street_only", "remote_only"):
+            for mode in ("street_only", "remote_only", "crossview"):
                 val_path = root / dataset / f"{mode}_seed{seed}" / "val_predictions.csv"
                 df = pd.read_csv(val_path)
                 logit_cols = _numbered_columns(df, "logit")
@@ -346,61 +380,82 @@ def main() -> None:
             aligned = test_street[["sample_id"]].merge(crossview_df, on="sample_id")
             crossview_preds[(dataset, seed)] = aligned["prediction"].to_numpy(dtype=np.int64)
 
-    def pooled_split(source_datasets: list[str], seed: int) -> SplitData:
+    def _zscore(features: np.ndarray, reference: np.ndarray) -> np.ndarray:
+        mean = reference.mean(axis=0)
+        std = np.clip(reference.std(axis=0), 1e-6, None)
+        return (features - mean) / std
+
+    def pooled_split(source_datasets: list[str], seed: int) -> tuple[SplitData, np.ndarray, np.ndarray]:
         parts = [cache[(name, seed, "val")] for name in source_datasets]
-        return SplitData(
+        data = SplitData(
             np.concatenate([part.features for part in parts]),
             np.concatenate([part.street_probs for part in parts]),
             np.concatenate([part.remote_probs for part in parts]),
             np.concatenate([part.targets for part in parts]),
+            np.concatenate([part.crossview_probs for part in parts]),
         )
+        znorm_features = np.concatenate([_zscore(part.features, part.features) for part in parts])
+        balance = np.concatenate(
+            [np.full(len(part.targets), 1.0 / len(part.targets)) for part in parts]
+        )
+        return data, znorm_features, balance
+
+    variants = (("gate_mlp", args.hidden_dim), ("gate_linear", 0))
 
     for target_dataset in datasets:
         for seed in seeds:
             test = cache[(target_dataset, seed, "test")]
             crossview_pred = crossview_preds[(target_dataset, seed)]
+            target_val = cache[(target_dataset, seed, "val")]
             other_datasets = [name for name in datasets if name != target_dataset]
             if other_datasets:
-                pooled = pooled_split(other_datasets, seed)
-                mean = pooled.features.mean(axis=0)
-                std = np.clip(pooled.features.std(axis=0), 1e-6, None)
-                for variant, hidden in (("gate_mlp", args.hidden_dim), ("gate_linear", 0)):
+                pooled, pooled_znorm, balance = pooled_split(other_datasets, seed)
+                source_label = "+".join(other_datasets)
+                # Raw pooled: shared source statistics, unbalanced (reference).
+                raw_normalized = _zscore(pooled.features, pooled.features)
+                test_raw_normalized = _zscore(test.features, pooled.features)
+                # Regime-normalized pooled: each source dataset z-scored with its
+                # own statistics, balanced sampling; the target is normalized with
+                # its own (label-free) val statistics.
+                test_znorm = _zscore(test.features, target_val.features)
+                for variant, hidden in variants:
                     model = train_gate(
-                        pooled, mean, std, hidden, args.epochs, args.learning_rate, args.weight_decay, seed
+                        pooled, raw_normalized, hidden, args.epochs, args.learning_rate,
+                        args.weight_decay, seed,
                     )
-                    prediction, weight = apply_gate(model, test, mean, std)
+                    prediction, weight = apply_gate(model, test, test_raw_normalized)
                     rows.append(
                         evaluate(
-                            target_dataset,
-                            seed,
-                            f"{variant}_loo_pooled",
-                            "+".join(other_datasets),
-                            prediction,
-                            weight,
-                            test,
-                            crossview_pred,
+                            target_dataset, seed, f"{variant}_loo_pooled", source_label,
+                            prediction, weight, test, crossview_pred,
+                        )
+                    )
+                    model = train_gate(
+                        pooled, pooled_znorm, hidden, args.epochs, args.learning_rate,
+                        args.weight_decay, seed, sample_weights=balance,
+                    )
+                    prediction, weight = apply_gate(model, test, test_znorm)
+                    rows.append(
+                        evaluate(
+                            target_dataset, seed, f"{variant}_loo_pooled_znorm", source_label,
+                            prediction, weight, test, crossview_pred,
                         )
                     )
             for source_dataset in datasets:
                 train = cache[(source_dataset, seed, "val")]
-                mean = train.features.mean(axis=0)
-                std = np.clip(train.features.std(axis=0), 1e-6, None)
-                for variant, hidden in (("gate_mlp", args.hidden_dim), ("gate_linear", 0)):
+                train_normalized = _zscore(train.features, train.features)
+                test_normalized = _zscore(test.features, train.features)
+                scope = "in_domain" if source_dataset == target_dataset else "transfer"
+                for variant, hidden in variants:
                     model = train_gate(
-                        train, mean, std, hidden, args.epochs, args.learning_rate, args.weight_decay, seed
+                        train, train_normalized, hidden, args.epochs, args.learning_rate,
+                        args.weight_decay, seed,
                     )
-                    prediction, weight = apply_gate(model, test, mean, std)
-                    scope = "in_domain" if source_dataset == target_dataset else "transfer"
+                    prediction, weight = apply_gate(model, test, test_normalized)
                     rows.append(
                         evaluate(
-                            target_dataset,
-                            seed,
-                            f"{variant}_{scope}",
-                            source_dataset,
-                            prediction,
-                            weight,
-                            test,
-                            crossview_pred,
+                            target_dataset, seed, f"{variant}_{scope}", source_dataset,
+                            prediction, weight, test, crossview_pred,
                         )
                     )
                     if variant == "gate_linear" and source_dataset == target_dataset:
@@ -409,6 +464,18 @@ def main() -> None:
                             weight_rows.append(
                                 {"dataset": target_dataset, "seed": seed, "feature": name, "coefficient": float(value)}
                             )
+                    if source_dataset == target_dataset:
+                        model = train_gate(
+                            train, train_normalized, hidden, args.epochs, args.learning_rate,
+                            args.weight_decay, seed, num_views=3,
+                        )
+                        prediction, weight = apply_gate(model, test, test_normalized)
+                        rows.append(
+                            evaluate(
+                                target_dataset, seed, f"gate3_{'mlp' if hidden else 'linear'}_in_domain",
+                                source_dataset, prediction, weight, test, crossview_pred,
+                            )
+                        )
             print(f"gated {target_dataset} seed={seed}")
 
     results = pd.DataFrame(rows)
