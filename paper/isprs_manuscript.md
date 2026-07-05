@@ -1,10 +1,10 @@
 # Trust the view that sees the target: visibility-conditioned reliability gating for conflict-aware cross-view disaster damage assessment
 
-Yifan Yang^a,\*^, [Co-authors to be added]
+Yifan Yang^a^, Lei Zou^a,\*^
 
-^a^ [Affiliation], United States
+^a^ Department of Geography, Texas A&M University, College Station, TX, USA
 
-\* Corresponding author. E-mail: yifan.yang@gisphere.info
+\* Corresponding author. E-mail: [to be added]; Y. Yang: yifan.yang@gisphere.info
 
 ## Abstract
 
@@ -82,7 +82,7 @@ We use three datasets spanning two disaster types and, critically, two ground-vi
 
 Figure 1 gives an overview of the full pipeline.
 
-**Figure 1.** Overview: single-view triage models define conflict cases; the oracle single-view gap quantifies unexploited reliability information; a visibility-conditioned linear gate recovers a significant fraction of it; a field-of-view intervention establishes the mechanism causally; and conflict density yields an unsupervised damage map.
+**Figure 1.** Framework overview. Independently trained single-view models define the conflict cases (10–33% of test samples); the oracle single-view gap (0.37–0.41 accuracy) quantifies the reliability information symmetric fusion leaves unused; a linear visibility-conditioned gate recovers a significant fraction of it; the field-of-view intervention establishes the mechanism causally; and the spatial density of conflicts yields a label-free damage map. The street/overhead pair shown is a real Eaton-fire conflict case.
 
 ### 4.1 Base models
 
@@ -159,7 +159,9 @@ Three patterns organize the table. First, cross-view fusion beats both single vi
 | Ian | 33.2% | 0.529 | 0.896 | 0.367 | 0.252 | 0.239 | 0.234 |
 | Milton | 25.7% | 0.557 | 0.964 | 0.407 | 0.222 | 0.170 | 0.181 |
 
-The oracle gap is the paper's motivating quantity: on every dataset, simply knowing *which existing model to trust per sample* would add 0.37–0.41 conflict accuracy — several times the improvement any fusion method achieves. The calibration decomposition rules out the mundane explanation. Per-view temperatures are moderate (1.0–1.75) and expected calibration errors drop from 0.02–0.14 to 0.01–0.06 after scaling, but calibrated averaging closes at most 44% of the gap (Altadena) and under 24% elsewhere. The unexploited information is not a calibration artifact; it requires knowing *when* each view is reliable, which is what the gate supplies.
+**Figure 2.** The oracle single-view gap. For each dataset, the bar spans from the best single view to the oracle on conflict cases; dots place each method within that span. No method reaches the midpoint of the span on the panoramic datasets; the gate comes closest on the wildfire.
+
+The oracle gap is the paper's motivating quantity (Figure 2): on every dataset, simply knowing *which existing model to trust per sample* would add 0.37–0.41 conflict accuracy — several times the improvement any fusion method achieves. The calibration decomposition rules out the mundane explanation. Per-view temperatures are moderate (1.0–1.75) and expected calibration errors drop from 0.02–0.14 to 0.01–0.06 after scaling, but calibrated averaging closes at most 44% of the gap (Altadena) and under 24% elsewhere. The unexploited information is not a calibration artifact; it requires knowing *when* each view is reliable, which is what the gate supplies.
 
 This analysis also surfaces a negative result the field should absorb: under converged training, end-to-end learned fusion (crossview) does not reliably beat calibrated probability averaging (Altadena conflicts: +0.034 in the pooled test, p = 0.073; Ian and Milton: no significant difference). Claims that learned fusion beats simple aggregation, common in the literature, may be artifacts of undertrained or miscalibrated single-view baselines — ours were, in our own three-epoch pilot.
 
@@ -177,9 +179,11 @@ This analysis also surfaces a negative result the field should absorb: under con
 | Milton | gate − crossview (conflicts) | −0.015 | [−0.068, +0.036] | 0.57 |
 | Milton | gate − calibrated prob. avg. (conflicts) | −0.011 | [−0.086, +0.062] | 0.76 |
 
-On the property-centric dataset the gate delivers exactly what the mechanism predicts: +0.072 conflict accuracy over end-to-end fusion and +0.051 over the strongest baseline, both decisively significant, and a 52% oracle-gap closure — the only method in our study above one half. On the panoramic datasets, where street views rarely see the target structure (mean building pixel ratio 0.027 on Ian vs 0.119 on Altadena), the gate has little visibility signal to exploit and performs at parity — never significantly worse. The asymmetry is not a weakness of the method; it *is* the finding: reliability gating pays where ground-level evidence is target-aligned, and degrades gracefully to baseline behavior where it is not.
+**Figure 3.** (a) Conflict-case accuracy by method (mean ± std over five seeds; dashed line = oracle). (b) Linear gate coefficients on the wildfire dataset (mean ± std over seeds); positive coefficients shift trust toward the street view.
 
-The linear gate's coefficients are interpretable and stable in sign across seeds on Altadena: street-view entropy carries the largest negative weight (an uncertain street view cedes to the overhead view), the centered-building-ratio feature is positive (a building filling the center of the frame earns trust), and the confidence gap is positive. The learned rule is the one a human analyst would state: *trust the street view when it is confident and actually looking at the building.*
+On the property-centric dataset the gate delivers exactly what the mechanism predicts (Figure 3a): +0.072 conflict accuracy over end-to-end fusion and +0.051 over the strongest baseline, both decisively significant, and a 52% oracle-gap closure — the only method in our study above one half. On the panoramic datasets, where street views rarely see the target structure (mean building pixel ratio 0.027 on Ian vs 0.119 on Altadena), the gate has little visibility signal to exploit and performs at parity — never significantly worse. The asymmetry is not a weakness of the method; it *is* the finding: reliability gating pays where ground-level evidence is target-aligned, and degrades gracefully to baseline behavior where it is not.
+
+The linear gate's coefficients (Figure 3b) are interpretable and stable in sign across seeds on Altadena: street-view entropy carries the largest negative weight (an uncertain street view cedes to the overhead view), the centered-building-ratio feature is positive (a building filling the center of the frame earns trust), and the confidence gap is positive. The learned rule is the one a human analyst would state: *trust the street view when it is confident and actually looking at the building.*
 
 **Cross-disaster transfer.** A linear gate fit on Ian transfers zero-shot to Altadena with 0.27 oracle-gap closure (78% of crossview's in-domain closure there), and an Altadena-fit gate retains just over half of the in-domain gate's advantage on Ian; transfers involving Milton, the smallest dataset, are weaker, and naive pooled training across disasters underperforms due to the order-of-magnitude difference in visibility-feature scales between regimes (per-dataset standardization recovers part of it). The confidence-side features transfer; the visibility features are regime-scaled. A universal gate is therefore plausible but not yet established — we state this as an open problem.
 
@@ -198,7 +202,7 @@ The linear gate's coefficients are interpretable and stable in sign across seeds
 
 The intervention delivers a clean causal verdict. Building-centered cropping raises the conflict gain on both hurricanes — on Milton the gap closure doubles (0.177 → 0.365), reaching two-thirds of the wildfire reference level — while random cropping with identical geometry lowers it. The building-minus-random contrast is positive in 6/6 dataset-seed pairs. Two details sharpen the attribution. First, building-centered cropping *lowers* street-only accuracy (panoramic context is genuinely informative for the overall task), yet *raises* the fusion benefit: the gain does not come from a stronger street model but from the two views becoming alignable — they now attend to the same object. Second, the random-crop control rules out resolution, field of view, and cropping artifacts as explanations. Street-view target alignment is the causal variable behind the regime effect, which retroactively grounds the gate's visibility features as causal rather than merely correlated.
 
-**Figure 2.** One Hurricane Ian panorama, two interventions. Left: building-centered 90° crop — a damaged house with debris field, property-centric in character. Right: random-azimuth crop of the same panorama with identical geometry — the building is absent. Only target alignment differs between the training sets built from these crops.
+**Figure 4.** The field-of-view intervention. (a) One Hurricane Ian panorama with the two geometrically identical 90° crop windows: building-centered and random-azimuth; the resulting crops are shown at right — the building is present in one and absent in the other. (b) Conflict gain by crop variant (bars: three-seed means; dots: individual seeds). Building-centered cropping raises the fusion benefit on both hurricanes; the random control does not.
 
 ### 5.5 Conflict density as an unsupervised damage map
 
@@ -211,13 +215,15 @@ The intervention delivers a clean causal verdict. Building-centered cropping rai
 | Milton | 0.0015° grid | 27 | 0.289 (0.14) (soft) | ~0 (n.s.) |
 | Ian | — | — | not possible: release has no georeference | — |
 
-On the wildfire, hard conflict density is a strong label-free predictor of tile damage, and it strengthens under converged models (r = 0.545 → 0.615). The uncertainty control fails in the most instructive way possible: it *anti-correlates* with damage, because burned-to-the-ground parcels are easy, confident classifications. Whatever conflict density measures, it is not model uncertainty — it is the spatial signature of the two sensors disagreeing about the world, which concentrates where damage disrupts the normal correspondence between facade and roof evidence. On Milton the soft-conflict signal was significant under the three-epoch pilot (r = 0.485, p = 0.010) but weakens below significance under converged models (r = 0.289), as better single-view models disagree less; we therefore present the wildfire case as the robust result and the hurricane case as regime-sensitive supporting evidence. Damage on Altadena is spatially autocorrelated (Moran's I = 0.27, p = 0.0001), so tile correlations partially reflect spatial structure; conflict density itself shows no significant autocorrelation.
+**Figure 5.** Conflict density as a label-free damage map (Eaton wildfire, 0.01° grid). (a) Ground-truth tile damage. (b) Tile conflict density computed without labels. (c) Their rank correlation. (d) The single-view uncertainty control, which anti-correlates with damage. Point size in (c, d) reflects tile sample count.
+
+On the wildfire, hard conflict density is a strong label-free predictor of tile damage (Figure 5), and it strengthens under converged models (r = 0.545 → 0.615). The uncertainty control fails in the most instructive way possible: it *anti-correlates* with damage, because burned-to-the-ground parcels are easy, confident classifications. Whatever conflict density measures, it is not model uncertainty — it is the spatial signature of the two sensors disagreeing about the world, which concentrates where damage disrupts the normal correspondence between facade and roof evidence. On Milton the soft-conflict signal was significant under the three-epoch pilot (r = 0.485, p = 0.010) but weakens below significance under converged models (r = 0.289), as better single-view models disagree less; we therefore present the wildfire case as the robust result and the hurricane case as regime-sensitive supporting evidence. Damage on Altadena is spatially autocorrelated (Moran's I = 0.27, p = 0.0001), so tile correlations partially reflect spatial structure; conflict density itself shows no significant autocorrelation.
 
 ### 5.6 External comparison
 
 Our Ian dataset is the released CVIAN pairing, enabling a direct reading against CVDisaster (Li et al., 2025): their CGCViT cross-view model reports 77.96 overall accuracy (street-only 74.50, satellite-only 67.07) under a random 5:5 split with a 20M-parameter encoder trained for 100 epochs; our crossview reaches 73.5 ± 1.5 (street 70.3, remote 64.8) under an object-grouped split with ResNet-18 and early stopping. The single-view ranking (street > satellite) and the cross-view advantage replicate exactly across independent codebases; the absolute offset is consistent with our stricter anti-leakage split and smaller encoder, and the release's lack of coordinates prevents ruling out spatial leakage in random splits of this data. The contributions are orthogonal: CVDisaster contributes geolocalization and a fusion architecture; conflict-aware evaluation, the oracle gap, reliability gating, the causal intervention, and conflict-density mapping appear in neither that work nor, to our knowledge, elsewhere in the cross-view disaster literature.
 
-**Figure 3.** Qualitative conflict cases. Rows: street view, overhead patch, per-model predictions with ground truth, and building-segmentation overlay, for wildfire and hurricane conflicts resolved by fusion and one failure case.
+**Figure 6.** Qualitative conflict cases. Rows: street view, overhead patch, per-model predictions with ground truth, and building-segmentation overlay, for wildfire and hurricane conflicts resolved by fusion and one failure case.
 
 ## 6. Discussion
 
@@ -235,7 +241,7 @@ Cross-view fusion for disaster damage assessment has been evaluated, and built, 
 
 ## Acknowledgements
 
-[To be added.]
+The authors used AI-based assistance for experiment automation, grammar checking, and editorial compression, reviewed all content, and take full responsibility for the work. Supported by the Texas A&M University Environment and Sustainability Initiative (ESI) through the Environment and Sustainability Graduate Fellow Award.
 
 ## Data and code availability
 
