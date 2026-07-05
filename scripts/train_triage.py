@@ -34,6 +34,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--street-augment", action="store_true")
     parser.add_argument("--overhead-augment", action="store_true")
     parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument(
+        "--patience",
+        type=int,
+        default=0,
+        help="Stop early if val F1 has not improved for this many epochs (0 disables).",
+    )
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--num-workers", type=int, default=0)
@@ -145,6 +151,7 @@ def main() -> None:
 
     history: list[dict[str, object]] = []
     best_f1 = -1.0
+    best_epoch = 0
     best_checkpoint = output_dir / "triage_best.pt"
     for epoch in range(1, args.epochs + 1):
         train_loss = train_triage_epoch(
@@ -159,6 +166,7 @@ def main() -> None:
         history.append({"epoch": epoch, "train_loss": train_loss, **metrics})
         if float(metrics["f1"]) > best_f1:
             best_f1 = float(metrics["f1"])
+            best_epoch = epoch
             save_checkpoint(
                 best_checkpoint,
                 model=model,
@@ -170,6 +178,9 @@ def main() -> None:
         print(
             f"epoch={epoch} train_loss={train_loss:.4f} accuracy={metrics['accuracy']:.4f} f1={metrics['f1']:.4f}"
         )
+        if args.patience > 0 and epoch - best_epoch >= args.patience:
+            print(f"early stop at epoch={epoch} (no val F1 improvement for {args.patience} epochs)")
+            break
 
     save_json({"history": history}, output_dir / "triage_history.json")
     print(f"Best triage checkpoint: {best_checkpoint}")
