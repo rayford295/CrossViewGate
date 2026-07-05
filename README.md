@@ -12,6 +12,39 @@ This repository is a focused paper repo built around one specific claim:
 > Cross-view fusion helps most when street-side and overhead evidence conflict,
 > and the size of that benefit depends on the ground-view regime.
 
+## Current status (journal track, 2026-07)
+
+The journal-track experiments are complete. Headline evidence, all under the
+converged 5-seed protocol (`docs/multiseed_v2_results.md`) with pooled
+sign-flip statistics (`docs/pooled_seed_tests_v2.md`):
+
+1. **Motivation — the oracle gap.** On conflict cases, an oracle that picks
+   the correct single view is 0.24–0.31 above every existing method on all
+   three datasets (`docs/calibration_decomposition_v2.md`).
+2. **Method — visibility-conditioned reliability gate.** A *linear* gate over
+   building-visibility, calibrated-confidence, and disagreement features
+   mixes street/remote/crossview probabilities. It is the only method that
+   significantly beats calibrated probability averaging (Altadena conflicts
+   +0.051, p = 0.0001) and beats crossview on conflicts (+0.072, p < 1e-4)
+   and the full test set (+0.018, p < 1e-4), with parity elsewhere
+   (`docs/reliability_gate_results_v2.md`).
+3. **Mechanism — causal FOV intervention.** Cropping hurricane panoramas to
+   building-centered 90° views moves the fusion benefit toward the wildfire
+   regime (Milton oracle-gap closure 0.177 → 0.365); random crops with
+   identical geometry do not. Direction consistent in 6/6 dataset-seed pairs
+   (`docs/fov_intervention_results.md`).
+4. **Application — conflict-density damage mapping.** Tile-level cross-view
+   conflict density predicts damage without labels (wildfire r = 0.615,
+   p = 0.001), while single-view uncertainty density does not
+   (`docs/conflict_density_maps.md`).
+5. **External reference.** Our IAN data is the released CVIAN pairing; the
+   CVDisaster ranking replicates under our stricter grouped split
+   (`docs/cvdisaster_comparison.md`). Ordinal metrics in
+   `docs/ordinal_metrics_v2.md`.
+
+The sections below describe the original pipeline; historical binary-era
+numbers are retained further down for provenance.
+
 ## Why this repo exists
 
 This repo strips the problem down to one clean research question:
