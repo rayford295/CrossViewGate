@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "crossview-conflict"
+name = "crossview-gate"
 version = "0.1.0"
-description = "Conflict-aware cross-view disaster triage across wildfire building views and hurricane panoramic views."
+description = "Visibility-conditioned reliability gating for conflict-aware cross-view disaster damage assessment."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

@@ -239,7 +239,7 @@ Cross-view fusion for disaster damage assessment has been evaluated, and built, 
 
 ## Data and code availability
 
-Code, evaluation protocols, derived features, and result tables are available at https://github.com/rayford295/CrossViewConflict. The Eaton wildfire imagery derives from the CAL FIRE DINS program; CVIAN is distributed by Li et al. (2025); Milton pairing details are documented in the repository.
+Code, evaluation protocols, derived features, and result tables are available at https://github.com/rayford295/CrossViewGate. The Eaton wildfire imagery derives from the CAL FIRE DINS program; CVIAN is distributed by Li et al. (2025); Milton pairing details are documented in the repository.
 
 ## References
 

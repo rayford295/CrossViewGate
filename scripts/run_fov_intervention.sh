@@ -3,7 +3,7 @@
 # and random-centered panorama crops, matching the main multiseed protocol
 # (epochs=3, batch 64, image 224, balanced weighting, augmentation).
 # remote_only is reused from outputs/multiseed_main (overhead views unchanged).
-cd "/c/Users/yyang295/Documents/New project/CrossViewConflict"
+cd "$(dirname "$0")/.."
 
 EPOCHS=3
 for ds in ian_original milton_original; do

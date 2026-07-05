@@ -3,7 +3,7 @@
 # otherwise matched to run_main_multiseed.ps1 (batch 64, image 224, balanced
 # class weighting, augmentation). Produces test AND val predictions per run so
 # the calibration/gate analyses can be rerun under the converged protocol.
-cd "/c/Users/yyang295/Documents/New project/CrossViewConflict"
+cd "$(dirname "$0")/.."
 
 declare -A SPLITS=(
   [altadena_3class]="data/splits/altadena_3class_objectid"
