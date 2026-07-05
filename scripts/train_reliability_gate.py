@@ -123,12 +123,14 @@ class SplitData:
         remote_probs: np.ndarray,
         targets: np.ndarray,
         crossview_probs: np.ndarray | None = None,
+        sample_ids: np.ndarray | None = None,
     ) -> None:
         self.features = features
         self.street_probs = street_probs
         self.remote_probs = remote_probs
         self.targets = targets
         self.crossview_probs = crossview_probs
+        self.sample_ids = sample_ids
 
 
 def load_split(
@@ -187,7 +189,14 @@ def load_split(
         [merged[VISIBILITY_FEATURES].to_numpy(dtype=np.float64), derived.to_numpy(dtype=np.float64)],
         axis=1,
     )
-    return SplitData(features, street_probs, remote_probs, targets, crossview_probs)
+    return SplitData(
+        features,
+        street_probs,
+        remote_probs,
+        targets,
+        crossview_probs,
+        merged["sample_id"].to_numpy(),
+    )
 
 
 class GateModel(nn.Module):
@@ -465,6 +474,8 @@ def main() -> None:
                                 {"dataset": target_dataset, "seed": seed, "feature": name, "coefficient": float(value)}
                             )
                     if source_dataset == target_dataset:
+                        if variant == "gate_linear":
+                            two_view_prediction = prediction
                         model = train_gate(
                             train, train_normalized, hidden, args.epochs, args.learning_rate,
                             args.weight_decay, seed, num_views=3,
@@ -476,6 +487,17 @@ def main() -> None:
                                 source_dataset, prediction, weight, test, crossview_pred,
                             )
                         )
+                        if variant == "gate_linear":
+                            pred_dir = Path(args.output_dir) / "predictions"
+                            ensure_dir(pred_dir)
+                            pd.DataFrame(
+                                {
+                                    "sample_id": test.sample_ids,
+                                    "target": test.targets,
+                                    "gate_linear_prediction": two_view_prediction,
+                                    "gate3_linear_prediction": prediction,
+                                }
+                            ).to_csv(pred_dir / f"{target_dataset}_seed{seed}.csv", index=False)
             print(f"gated {target_dataset} seed={seed}")
 
     results = pd.DataFrame(rows)
