@@ -1,28 +1,39 @@
 # From Classification to Actionable Reports: 研究方向深度思考
 
 **Date:** 2026-07-09
-**Status:** direction memo — 思考记录，未执行
+**Status:** superseded direction memo — 保留用于追溯，未执行
 **Context:** CrossViewGate 目前落脚在灾害分类（reliability-gated cross-view damage assessment）。本文回答：能否用 cross-view 产出不止是分类，而是类似 report 的、更可执行的解决方案？
+
+**Update (2026-07-10):** 后续仓库审计将主线进一步收敛为 risk-controlled
+selective triage 和 active next-best-view。报告被保留为结构化决策的呈现层。
+下文的 report 优先级与 `Inaccessible` 解释已被新路线取代，其余内容仅保留为
+早期思考记录。完整路线见
+[`2026-07-10_crossviewguard_active_evidence_research_plan.md`](./2026-07-10_crossviewguard_active_evidence_research_plan.md)。
 
 ---
 
-## 一句话结论
+## 一句话结论（历史判断，已被 2026-07-10 路线取代）
 
 **可行，而且是当前最顺的下一步 —— 但"用 VLM 生成灾害报告"本身在 2025–2026 已经不新了。差异化不在"生成报告"，而在 CrossViewGate 独有的 reliability/conflict 信号：做"可信度条件化的可执行报告"（reliability-conditioned actionable reporting），报告里每条论断带证据来源、可信度和下一步行动。**
 
 ---
 
-## 1. 资产盘点：gate 输出天然就是"报告原料"
+## 1. 资产盘点：gate 与数据资产
 
-| Gate 已有的输出 | 报告中的角色 |
+| Gate / 数据资产 | 报告中的角色 |
 |---|---|
-| Per-sample gate 权重（信街景还是信卫星） | "证据来源"字段 —— *为什么*下这个结论 |
+| Per-sample gate 权重（当前会计算，但尚未逐样本落盘） | "证据来源"字段 —— *为什么*下这个结论 |
 | 11 个可解释特征（建筑可见度、熵、视角分歧） | 可读的 evidence 描述（"街景中建筑居中且模型置信"） |
 | Conflict density 地图（Spearman r=0.615，免标注） | Tile 级**优先级地图** —— 直接可执行 |
 | 校准后的 per-view 置信度 | 报告的置信度字段 |
-| Eaton 标签体系（No Damage / Affected 1–9% / Minor / Major / Destroyed / Inaccessible） | 即 **CAL FIRE DINS** 字段体系 —— DINS 结构化巡检记录可直接当"报告 ground truth"，无需自标 |
+| Eaton 标签体系（No Damage / Affected 1–9% / Minor / Major / Destroyed / Inaccessible） | damage 字段可直接监督；其他 DINS 结构字段需重新从官方服务获取并连接，当前 manifest 不足以直接构造完整报告 GT |
 
-**最被低估的资产是当前被排除的 `Inaccessible` 类。** 在分类框架里它是废料（类太稀疏）；在决策框架里它是黄金 —— "无法从现有视角判断"本身就是可执行的行动项：**列入人工核查清单，优先派员**。Oracle gap 的发现（冲突样本上单视角仲裁值 0.37–0.41 准确率）讲的是同一件事：**分歧不是噪声，是信息**。
+`Inaccessible` 暴露了一个有价值的行动问题，但不能直接充当模型的“不确定”
+标签。Eaton 中该类样本很少，而且“现场不可进入”不等于“图像没有看见目标”。
+更稳妥的做法是根据 visibility、conflict 和 calibrated risk 单独定义
+`verification-needed`，再把 `Inaccessible` 作为经过业务语义核验的 stress
+test。Oracle gap 所支持的结论是“分歧包含视角可靠性信息”，不是
+“所有分歧或 Inaccessible 样本都应优先派员”。
 
 ## 2. 竞争格局（2025–2026 必读四篇）
 
@@ -40,7 +51,8 @@
 把 gate 输出直接转成决策产品：per-building triage 分数 + tile 优先级地图 + 巡检路径模拟。
 
 - **评估：反事实模拟。** 同样巡检人力预算下，按 conflict-density 排序 vs 随机 / 单视角不确定度排序，比较找到 destroyed 建筑的 recall@k。
-- 数据已齐（Eaton/Ian/Milton 三灾种），DINS 记录即模拟地面真值；`analyze_conflict_density_maps.py` 的输出即输入。
+- Eaton/Milton 的坐标可用；Ian 需要从 CVIAN 官方 position 文件补回坐标。
+  在路线实验前还需落盘逐样本 gate weights，并审计三个数据集的 split provenance。
 - 产出：现有 ISPRS 稿 "operational payoff" 的强化，或投 *IJDRR* 独立短文。
 
 ### 方案 B —— 主推：Reliability-gated report generation（6–9 个月）
@@ -49,9 +61,13 @@
 
 1. 定义结构化报告 schema：damage state、per-view evidence、confidence、recommended action、verification-needed 标志 —— 每个字段可验证，不是自由文本；
 2. VLM 读配对图像 + gate 特征生成报告，三组消融：**no-gate / gate-in-prompt / gate-as-router**（低可见度时 VLM 只被允许引用卫星证据，冲突样本强制输出 verification-needed）；
-3. 评估：字段级事实准确率（对齐 DINS 字段）+ 幻觉率（报告中无法被任一视角图像支持的论断比例，人工+LLM judge 双评）+ 优先级排序 NDCG + 应急管理专家盲评（TAMU Hazard Reduction & Recovery Center 有真用户）。
+3. 评估：字段级事实准确率（仅对齐完成 provenance audit 的 DINS 字段）+
+   幻觉率（报告中无法被任一视角图像支持的论断比例，人工+LLM judge 双评）+
+   优先级排序 NDCG + 应急管理专家盲评。Recommended action 和 rationale 仍需
+   独立专家 rubric，不能由 damage label 自动生成 ground truth。
 
-**顺手产出：第一个带结构化真值的 cross-view 灾害报告 benchmark**（DisasterM3 是 satellite-only；无人拥有 paired ground+overhead+DINS 字段的报告数据集）。可投 ISPRS JPRS，或做成 benchmark 投 NeurIPS D&B / CVPR EarthVision。
+完成官方 DINS 字段连接、可见性筛选和人工审计后，可以形成一个候选的
+cross-view structured-evidence benchmark。当前 manifest 尚不具备这一条件。
 
 立项句子草稿：
 

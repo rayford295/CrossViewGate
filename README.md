@@ -49,6 +49,16 @@ Manuscript (ISPRS J. Photogramm. Remote Sens. target):
    end-to-end learned fusion. The advantage of learning lies in asymmetric,
    reliability-aware arbitration — not in fusion per se.
 
+## Research Roadmap
+
+The next research stage moves beyond damage classification toward
+**risk-controlled active evidence acquisition**: decide when the available
+evidence is sufficient, which view to trust, which view to acquire next, when
+to defer to a human, and where limited field-inspection resources should go.
+
+See the dated research plan:
+[`CrossViewGuard: Risk-Controlled Active Evidence Acquisition`](docs/2026-07-10_crossviewguard_active_evidence_research_plan.md).
+
 ## Repository map
 
 ```text
@@ -99,8 +109,10 @@ python scripts/analyze_pooled_seed_tests.py   --multiseed-root outputs/multiseed
 
 Datasets are kept local (see `docs/datasets.md`): Eaton/Altadena wildfire
 inspection pairs (CAL FIRE DINS), the CVIAN Hurricane Ian release
-(Li et al., 2025), and the Milton street-view/satellite pairing. All splits
-are grouped by object id; random splits of these data leak.
+(Li et al., 2025), and the Milton street-view/satellite pairing. Eaton splits
+are grouped by object id because random splits leak. The current CVIAN/Milton
+split provenance and spatial-grouping audit is documented in the research
+roadmap above.
 
 ## Results documents
 
