@@ -26,6 +26,8 @@ are the earlier 3-epoch pilot, retained as a low-budget ablation.
 | `routing_mvp_protocol.md` | Conflict-to-route priority policies, resource budgets, GeoJSON, and fail-closed report contract |
 | `active_view_protocol.md` | CVIAN 8-sector development protocol: observation boundary, downstream-head-only role split, costs, dependencies, and future confirmatory requirements |
 | `active_view_cvian_spatial_v1.md` | Five-seed exploratory fixed-budget result, descriptive block bootstrap, greedy one-step label-aware reference, No-Go decision, and consumed-test status |
+| `disagreement_anatomy_protocol.md` | RQ1 pre-registered anatomy protocol: Study A (CVIAN directional) and Study B (Eaton component) hypotheses, cluster bootstrap, consumed-data ledger |
+| `disagreement_anatomy_cvian_v1.md` | RQ1 Study A exploratory result: no development criterion met, consistent unconfirmed street-more-severe lean, visibility features carry no held-out signal |
 
 ## Pilot (3-epoch, 3 seeds)
 
