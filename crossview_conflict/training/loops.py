@@ -40,10 +40,12 @@ def train_triage_epoch(
         else None
     )
     for batch in tqdm(dataloader, desc="train-triage", leave=False):
-        street = batch["street"].to(device)
-        overhead = batch["overhead"].to(device)
         target = batch["target"].to(device)
-        kwargs = {"street": street, "overhead": overhead}
+        kwargs = {}
+        if "street" in batch:
+            kwargs["street"] = batch["street"].to(device)
+        if "overhead" in batch:
+            kwargs["overhead"] = batch["overhead"].to(device)
         if "generated" in batch:
             kwargs["generated"] = batch["generated"].to(device)
         if criterion is not None:
@@ -58,7 +60,7 @@ def train_triage_epoch(
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        running_loss += loss.item() * street.size(0)
+        running_loss += loss.item() * target.size(0)
     return running_loss / max(len(dataloader.dataset), 1)
 
 
@@ -73,10 +75,12 @@ def eval_triage(
     logits_list = []
     targets_list = []
     for batch in tqdm(dataloader, desc="eval-triage", leave=False):
-        street = batch["street"].to(device)
-        overhead = batch["overhead"].to(device)
         target = batch["target"].to(device)
-        kwargs = {"street": street, "overhead": overhead}
+        kwargs = {}
+        if "street" in batch:
+            kwargs["street"] = batch["street"].to(device)
+        if "overhead" in batch:
+            kwargs["overhead"] = batch["overhead"].to(device)
         if "generated" in batch:
             kwargs["generated"] = batch["generated"].to(device)
         logits = model(**kwargs)

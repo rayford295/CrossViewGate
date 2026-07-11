@@ -45,6 +45,15 @@ def main() -> None:
     num_classes = int(config.get("num_classes", 1))
     if not class_names:
         class_names = [str(index) for index in range(max(num_classes, 2 if num_classes == 1 else num_classes))]
+    views = config.get("views")
+    if not views:
+        mode = config.get("mode", "crossview")
+        if mode == "street_only":
+            views = ["post_street"]
+        elif mode == "remote_only":
+            views = ["post_overhead"]
+        else:
+            views = ["post_street", "post_overhead"]
     dataset = CrossViewTriageDataset(
         args.split_csv,
         street_size=args.image_size,
@@ -52,8 +61,17 @@ def main() -> None:
         street_backbone=config.get("street_backbone", "resnet18"),
         overhead_backbone=config.get("overhead_backbone", "resnet18"),
         label_col=config.get("label_col", "auto"),
+        include_generated=bool(config.get("use_generated", False)),
+        views=views,
     )
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
+    loader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        persistent_workers=args.num_workers > 0,
+        pin_memory=str(args.device).startswith("cuda"),
+    )
     model.eval()
     logits_list = []
     targets_list = []
@@ -61,10 +79,12 @@ def main() -> None:
 
     with torch.no_grad():
         for batch in loader:
-            street = batch["street"].to(args.device)
-            overhead = batch["overhead"].to(args.device)
             target = batch["target"].to(args.device)
-            kwargs = {"street": street, "overhead": overhead}
+            kwargs = {}
+            if "street" in batch:
+                kwargs["street"] = batch["street"].to(args.device)
+            if "overhead" in batch:
+                kwargs["overhead"] = batch["overhead"].to(args.device)
             if "generated" in batch:
                 kwargs["generated"] = batch["generated"].to(args.device)
             logits = model(**kwargs)

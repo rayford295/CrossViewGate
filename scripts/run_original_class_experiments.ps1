@@ -1,5 +1,5 @@
 param(
-  [string]$RepoRoot = "C:\Users\yyang295\Documents\New project\CrossViewConflict",
+  [string]$RepoRoot = "",
   [string]$DatasetRoot = "C:\Users\yyang295\Desktop\disaster-dataset-Yifan-all",
   [string]$AltadenaManifest = "data\manifests\altadena_sensitive_manifest.csv",
   [string]$OutputRoot = "outputs\original_class",
@@ -15,6 +15,10 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
+
+if (-not $RepoRoot) {
+  $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+}
 
 Set-Location $RepoRoot
 $selectedDatasetNames = @()
@@ -54,12 +58,16 @@ if (-not $SkipManifestBuild) {
   python scripts\build_ian_hurricane_manifests.py `
     --dataset-root (Join-Path $DatasetRoot "IAN_hurricane") `
     --output-dir data\splits\ian_hurricane_original `
-    --task original
+    --task original `
+    --split-strategy spatial-block `
+    --spatial-buffer-m 25
   if ($LASTEXITCODE -ne 0) { throw "Failed to build IAN original splits." }
 
   python scripts\build_milton_hurricane_manifests.py `
     --dataset-root (Join-Path $DatasetRoot "hurrican-milton-GenDisasterSVI") `
-    --output-dir data\splits\milton_hurricane_original
+    --output-dir data\splits\milton_hurricane_original `
+    --split-strategy spatial-block `
+    --spatial-buffer-m 25
   if ($LASTEXITCODE -ne 0) { throw "Failed to build Milton original splits." }
 }
 

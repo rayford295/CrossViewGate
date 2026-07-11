@@ -33,6 +33,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--image-size", type=int, default=224)
     parser.add_argument("--street-augment", action="store_true")
     parser.add_argument("--overhead-augment", action="store_true")
+    parser.add_argument(
+        "--street-view",
+        choices=["pre_street", "post_street"],
+        default="post_street",
+        help="Temporal street-view column to expose to the model.",
+    )
+    parser.add_argument(
+        "--overhead-view",
+        choices=["pre_overhead", "post_overhead"],
+        default="post_overhead",
+        help="Temporal overhead-view column to expose to the model.",
+    )
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument(
         "--patience",
@@ -103,6 +115,12 @@ def main() -> None:
     label_col = _resolve_label_col(train_df, args.label_col)
     class_names = _infer_class_names(train_df, label_col)
     num_classes = len(class_names)
+    if args.mode == "street_only":
+        selected_views = (args.street_view,)
+    elif args.mode == "remote_only":
+        selected_views = (args.overhead_view,)
+    else:
+        selected_views = (args.street_view, args.overhead_view)
 
     train_dataset = CrossViewTriageDataset(
         args.train_csv,
@@ -114,6 +132,7 @@ def main() -> None:
         street_backbone=args.street_backbone,
         overhead_backbone=args.overhead_backbone,
         label_col=label_col,
+        views=selected_views,
     )
     val_dataset = CrossViewTriageDataset(
         args.val_csv,
@@ -123,9 +142,25 @@ def main() -> None:
         street_backbone=args.street_backbone,
         overhead_backbone=args.overhead_backbone,
         label_col=label_col,
+        views=selected_views,
     )
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
+    loader_options = {
+        "num_workers": args.num_workers,
+        "persistent_workers": args.num_workers > 0,
+        "pin_memory": str(args.device).startswith("cuda"),
+    }
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        **loader_options,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        **loader_options,
+    )
 
     config = {
         "street_backbone": args.street_backbone,
@@ -139,6 +174,7 @@ def main() -> None:
         "use_generated": args.use_generated,
         "street_augment": args.street_augment,
         "overhead_augment": args.overhead_augment,
+        "views": list(selected_views),
         "conflict_gamma": args.conflict_gamma,
         "class_weighting": args.class_weighting,
     }

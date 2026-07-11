@@ -1,0 +1,237 @@
+{
+  "schema_version": "1.0.0",
+  "ontology_id": "crossviewgate-operational-v1",
+  "native_index_scope": "dataset_local",
+  "action_levels": [
+    {
+      "id": "routine_monitoring",
+      "rank": 0,
+      "decision_eligible": true,
+      "description": "No immediate field response; retain for routine monitoring."
+    },
+    {
+      "id": "priority_inspection",
+      "rank": 1,
+      "decision_eligible": true,
+      "description": "Prioritize verification or repair-oriented inspection."
+    },
+    {
+      "id": "urgent_response",
+      "rank": 2,
+      "decision_eligible": true,
+      "description": "Escalate for urgent life-safety or major-loss response."
+    },
+    {
+      "id": "human_escalation",
+      "rank": null,
+      "decision_eligible": false,
+      "description": "Route to a human because an operational constraint prevents an automated severity decision."
+    }
+  ],
+  "costs": {
+    "correct": 0.0,
+    "adjacent_error": 1.0,
+    "extreme_error": 4.0,
+    "severe_miss": 8.0,
+    "false_alarm": 3.0,
+    "human_review": 1.5,
+    "view_acquisition": 0.5
+  },
+  "datasets": {
+    "eaton_wildfire": {
+      "event": "2025 Eaton / Altadena wildfire",
+      "hazard": "wildfire",
+      "native_labels": [
+        {
+          "name": "No Damage",
+          "native_index": 0,
+          "action_level": "routine_monitoring",
+          "decision_eligible": true
+        },
+        {
+          "name": "Affected (1-9%)",
+          "native_index": 1,
+          "action_level": "routine_monitoring",
+          "decision_eligible": true
+        },
+        {
+          "name": "Minor (10-25%)",
+          "native_index": 2,
+          "action_level": "priority_inspection",
+          "decision_eligible": true
+        },
+        {
+          "name": "Major (26-50%)",
+          "native_index": 3,
+          "action_level": "priority_inspection",
+          "decision_eligible": true
+        },
+        {
+          "name": "Destroyed (>50%)",
+          "native_index": 4,
+          "action_level": "urgent_response",
+          "decision_eligible": true
+        },
+        {
+          "name": "Inaccessible",
+          "native_index": 5,
+          "action_level": "human_escalation",
+          "decision_eligible": false,
+          "semantics": "inspector-recorded field access constraint; not image uncertainty"
+        }
+      ],
+      "derived_schemes": {
+        "wildfire_3class": {
+          "provenance": "derived_summary",
+          "replaces_native_provenance": false,
+          "labels": [
+            {
+              "name": "no_or_trace_damage",
+              "derived_index": 0,
+              "source_native_labels": [
+                "No Damage",
+                "Affected (1-9%)"
+              ],
+              "action_level": "routine_monitoring"
+            },
+            {
+              "name": "damaged_repairable",
+              "derived_index": 1,
+              "source_native_labels": [
+                "Minor (10-25%)",
+                "Major (26-50%)"
+              ],
+              "action_level": "priority_inspection"
+            },
+            {
+              "name": "destroyed",
+              "derived_index": 2,
+              "source_native_labels": [
+                "Destroyed (>50%)"
+              ],
+              "action_level": "urgent_response"
+            }
+          ],
+          "excluded_native_labels": [
+            "Inaccessible"
+          ]
+        }
+      }
+    },
+    "ian_hurricane": {
+      "event": "Hurricane Ian / CVIAN",
+      "hazard": "hurricane",
+      "native_labels": [
+        {
+          "name": "0_MinorDamage",
+          "native_index": 0,
+          "action_level": "routine_monitoring",
+          "decision_eligible": true
+        },
+        {
+          "name": "1_ModerateDamage",
+          "native_index": 1,
+          "action_level": "priority_inspection",
+          "decision_eligible": true
+        },
+        {
+          "name": "2_SevereDamage",
+          "native_index": 2,
+          "action_level": "urgent_response",
+          "decision_eligible": true
+        }
+      ]
+    },
+    "milton_hurricane": {
+      "event": "Hurricane Milton / GenDisasterSVI",
+      "hazard": "hurricane",
+      "native_labels": [
+        {
+          "name": "mild_damage",
+          "native_index": 0,
+          "action_level": "routine_monitoring",
+          "decision_eligible": true
+        },
+        {
+          "name": "moderate_damage",
+          "native_index": 1,
+          "action_level": "priority_inspection",
+          "decision_eligible": true
+        },
+        {
+          "name": "severe_damage",
+          "native_index": 2,
+          "action_level": "urgent_response",
+          "decision_eligible": true
+        }
+      ]
+    }
+  },
+  "special_labels": {
+    "inaccessible": {
+      "dataset": "eaton_wildfire",
+      "native_label": "Inaccessible",
+      "semantic_type": "field_access_constraint",
+      "action_level": "human_escalation",
+      "allowed_uses": [
+        "stress_test",
+        "human_escalation"
+      ],
+      "forbidden_uses": [
+        "generic_uncertainty",
+        "abstention_target",
+        "primary_severity_class",
+        "missing_view_marker"
+      ]
+    }
+  },
+  "cross_event_aggregation": {
+    "native_label_join": "forbidden",
+    "class_index_equivalence": "forbidden",
+    "allowed_basis": "explicit_action_level",
+    "default_reducer": "event_macro",
+    "requires_event_breakdown": true,
+    "metrics": {
+      "operational_expected_cost": {
+        "scope": "cross_event",
+        "reducer": "event_macro",
+        "basis": "decision_eligible action levels"
+      },
+      "severe_miss_rate": {
+        "scope": "cross_event",
+        "reducer": "event_macro",
+        "basis": "urgent_response truth predicted as routine_monitoring"
+      },
+      "false_alarm_rate": {
+        "scope": "cross_event",
+        "reducer": "event_macro",
+        "basis": "routine_monitoring truth predicted as urgent_response"
+      },
+      "human_review_rate": {
+        "scope": "cross_event",
+        "reducer": "event_macro",
+        "basis": "explicit human-escalation decisions"
+      },
+      "view_acquisition_rate": {
+        "scope": "cross_event",
+        "reducer": "event_macro",
+        "basis": "explicit additional-view decisions"
+      },
+      "native_confusion_matrix": {
+        "scope": "event_only",
+        "reducer": null,
+        "basis": "dataset-native labels"
+      },
+      "native_macro_f1": {
+        "scope": "event_only",
+        "reducer": null,
+        "basis": "dataset-native labels"
+      },
+      "native_class_recall": {
+        "scope": "event_only",
+        "reducer": null,
+        "basis": "dataset-native labels"
+      }
+    }
+  }
+}
