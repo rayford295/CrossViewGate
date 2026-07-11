@@ -1,5 +1,13 @@
 # RQ1 Study B — Eaton component-anatomy feasibility result
 
+> **Historical audit, superseded for current execution status.** The earlier
+> inventory statement that no Eaton per-view prediction export or spatial split
+> existed is no longer current. Fresh role-isolated models and a frozen spatial
+> protocol are documented in
+> [`eaton_component_observability_v1.md`](eaton_component_observability_v1.md).
+> This file is retained to preserve the original construct/media audit; its
+> DINS fields still must not be substituted for human damage-dominance labels.
+
 ## Outcome
 
 **BLOCKED for H-B1/H-B2 inference; data-availability, construct, media, and

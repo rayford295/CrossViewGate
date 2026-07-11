@@ -1,0 +1,201 @@
+{
+  "schema_version": "eaton-component-direction-protocol-v1",
+  "protocol_version": "eaton-component-direction-v1",
+  "event_id": "eaton_fire_2025",
+  "research_question": "Among Eaton structures with street-overhead ordinal-severity disagreement, does damaged-component dominance together with view-specific damage assessability predict the signed disagreement direction?",
+  "claim_scope": "Same-event spatial association and image-evidence explanation; not a causal field-truth, external-event, routing, or deployable-selector claim.",
+  "analysis_unit": "one media-only canonical street-overhead pair per DINS structure",
+  "canonical_pair_rule": [
+    "retain only readable, non-constant, EXIF-orientation-1 street-overhead pairs with an ordinal source label",
+    "within each DINS structure choose maximum street-image pixel area",
+    "break ties by smallest numeric attachment_id, then lexical pair_id"
+  ],
+  "label_scheme": {
+    "name": "wildfire_3class",
+    "class_order": [
+      "no_or_trace_damage",
+      "damaged_repairable",
+      "destroyed"
+    ],
+    "excluded_native_label": "Inaccessible"
+  },
+  "spatial_protocol": {
+    "grid_degrees": 0.002,
+    "cross_role_buffer_m": 50.0,
+    "constant_media_exclusion_rule": "exclude an image when every RGB channel has zero within-image dynamic range",
+    "orientation_exclusion_rule": "exclude an image when EXIF Orientation is present and is not 1 so model and human viewers cannot see different rotations",
+    "media_dependency_rule": "assign connected components of spatial blocks linked by an exact street or overhead SHA-256 as indivisible split groups",
+    "split_seed": 20260711,
+    "roles": [
+      {
+        "name": "model_fit",
+        "fraction_before_buffer": 0.5
+      },
+      {
+        "name": "model_validation",
+        "fraction_before_buffer": 0.1
+      },
+      {
+        "name": "study_development",
+        "fraction_before_buffer": 0.1
+      },
+      {
+        "name": "spatial_confirmation",
+        "fraction_before_buffer": 0.3
+      }
+    ],
+    "buffer_priority": [
+      "spatial_confirmation",
+      "study_development",
+      "model_validation",
+      "model_fit"
+    ]
+  },
+  "models": {
+    "modes": [
+      "street_only",
+      "remote_only"
+    ],
+    "seeds": [
+      42,
+      123,
+      456,
+      789,
+      1011
+    ],
+    "backbone": "resnet18",
+    "image_size": 224,
+    "epochs": 15,
+    "patience": 4,
+    "batch_size": 64,
+    "learning_rate": 0.0001,
+    "class_weighting": "balanced",
+    "ensemble_rule": "mean of per-seed temperature-calibrated class probabilities within each view, then argmax"
+  },
+  "annotation": {
+    "selection_rule": "all unique pairs with ensemble street-overhead disagreement in the named role; selection never uses signed direction",
+    "dominance_states": [
+      "roof",
+      "facade",
+      "mixed",
+      "none_detected",
+      "unknown"
+    ],
+    "assessability_states": [
+      "assessable",
+      "not_assessable",
+      "indeterminate"
+    ],
+    "required_independent_raters": 2,
+    "adjudication_required_on_any_rater_disagreement": true,
+    "blind_fields": [
+      "native severity label",
+      "derived label",
+      "per-view prediction",
+      "confidence or probability",
+      "signed disagreement direction",
+      "spatial block",
+      "protocol role",
+      "embedded EXIF, XMP, IPTC, or text metadata including GPS, capture time, device, and camera direction",
+      "other-rater annotation"
+    ],
+    "reference_semantics": "damage_dominance_and_view_specific_damage_assessability",
+    "codebook_version": "eaton-component-observability-codebook-v1",
+    "codebook": {
+      "task_scope": "Judge only evidence visible in the supplied paired images. Do not infer hidden field truth, use location metadata, or consult external records.",
+      "component_scope": {
+        "roof": "roof plane, covering, ridge, and roof structural loss",
+        "facade": "vertical envelope including exterior walls, siding, windows, and doors"
+      },
+      "dominance_definitions": {
+        "roof": "Visible damage evidence is predominantly on roof components.",
+        "facade": "Visible damage evidence is predominantly on facade components.",
+        "mixed": "Both roof and facade show substantive damage and neither can be assigned clear dominance.",
+        "none_detected": "No roof or facade damage can be identified in the supplied image evidence; this is not a field-truth no-damage claim.",
+        "unknown": "Coverage, occlusion, scale, or quality prevents a reliable dominance judgment."
+      },
+      "assessability_definition": "Whether one named view contains enough coverage and quality to judge the damage state of the named component; assessability is not damage presence.",
+      "assessability_state_definitions": {
+        "assessable": "The component has sufficient coverage and image quality for a damage-state judgment.",
+        "not_assessable": "The component is out of frame, occluded, too small, or too poor quality for a damage-state judgment.",
+        "indeterminate": "The rater cannot reliably decide between assessable and not_assessable."
+      },
+      "boundary_rules": [
+        "Eaves at the roof-wall boundary do not alone establish roof or facade dominance; use mixed or unknown unless the broader damage pattern resolves dominance.",
+        "Total structural loss is mixed unless surviving evidence clearly localizes the dominant damaged component.",
+        "none_detected and unknown must never be merged.",
+        "Each rater works independently and cannot see the other rater's answers."
+      ]
+    }
+  },
+  "mechanism_eligibility": {
+    "roof": "component_dominance=roof AND overhead_roof_assessability=assessable AND street_roof_assessability=not_assessable",
+    "facade": "component_dominance=facade AND street_facade_assessability=assessable AND overhead_facade_assessability=not_assessable",
+    "excluded_from_primary": [
+      "mixed",
+      "none_detected",
+      "unknown",
+      "any required assessability=indeterminate"
+    ]
+  },
+  "primary_estimand": {
+    "name": "H-B1 severity-standardized directional contrast",
+    "definition": "P(remote_prediction > street_prediction | mechanism-eligible roof disagreement) minus P(remote_prediction > street_prediction | mechanism-eligible facade disagreement)",
+    "severity_standardization": "standardize both component strata to the frozen native-severity distribution",
+    "interval": "95% whole-spatial-block bootstrap",
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20260711
+  },
+  "supportive_estimands": [
+    "direction-consistent share among mechanism-eligible disagreements",
+    "mechanism eligibility coverage among all disagreements",
+    "full-disagreement explained fraction = coverage times direction-consistent share"
+  ],
+  "pre_unblinding_gate": {
+    "raw_rater_agreement_min": 0.75,
+    "cohen_kappa_min": 0.67,
+    "mechanism_eligible_disagreements_min": 250,
+    "roof_eligible_min": 75,
+    "facade_eligible_min": 75,
+    "eligible_spatial_blocks_min": 30,
+    "eligible_blocks_per_stratum_min": 15,
+    "minimum_meaningful_delta": 0.2,
+    "simulated_power_min": 0.8,
+    "failure_status": "STOP_UNDERPOWERED_OR_UNRELIABLE_CONSTRUCT"
+  },
+  "power_simulation": {
+    "minimum_delta": 0.2,
+    "facade_positive_direction_probability": 0.4,
+    "roof_positive_direction_probability": 0.6,
+    "within_block_intraclass_correlation": 0.05,
+    "data_generating_process": "For each observed spatial_block_id by mechanism stratum, draw a beta-distributed block probability with the frozen stratum mean and ICC, then draw one Bernoulli direction per observed eligible pair while retaining its frozen target and block.",
+    "simulation_replicates": 1000,
+    "cluster_bootstrap_replicates_per_simulation": 500,
+    "simulation_seed": 20260711,
+    "success_event": "severity-standardized H-B1 95% whole-block bootstrap lower bound is greater than zero with common severity support",
+    "pass_rule": "fraction of successful simulation replicates >= 0.80",
+    "signed_observed_predictions_forbidden": true
+  },
+  "confirmation_rule": {
+    "gate_precedes_directional_decision": true,
+    "gate_failure_status": "STOP_UNDERPOWERED_OR_UNRELIABLE_CONSTRUCT",
+    "go_requires_all": [
+      "severity_standardization_common_support=true",
+      "estimated standardized directional contrast >= 0.20",
+      "95% spatial-block bootstrap lower bound > 0",
+      "severity-standardized roof positive-direction share > 0.5",
+      "severity-standardized facade positive-direction share < 0.5",
+      "mechanism eligibility coverage >= 0.30"
+    ],
+    "otherwise_after_gate_passes": "NO_GO_FOR_REGISTERED_EATON_IMAGE_MECHANISM",
+    "supportive_estimands_cannot_rescue_primary": true
+  },
+  "prohibited_substitutes": [
+    "DINS construction, material, presence, or exposure attributes as damage dominance",
+    "dins_wherefirestartedonstructure as damage dominance",
+    "VLM or model-generated component labels as human reference",
+    "seed rows treated as independent observations",
+    "spatial_confirmation scoring before model, annotation, estimator, and hash commitment",
+    "next-view selection, routing, stop/defer, or report-generation claims"
+  ]
+}

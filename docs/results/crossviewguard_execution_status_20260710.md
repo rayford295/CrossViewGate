@@ -1,5 +1,15 @@
 # CrossViewGuard Current-Data Execution Status
 
+> **Focused Eaton update (2026-07-11):** the repository now has a frozen
+> four-role Eaton spatial protocol and fresh role-isolated model execution, so
+> the older statements below that predictions and spatial roles are absent are
+> superseded. The focused v1 branch nevertheless stops before annotation:
+> `study_development` has only 28 total spatial blocks and cannot satisfy the
+> registered minimum of 30 eligible blocks. The completed five-seed ensemble
+> likewise yields only 97 unsigned disagreements across 24 blocks, below the
+> 250/30 registered capacity gates. See
+> [`eaton_component_observability_v1.md`](eaton_component_observability_v1.md).
+
 - **Protocol date:** 2026-07-10
 - **Execution closure:** 2026-07-11
 - **Final status:** **current-data executable branches reached their endpoint;
@@ -36,7 +46,7 @@ is not a valid continuation.
 | CVIAN four-role label-cost selector | Complete; hash-chain verified; test consumed | Development/exploratory within-CVIAN NO-GO |
 | Milton frozen zero-shot transfer | Complete; independently verified | Sensitivity only; no GO/NO-GO decision and no external confirmation |
 | RQ1 Study A, CVIAN anatomy | Complete on development roles | 0/3 pre-specified criteria met |
-| RQ1 Study B, Eaton anatomy | Executed to data boundary | Inferentially BLOCKED; not a negative empirical result |
+| RQ1 Study B, Eaton damaged-component observability v1 | Frozen development execution | Outcome-blind structural STOP (28 total blocks < 30 eligible-block minimum); no H-B1/H-B2 or confirmation result |
 | RQ2 view × field attestability matrix | Dependency audit complete | Strict current-data NO-GO; required labels/annotations absent |
 | RQ3 attestation-coverage acquisition | Dependency audit complete | Strict current-data NO-GO; calibrated RQ2 matrix and held-out labels absent |
 | RQ4 calibrated stop/defer | Prerequisites audited | BLOCKED; current rule is risk-aware heuristic only |
@@ -148,6 +158,12 @@ is information; it shows that the current feature set is insufficient. See
 [`CVIAN disagreement anatomy`](./disagreement_anatomy_cvian_v1.md).
 
 ### RQ1 Study B: Eaton blocked at the construct boundary
+
+The inventory statements in this historical subsection describe the state
+before the focused v1 protocol. Predictions and frozen spatial roles now exist;
+the current registered endpoint is the structural development STOP linked
+above. The missing genuine human damage-dominance construct remains relevant,
+but v1 does not request it because the block-capacity gate already cannot pass.
 
 The Eaton audit joined 19,776 of 19,780 manifest rows to DINS records, covering
 18,411 unique structures. It cannot run the registered component-anatomy test:

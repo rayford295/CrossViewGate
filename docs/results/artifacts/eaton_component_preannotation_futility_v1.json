@@ -1,0 +1,90 @@
+{
+  "schema_version": "eaton-component-pre-annotation-futility-v1",
+  "protocol_version": "eaton-component-direction-v1",
+  "protocol_role": "study_development",
+  "protocol_config_sha256": "79bfc18f3e8d690ace9d460e7fada1c23c032e75da9dc18006c96e0033eadbb9",
+  "protocol_config_canonical_sha256": "37d2f5213d4e991cb20727ab4ce3af67e09c10af53062def4421b2907765b8fa",
+  "phase_status": "STOP_PRE_ANNOTATION_STRUCTURAL_FUTILITY",
+  "gate_status": "STOP_UNDERPOWERED_OR_UNRELIABLE_CONSTRUCT",
+  "annotation_required": false,
+  "observed_outcome_accessed": false,
+  "signed_direction_constructed": false,
+  "directional_hypotheses_evaluated": false,
+  "h_b1_result": null,
+  "h_b2_result": null,
+  "unsigned_disagreement_pair_count": 97,
+  "unsigned_disagreement_spatial_block_count": 24,
+  "mechanism_eligible_pair_count_upper_bound": 97,
+  "mechanism_eligible_spatial_block_count_upper_bound": 24,
+  "registered_mechanism_eligible_minimum": 250,
+  "registered_roof_eligible_minimum": 75,
+  "registered_facade_eligible_minimum": 75,
+  "registered_eligible_spatial_block_minimum": 30,
+  "registered_blocks_per_stratum_minimum": 15,
+  "capacity_audit": {
+    "complete_role_pair_count": 1534,
+    "complete_role_spatial_block_count": 28,
+    "checks": {
+      "role_pairs_can_reach_eligible_minimum": true,
+      "role_pairs_can_reach_roof_minimum": true,
+      "role_pairs_can_reach_facade_minimum": true,
+      "role_pairs_can_reach_disjoint_stratum_minima": true,
+      "role_blocks_can_reach_eligible_minimum": false,
+      "role_blocks_can_reach_each_stratum_minimum": true,
+      "unsigned_disagreements_can_reach_eligible_minimum": false,
+      "unsigned_disagreements_can_reach_roof_minimum": true,
+      "unsigned_disagreements_can_reach_facade_minimum": true,
+      "unsigned_disagreements_can_reach_disjoint_stratum_minima": false,
+      "disagreement_blocks_can_reach_eligible_minimum": false,
+      "disagreement_blocks_can_reach_each_stratum_minimum": true
+    },
+    "passed": false
+  },
+  "structurally_futile": true,
+  "artifact_binding": {
+    "schema_version": "eaton-component-pre-annotation-binding-v1",
+    "protocol_version": "eaton-component-direction-v1",
+    "protocol_role": "study_development",
+    "protocol_config_sha256": "79bfc18f3e8d690ace9d460e7fada1c23c032e75da9dc18006c96e0033eadbb9",
+    "protocol_config_canonical_sha256": "37d2f5213d4e991cb20727ab4ce3af67e09c10af53062def4421b2907765b8fa",
+    "prediction_csv_sha256": "5a99017c38b5600b9c08c380156682c572cabc4ba8267762535055caf2b65c25",
+    "prediction_metadata_sha256": "8c68a6ea830a7fa1820aa0f3edd3fa6cfc4e7291761c57fcec10abb3e4b3d1e9",
+    "trusted_prediction_csv_sha256": "5a99017c38b5600b9c08c380156682c572cabc4ba8267762535055caf2b65c25",
+    "trusted_prediction_metadata_sha256": "8c68a6ea830a7fa1820aa0f3edd3fa6cfc4e7291761c57fcec10abb3e4b3d1e9",
+    "prediction_table_sha256": "45cd4ce033644809bc3191acb02b372d6d57affe179c3e621a987d4b02444410",
+    "prediction_row_count": 7670,
+    "prediction_pair_count": 1534,
+    "prediction_spatial_block_count": 28,
+    "prediction_pair_ids_sha256": "655e3ebd898c2aabef0dedc53490bf0be9e13bfdf65c93e67d119cb9c25f001a",
+    "role_manifest_csv_sha256": "ae90bae3676911325df1086ab582a80f5f481e09c35e32b547e221eb10ca98f7",
+    "role_manifest_table_sha256": "c9bc94d86395f8a4348d5593c9ce609298ee81f4d1d510ee5969d8acd7829274",
+    "role_manifest_row_count": 1534,
+    "protocol_summary_sha256": "e8894ec1862762c549673622411d0986e3d0e5482a536b1a078ce9316f28926e",
+    "trusted_protocol_summary_sha256": "e8894ec1862762c549673622411d0986e3d0e5482a536b1a078ce9316f28926e",
+    "unsigned_disagreement_pair_count": 97,
+    "unsigned_disagreement_pair_ids_sha256": "5236c1ba40132a96b2b6d351a652bf2f6c6b3bf74acf903c0b656a1e19626d82",
+    "unsigned_disagreement_spatial_block_count": 24,
+    "unsigned_disagreement_spatial_block_ids_sha256": "08929b692afd0917ef24d05a8b67ddb989ec944e5b4ca6df7592c36402b97157",
+    "registered_mechanism_eligible_minimum": 250,
+    "binding_sha256": "89f9547d4c16940eb156be0a48e5bbc3b7477f268143465fb081bbe489c39722"
+  },
+  "reasons": [
+    {
+      "code": "role_spatial_block_capacity_below_registered_minimum",
+      "detail": "The complete role has 28 spatial blocks, below the registered eligible-block minimum 30."
+    },
+    {
+      "code": "unsigned_disagreement_capacity_below_registered_eligible_minimum",
+      "detail": "The complete frozen role has 97 unsigned disagreements, below the registered eligible minimum 250."
+    },
+    {
+      "code": "unsigned_disagreement_capacity_below_combined_stratum_minima",
+      "detail": "The complete frozen role has 97 unsigned disagreements, below the combined disjoint roof/facade minima 150."
+    },
+    {
+      "code": "disagreement_block_capacity_below_registered_minimum",
+      "detail": "Unsigned disagreements occupy 24 spatial blocks, below the registered eligible-block minimum 30."
+    }
+  ],
+  "futility_artifact_sha256": "24dd4c4e43a539fc2673b28ca68abed9c2a5df81a3c9d7633b181772af655896"
+}
