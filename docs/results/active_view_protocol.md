@@ -138,6 +138,15 @@ A future positive selector claim requires all of the following:
 - a clustering unit that respects both spatial blocks and sequence-connected
   dependence.
 
+The four-role builder in
+[`cvian_sequence_four_role_protocol.md`](cvian_sequence_four_role_protocol.md)
+now provides a sequence- and block-disjoint prospective policy test with a
+25 m buffer. Its 137 test rows have zero direct historical selector-selection
+exposure, but all entered the old base/model-fit path. It therefore requires
+full base retraining and supports only one within-CVIAN development
+confirmation. An external event remains necessary for a strong confirmatory
+claim.
+
 ## Reproduction
 
 After the v2 completion attestations exist, verify and summarize them without

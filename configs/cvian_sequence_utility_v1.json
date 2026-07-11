@@ -1,0 +1,118 @@
+{
+  "schema_version": "cvian-sequence-utility-protocol-v1",
+  "claim_scope": "within-CVIAN development confirmation; label-cost Phase-1 baseline",
+  "test_status": "selector_selection_holdout_with_historical_base_exposure",
+  "roles": {
+    "base_fit": "base_fit.csv",
+    "utility_fit": "selector_fit.csv",
+    "validation": "validation.csv",
+    "prospective_test": "prospective_test.csv"
+  },
+  "seeds": [42, 123, 456, 789, 1011],
+  "initial_sector_id": 0,
+  "sector_count": 8,
+  "main_fixed_budget": 3,
+  "maximum_adaptive_views": 4,
+  "maximum_adaptive_views_semantics": "total revealed views including the fixed initial sector_0",
+  "classifier_state_enumeration": "all unique subsets containing sector_0 for k=1..4",
+  "utility_decision_state_enumeration": "all unique subsets containing sector_0 for k=1..3; k=4 is the acquisition cap",
+  "available_sector_count_and_remaining_acquisitions_are_distinct": true,
+  "view_cost": 0.5,
+  "defer_human_cost": 1.5,
+  "cost_matrix": [[0, 1, 4], [1, 0, 1], [8, 8, 0]],
+  "probabilistic_head": {
+    "loss": "unweighted_cross_entropy",
+    "early_stopping_metric": "validation_nll",
+    "temperature_scaling_role": "validation"
+  },
+  "utility_regressor": {
+    "target": "target_conditioned_soft_loss_before_minus_after_minus_view_cost",
+    "target_formula": "sum_j p_before[j] C[y,j] - sum_j p_after[j] C[y,j] - 0.5",
+    "loss": "smooth_l1",
+    "state_weighting": "equal total weight per sample and revealed-view count",
+    "candidate_inputs": [
+      "revealed-only state",
+      "current calibrated probabilities",
+      "candidate canonical sector one-hot",
+      "relative yaw sin/cos",
+      "absolute yaw sin/cos when compass is available",
+      "compass availability",
+      "nearest revealed angular distance"
+    ],
+    "hidden_candidate_inputs_forbidden": true,
+    "early_stopping_metric": "validation sequence-macro top-1 utility regret"
+  },
+  "adaptive_policy": {
+    "q_stop": "model-implied cost-sensitive Bayes risk",
+    "q_acquire": "q_stop - predicted net utility",
+    "q_defer": 1.5,
+    "claim_status": "secondary risk-aware heuristic only; not risk-controlled",
+    "formal_stop_calibration_performed": false,
+    "formal_guarantee": false,
+    "fail_closed_stop_threshold": null,
+    "fail_closed_rule": "STOP disabled because no independent policy-trajectory calibration role exists",
+    "q_functional_warning": "candidate utility is target-conditioned soft-loss reduction while q_stop is model-implied Bayes risk; adaptive Q values are heuristic",
+    "risk_aware_heuristic_stop_threshold": 1.0
+  },
+  "training_hyperparameters": {
+    "classifier_epochs": 40,
+    "utility_epochs": 60,
+    "patience": 7,
+    "batch_size": 512,
+    "learning_rate": 0.001,
+    "num_workers": 0,
+    "device": "cuda",
+    "cublas_workspace_config": ":4096:8"
+  },
+  "execution_lock": {
+    "evaluation_output_root": "outputs/cvian_sequence_active_v2/utility_experiment",
+    "evaluation_registry_root": "outputs/cvian_sequence_active_v2/evaluation_registry",
+    "base_runtime_lock": "configs/cvian_sequence_base_runtime_lock_v1.json"
+  },
+  "privileged_building_baseline": {
+    "required_for_primary_go": true,
+    "metadata_schema": "cvian-sector-visibility-v3",
+    "model_id": "nvidia/segformer-b0-finetuned-ade-512-512",
+    "model_revision": "489d5cd81a0b59fab9b7ea758d3548ebe99677da",
+    "building_class_id": 1,
+    "horizontal_fov_deg": 90.0,
+    "vertical_fov_deg": 90.0,
+    "scope": "privileged offline baseline only"
+  },
+  "fixed_budget_policies": [
+    "clockwise",
+    "random_mc32",
+    "farthest",
+    "utility_regression",
+    "max_building_privileged",
+    "max_confidence_privileged",
+    "greedy_label_oracle"
+  ],
+  "random_trajectories_per_model_seed": 32,
+  "primary_go_criterion": {
+    "estimand": "equal dependency-component macro operational cost at k=3",
+    "contrast": "baseline_minus_utility_regression",
+    "severe_miss_estimand": "equal dependency-component macro severe-miss rate at k=3",
+    "severe_miss_definition": "indicator(target=2 and prediction!=2); fixed-k3 primary policies never defer",
+    "severe_miss_noninferiority_margin": 0.0,
+    "severe_miss_rule": "the fixed-five-seed equal-component macro baseline-minus-utility contrast must be nonnegative",
+    "paired_bootstrap": {
+      "resampling_unit": "dependency_component",
+      "pairing": "resample each shared component with all five model-seed and paired-policy values intact",
+      "resamples": 10000,
+      "random_seed": 42,
+      "confidence_level": 0.95,
+      "interval": "percentile"
+    },
+    "requirements": [
+      "utility_regression lower cost than farthest in all five model seeds",
+      "utility_regression lower cost than max_building_privileged in all five model seeds",
+      "paired dependency-component bootstrap 95% CI lower bound for baseline-minus-learned is above zero for both baselines",
+      "utility_regression severe-miss rate is no worse than both baselines"
+    ]
+  },
+  "adaptive_results_are_secondary": true,
+  "test_reuse_policy": "evaluate once after code, model artifacts, calibration, policies, metrics, and this config are hashed; any defect correction consumes the result and downgrades it to exploratory",
+  "external_confirmation_required_for_strong_claim": true,
+  "attestation_revision_note": "This label-cost utility model is a required baseline, not the final attestation-coverage RQ3 policy."
+}

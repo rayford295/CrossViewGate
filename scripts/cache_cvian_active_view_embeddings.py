@@ -29,8 +29,8 @@ from crossview_conflict.utils.image import build_transform
 
 
 SPLIT_NAMES = ("train", "val", "test")
-EMBEDDING_SCHEMA_VERSION = "cvian-active-view-cache-v2"
-EMBEDDING_SUMMARY_SCHEMA_VERSION = "cvian-active-view-cache-summary-v2"
+EMBEDDING_SCHEMA_VERSION = "cvian-active-view-cache-v3"
+EMBEDDING_SUMMARY_SCHEMA_VERSION = "cvian-active-view-cache-summary-v3"
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,6 +51,11 @@ def parse_args() -> argparse.Namespace:
         default="outputs/analysis/active_view_cvian_spatial_v1/cache",
     )
     parser.add_argument("--seeds", default="42,123,456,789,1011")
+    parser.add_argument(
+        "--splits",
+        default=",".join(SPLIT_NAMES),
+        help="Comma-separated role CSV stems to cache (for example base_fit,selector_fit,validation,prospective_test).",
+    )
     parser.add_argument("--num-sectors", type=int, default=8)
     parser.add_argument("--horizontal-fov-deg", type=float, default=90.0)
     parser.add_argument("--vertical-fov-deg", type=float, default=90.0)
@@ -58,6 +63,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    parser.add_argument(
+        "--require-training-attestation",
+        action="store_true",
+        help="Require each checkpoint directory to contain a matching role-isolated training_complete.json.",
+    )
     parser.add_argument("--overwrite", action="store_true")
     return parser.parse_args()
 
@@ -72,6 +82,7 @@ def _sha256(path: Path) -> str:
 
 def _read_source_frames(
     split_dir: Path,
+    split_names: tuple[str, ...] = SPLIT_NAMES,
 ) -> tuple[dict[str, pd.DataFrame], dict[str, str]]:
     frames: dict[str, pd.DataFrame] = {}
     hashes: dict[str, str] = {}
@@ -84,8 +95,10 @@ def _read_source_frames(
         "sequence_id",
         "latitude",
         "longitude",
+        "compass_angle_deg",
+        "compass_angle_deg",
     }
-    for split in SPLIT_NAMES:
+    for split in split_names:
         path = split_dir / f"{split}.csv"
         frame = pd.read_csv(
             path,
@@ -115,6 +128,33 @@ def _assert_provenance(
             )
 
 
+def _validate_training_attestation(
+    checkpoint_path: Path,
+    *,
+    seed: int,
+    source_hashes: dict[str, str],
+) -> dict[str, Any]:
+    path = checkpoint_path.parent / "training_complete.json"
+    if not path.is_file():
+        raise ValueError(f"Missing role-isolated training attestation: {path}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"Invalid training attestation: {path}")
+    if payload.get("schema_version") != "cvian-sequence-role-isolated-base-v1":
+        raise ValueError(f"Unsupported training attestation schema: {path}")
+    if int(payload.get("seed", -1)) != seed or payload.get("test_evaluated") is not False:
+        raise ValueError(f"Training attestation seed/test boundary mismatch: {path}")
+    if payload.get("role_sha256") != source_hashes:
+        raise ValueError(f"Training attestation role hashes mismatch: {path}")
+    if payload.get("checkpoint_sha256") != _sha256(checkpoint_path):
+        raise ValueError(f"Training attestation checkpoint hash mismatch: {path}")
+    return {
+        "path": str(path),
+        "sha256": _sha256(path),
+        "fingerprint_sha256": payload.get("fingerprint_sha256"),
+    }
+
+
 def _validate_embedding_npz(
     path: Path,
     frame: pd.DataFrame,
@@ -133,6 +173,7 @@ def _validate_embedding_npz(
         "target",
         "latitude",
         "longitude",
+        "compass_angle_deg",
         "sector_id",
         "relative_azimuth_deg",
         "street_embedding",
@@ -166,7 +207,7 @@ def _validate_embedding_npz(
         )
     if not np.array_equal(values["target"], frame["label"].astype(int).to_numpy()):
         raise ValueError(f"Embedding cache targets mismatch for {path}; rerun with --overwrite")
-    for field in ("latitude", "longitude"):
+    for field in ("latitude", "longitude", "compass_angle_deg"):
         if not np.allclose(
             values[field].astype(np.float64),
             frame[field].astype(float).to_numpy(),
@@ -236,6 +277,7 @@ def validate_reusable_embedding_cache(
     sectors: tuple[PanoramaSector, ...],
     num_classes: int,
     expected_provenance: dict[str, Any],
+    split_names: tuple[str, ...] = SPLIT_NAMES,
 ) -> dict[str, Any]:
     if not metadata_path.is_file():
         raise ValueError(
@@ -247,9 +289,9 @@ def validate_reusable_embedding_cache(
         raise ValueError(f"Invalid embedding cache metadata: {metadata_path}")
     _assert_provenance(metadata, expected_provenance, context=f"embedding cache {seed_dir.name}")
     summaries = metadata.get("splits")
-    if not isinstance(summaries, dict) or set(summaries) != set(SPLIT_NAMES):
+    if not isinstance(summaries, dict) or set(summaries) != set(split_names):
         raise ValueError("Embedding cache split metadata is incomplete; rerun with --overwrite")
-    for split in SPLIT_NAMES:
+    for split in split_names:
         path = seed_dir / f"{split}.npz"
         if not path.is_file():
             raise ValueError(f"Missing embedding cache {path}; rerun with --overwrite")
@@ -288,6 +330,7 @@ class CVIANSectorBagDataset(Dataset):
             "sequence_id",
             "latitude",
             "longitude",
+            "compass_angle_deg",
         }
         missing = sorted(required - set(self.frame.columns))
         if missing:
@@ -334,6 +377,7 @@ class CVIANSectorBagDataset(Dataset):
             "sequence_id": str(row["sequence_id"]),
             "latitude": float(row["latitude"]),
             "longitude": float(row["longitude"]),
+            "compass_angle_deg": float(row["compass_angle_deg"]),
             "sectors": sector_tensors,
             "panorama": panorama_tensor,
             "overhead": overhead_tensor,
@@ -364,6 +408,7 @@ def _cache_split(
     targets: list[np.ndarray] = []
     latitudes: list[np.ndarray] = []
     longitudes: list[np.ndarray] = []
+    compass_angles: list[np.ndarray] = []
     street_embeddings: list[np.ndarray] = []
     overhead_embeddings: list[np.ndarray] = []
     sector_logits: list[np.ndarray] = []
@@ -428,6 +473,9 @@ def _cache_split(
             targets.append(batch["target"].numpy().astype(np.int8))
             latitudes.append(batch["latitude"].numpy().astype(np.float64))
             longitudes.append(batch["longitude"].numpy().astype(np.float64))
+            compass_angles.append(
+                batch["compass_angle_deg"].numpy().astype(np.float32)
+            )
             if batch_index % 25 == 0:
                 print(
                     f"cached {min(len(dataset), len(sample_ids))}/{len(dataset)}",
@@ -440,6 +488,7 @@ def _cache_split(
         "target": np.concatenate(targets),
         "latitude": np.concatenate(latitudes),
         "longitude": np.concatenate(longitudes),
+        "compass_angle_deg": np.concatenate(compass_angles),
         "sector_id": np.asarray([sector.sector_id for sector in sectors], dtype=np.int8),
         "relative_azimuth_deg": np.asarray(
             [sector.relative_azimuth_deg for sector in sectors], dtype=np.float32
@@ -488,20 +537,36 @@ def main() -> None:
         horizontal_fov_deg=args.horizontal_fov_deg,
         vertical_fov_deg=args.vertical_fov_deg,
     )
-    frames, source_hashes = _read_source_frames(split_dir)
+    split_names = tuple(
+        value.strip() for value in args.splits.split(",") if value.strip()
+    )
+    if not split_names or len(set(split_names)) != len(split_names):
+        raise ValueError("--splits must contain unique, non-empty role names")
+    if any(not value.replace("_", "").isalnum() for value in split_names):
+        raise ValueError("--splits role names may contain only letters, digits, and underscores")
+    frames, source_hashes = _read_source_frames(split_dir, split_names)
     seeds = [int(value.strip()) for value in args.seeds.split(",") if value.strip()]
     summaries = []
     built_any = False
     for seed in seeds:
         checkpoint_path = checkpoint_root / f"crossview_seed{seed}" / "triage_best.pt"
         seed_dir = output_root / f"seed{seed}"
-        output_paths = {split: seed_dir / f"{split}.npz" for split in SPLIT_NAMES}
+        output_paths = {split: seed_dir / f"{split}.npz" for split in split_names}
         existing = {split: path.is_file() for split, path in output_paths.items()}
         if not args.overwrite and any(existing.values()) and not all(existing.values()):
             raise ValueError(
                 f"Embedding cache for seed {seed} is only partially present; "
                 "rerun with --overwrite"
             )
+        training_attestation = (
+            _validate_training_attestation(
+                checkpoint_path,
+                seed=seed,
+                source_hashes=source_hashes,
+            )
+            if args.require_training_attestation
+            else None
+        )
         model, checkpoint = load_triage_from_checkpoint(checkpoint_path, device=args.device)
         config = checkpoint.get("config", {})
         if config.get("mode") != "crossview" or int(config.get("num_classes", 0)) != 3:
@@ -515,8 +580,25 @@ def main() -> None:
             "checkpoint": str(checkpoint_path),
             "checkpoint_sha256": _sha256(checkpoint_path),
             "checkpoint_epoch": checkpoint.get("epoch"),
+            "training_attestation": training_attestation,
+            "training_attestation_required": args.require_training_attestation,
             "split_dir": str(split_dir),
             "source_manifest_sha256": source_hashes,
+            "split_roles": list(split_names),
+            "protocol_artifact_sha256": {
+                name: _sha256(split_dir / name)
+                for name in ("protocol_summary.json", "test_commitment.json")
+                if (split_dir / name).is_file()
+            },
+            "entrypoint_sha256": {
+                "cache_script": _sha256(Path(__file__).resolve()),
+                "panorama_geometry": _sha256(
+                    REPO_ROOT / "crossview_conflict" / "data" / "panorama.py"
+                ),
+                "triage_model": _sha256(
+                    REPO_ROOT / "crossview_conflict" / "models" / "triage.py"
+                ),
+            },
             "num_sectors": args.num_sectors,
             "horizontal_fov_deg": args.horizontal_fov_deg,
             "vertical_fov_deg": args.vertical_fov_deg,
@@ -531,6 +613,8 @@ def main() -> None:
             ],
             "initial_state": "post_overhead+sector_0",
             "claim_scope": "frozen panorama-to-sector transfer cache",
+            "compass_metadata": "sensor metadata cached for candidate absolute-yaw features",
+            "prospective_test_scored": False,
         }
         metadata_path = seed_dir / "cache_metadata.json"
         if not args.overwrite and all(existing.values()):
@@ -541,6 +625,7 @@ def main() -> None:
                 sectors=sectors,
                 num_classes=num_classes,
                 expected_provenance=expected_provenance,
+                split_names=split_names,
             )
             summaries.append(metadata)
             del model
@@ -549,7 +634,7 @@ def main() -> None:
             continue
 
         split_summaries = {}
-        for split in SPLIT_NAMES:
+        for split in split_names:
             dataset = CVIANSectorBagDataset(
                 split_dir / f"{split}.csv",
                 sectors,

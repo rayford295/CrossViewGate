@@ -1,0 +1,27 @@
+{
+  "schema_version": "cvian-sequence-base-runtime-lock-v1",
+  "recorded_date": "2026-07-10",
+  "git_head": "73d24d0e9b7dc5074a1f6fdc196f67529f56c16d",
+  "scope": "Supplemental dependency and runtime identity for the already completed role-isolated CVIAN base-encoder runs.",
+  "provenance_limit": "This lock was recorded immediately after training and confirms that the listed tracked dependencies remained byte-identical to git_head; it supplements but does not rewrite the original training completion fingerprint.",
+  "source_sha256": {
+    "crossview_conflict/data/datasets.py": "c9914fbf04f304af420caf0af30cefc76e855341f78a4d2fe1de261b35393e2a",
+    "crossview_conflict/factory.py": "7bc3c2090cc080c5fd202d42f1820dda2a4b47c13e2da8d1192a18f850a2146b",
+    "crossview_conflict/models/backbones.py": "9b27106c2ab6d760766a26754f369dd2b34f3e4b5bb26ad8b9ce6320e314dee6",
+    "crossview_conflict/training/metrics.py": "6c553b40a849077622fbbec70ec3a8d68a25a0d5f16b17a936e10151cccc24b6",
+    "crossview_conflict/training/conflict_focal_loss.py": "2e3060843e0ad738b958ba337d81fbdec09865128ef8fd1974dc88dcff3eeb40",
+    "crossview_conflict/utils/image.py": "ab23d36b8588bbaedbda3bc896d1a09d08b3b512eb99e95e58f035eb195ef152",
+    "crossview_conflict/utils/seed.py": "d66e1b10fdd17fca5e5d04687d410f3647b330b6f46791bae4412ac73afbcf55",
+    "crossview_conflict/utils/io.py": "b1f2f5326b43d9c3b1d68f04703ce84a47e747ada057a515305df9cb8a58feaa"
+  },
+  "runtime_versions": {
+    "python": "3.10.4",
+    "numpy": "1.26.1",
+    "scipy": "1.15.3",
+    "scikit_learn": "1.7.2",
+    "torch": "2.1.0+cu118",
+    "torchvision": "0.16.0+cu118",
+    "cuda": "11.8",
+    "cudnn": 8700
+  }
+}

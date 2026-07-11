@@ -70,12 +70,24 @@ from .active_view import (
     reveal_sector,
     softmax,
 )
+from .active_view_utility import (
+    AdaptiveActionBatch,
+    bayes_operational_action_and_risk,
+    build_candidate_geometry_features,
+    build_candidate_utility_features,
+    select_adaptive_actions,
+    target_conditioned_soft_loss,
+)
 
 __all__ += [
+    "AdaptiveActionBatch",
     "ActiveViewCache",
     "ActiveViewMLP",
     "DEFAULT_OPERATIONAL_COST",
     "Standardizer",
+    "bayes_operational_action_and_risk",
+    "build_candidate_geometry_features",
+    "build_candidate_utility_features",
     "build_selector_features",
     "build_state_features",
     "entropy",
@@ -84,5 +96,7 @@ __all__ += [
     "load_active_view_cache",
     "realized_operational_cost",
     "reveal_sector",
+    "select_adaptive_actions",
     "softmax",
+    "target_conditioned_soft_loss",
 ]

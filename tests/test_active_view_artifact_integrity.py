@@ -313,6 +313,7 @@ def test_embedding_cache_reuse_validates_checkpoint_and_split_content(
                     "sequence_id": f"sequence-{split}",
                     "latitude": 26.0 + index,
                     "longitude": -82.0 - index,
+                    "compass_angle_deg": 10.0 + index,
                 }
             ]
         )
@@ -325,6 +326,7 @@ def test_embedding_cache_reuse_validates_checkpoint_and_split_content(
             target=np.asarray([index % 3], dtype=np.int8),
             latitude=np.asarray([26.0 + index]),
             longitude=np.asarray([-82.0 - index]),
+            compass_angle_deg=np.asarray([10.0 + index], dtype=np.float32),
             sector_id=np.asarray([0, 1], dtype=np.int8),
             relative_azimuth_deg=np.asarray([0.0, -180.0], dtype=np.float32),
             street_embedding=np.ones((1, 2, 4), dtype=np.float16),

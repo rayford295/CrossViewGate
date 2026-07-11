@@ -25,7 +25,7 @@ from crossview_conflict.data.panorama import (
 
 
 SPLIT_NAMES = ("train", "val", "test")
-VISIBILITY_SCHEMA_VERSION = "cvian-sector-visibility-v2"
+VISIBILITY_SCHEMA_VERSION = "cvian-sector-visibility-v3"
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
         default="outputs/analysis/active_view_cvian_spatial_v1/visibility",
     )
     parser.add_argument("--num-sectors", type=int, default=8)
+    parser.add_argument(
+        "--splits",
+        default=",".join(SPLIT_NAMES),
+        help="Comma-separated role CSV stems to cache.",
+    )
     parser.add_argument("--horizontal-fov-deg", type=float, default=90.0)
     parser.add_argument("--vertical-fov-deg", type=float, default=90.0)
     parser.add_argument("--model-id", default="nvidia/segformer-b0-finetuned-ade-512-512")
@@ -89,10 +94,11 @@ def _prepare_model(
 
 def _read_source_frames(
     split_dir: Path,
+    split_names: tuple[str, ...] = SPLIT_NAMES,
 ) -> tuple[dict[str, pd.DataFrame], dict[str, str]]:
     frames: dict[str, pd.DataFrame] = {}
     hashes: dict[str, str] = {}
-    for split in SPLIT_NAMES:
+    for split in split_names:
         path = split_dir / f"{split}.csv"
         frame = pd.read_csv(path, dtype={"sample_id": str}).reset_index(drop=True)
         missing = sorted({"sample_id", "street_view_path"} - set(frame.columns))
@@ -167,6 +173,7 @@ def validate_reusable_visibility_cache(
     frames: dict[str, pd.DataFrame],
     expected_provenance: dict[str, Any],
     sector_ids: np.ndarray,
+    split_names: tuple[str, ...] = SPLIT_NAMES,
 ) -> dict[str, Any]:
     if not metadata_path.is_file():
         raise ValueError(
@@ -178,9 +185,9 @@ def validate_reusable_visibility_cache(
         raise ValueError(f"Invalid visibility metadata: {metadata_path}")
     _assert_provenance(metadata, expected_provenance, context="visibility cache")
     summaries = metadata.get("splits")
-    if not isinstance(summaries, dict) or set(summaries) != set(SPLIT_NAMES):
+    if not isinstance(summaries, dict) or set(summaries) != set(split_names):
         raise ValueError("Visibility cache split metadata is incomplete; rerun with --overwrite")
-    for split in SPLIT_NAMES:
+    for split in split_names:
         output_path = output_dir / f"{split}.npz"
         if not output_path.is_file():
             raise ValueError(f"Missing visibility cache {output_path}; rerun with --overwrite")
@@ -208,8 +215,15 @@ def main() -> None:
         horizontal_fov_deg=args.horizontal_fov_deg,
         vertical_fov_deg=args.vertical_fov_deg,
     )
-    frames, source_hashes = _read_source_frames(split_dir)
-    output_paths = {split: output_dir / f"{split}.npz" for split in SPLIT_NAMES}
+    split_names = tuple(
+        value.strip() for value in args.splits.split(",") if value.strip()
+    )
+    if not split_names or len(set(split_names)) != len(split_names):
+        raise ValueError("--splits must contain unique, non-empty role names")
+    if any(not value.replace("_", "").isalnum() for value in split_names):
+        raise ValueError("--splits role names may contain only letters, digits, and underscores")
+    frames, source_hashes = _read_source_frames(split_dir, split_names)
+    output_paths = {split: output_dir / f"{split}.npz" for split in split_names}
     existing = {split: path.is_file() for split, path in output_paths.items()}
     if not args.overwrite and any(existing.values()) and not all(existing.values()):
         raise ValueError(
@@ -228,6 +242,18 @@ def main() -> None:
         "building_class_id": building_id,
         "split_dir": str(split_dir),
         "source_manifest_sha256": source_hashes,
+        "split_roles": list(split_names),
+        "protocol_artifact_sha256": {
+            name: _sha256(split_dir / name)
+            for name in ("protocol_summary.json", "test_commitment.json")
+            if (split_dir / name).is_file()
+        },
+        "entrypoint_sha256": {
+            "cache_script": _sha256(Path(__file__).resolve()),
+            "panorama_geometry": _sha256(
+                REPO_ROOT / "crossview_conflict" / "data" / "panorama.py"
+            ),
+        },
         "num_sectors": args.num_sectors,
         "horizontal_fov_deg": args.horizontal_fov_deg,
         "vertical_fov_deg": args.vertical_fov_deg,
@@ -235,6 +261,7 @@ def main() -> None:
         "relative_azimuth_deg": [
             float(sector.relative_azimuth_deg) for sector in sectors
         ],
+        "prospective_test_scored": False,
     }
     metadata_path = output_dir / "visibility_metadata.json"
     if not args.overwrite and all(existing.values()):
@@ -244,13 +271,14 @@ def main() -> None:
             frames=frames,
             expected_provenance=expected_provenance,
             sector_ids=sector_ids,
+            split_names=split_names,
         )
         print(json.dumps(metadata, indent=2))
         return
 
     output_dir.mkdir(parents=True, exist_ok=True)
     summaries = {}
-    for split in SPLIT_NAMES:
+    for split in split_names:
         output_path = output_paths[split]
         frame = frames[split]
         ratios = np.zeros((len(frame), len(sectors)), dtype=np.float32)
