@@ -20,6 +20,12 @@
    （野火 Spearman r=0.615，p=0.001），而单视图不确定性密度做不到。
 5. **负结果**：单视图模型收敛并校准后，简单概率平均即可打平端到端学习融合——
    学习的价值在于非对称的可靠性仲裁，而不在融合本身。
+6. **Active-view 开发结果**：CVIAN 的八扇区离线 sequential-reveal 实验为 No-Go；
+   当前 learned selector 未优于简单覆盖或 privileged building heuristic。现有
+   model/selector 划分只隔离 downstream heads，空间 test 也已被开发过程消耗。
+   未来正结论需要 base-encoder/utility-target OOF 隔离，以及新的 sequence- 或
+   event-held-out confirmatory test。当前 label-aware oracle 只是 greedy one-step
+   privileged reference，不是全局 acquisition upper bound。
 
 ## 复现
 

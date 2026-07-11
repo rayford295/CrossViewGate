@@ -52,11 +52,14 @@ ground imagery and to the Hurricane Ian CVDisaster benchmark with panoramic
 ground imagery. Results differ by observation regime. On the wildfire
 sensitivity split, cross-view fusion improves conflict F1 by $\dview=+0.0388$,
 and a label-independence permutation test rejects the null at $p<10^{-4}$. On
-the hurricane endpoint task, the picture inverts once spatial leakage is
-removed: the same task shows a $+0.0805$ conflict gain under an object-leaky
-split but a slightly negative gain ($\dview=-0.0153$, within overlapping
-bootstrap intervals) under an object-grouped clean split, even though aggregate
-F1 makes cross-view and street-only models look nearly tied. Directional and
+the hurricane endpoint task, the same task shows a $+0.0805$ conflict gain
+under an object-leaky split but a slightly negative gain
+($\dview=-0.0153$, within overlapping bootstrap intervals) under a legacy
+index-grouped sensitivity split, even though aggregate F1 makes cross-view and
+street-only models look nearly tied. A subsequent join to the official CVIAN
+position GeoJSON showed that this legacy sensitivity split is not spatially
+independent, so it must not be interpreted as proof that leakage was removed.
+Directional and
 alignment diagnostics tie this to how the ground view sees the target: wildfire
 conflict images contain roughly seventeen times more building pixels than
 hurricane conflict images, and fusion loses value when the ground view becomes
@@ -261,14 +264,16 @@ mostly helpful or tied. Conflict F1 changes the reading. Wildfire shows a clear
 positive conflict gain ($\dview=+0.0388$), and CV is the strongest configuration
 both overall and on $\conf$.
 
-\paragraph{Leakage flips the hurricane verdict.}
+\paragraph{The hurricane verdict is split-sensitive.}
 The two hurricane endpoint rows are the same minor-versus-severe task; they
-differ only in whether object-level leakage is removed. Under the leaky split,
-CV looks helpful on conflicts ($\dview=+0.0805$). After object grouping, the
-gain flips to $\dview=-0.0153$ while overall F1 changes little and street-only
-slightly edges CV ($0.9016$ versus $0.9008$). The flip isolates spatial leakage,
-not view regime, as the source of the original positive endpoint gain---exactly
-the kind of boundary that aggregate F1 conceals and CAE surfaces.
+differ in their historical index-based split construction. Under the leaky
+split, CV looks helpful on conflicts ($\dview=+0.0805$); under the legacy
+index-grouped sensitivity split, the gain flips to $\dview=-0.0153$ while
+overall F1 changes little and street-only slightly edges CV ($0.9016$ versus
+$0.9008$). The official-position audit later found Mapillary-sequence and
+0.005-degree-block overlap in this sensitivity split, so the contrast shows
+protocol sensitivity but does not isolate spatial leakage. New claims use the
+repaired spatial-block and 25 m buffered protocol instead.
 
 \begin{table}[t]
   \caption{Conflict-Aware Evaluation summary. Conflict F1 uses $\conf$ with

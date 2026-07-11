@@ -59,6 +59,18 @@ to defer to a human, and where limited field-inspection resources should go.
 See the dated research plan:
 [`CrossViewGuard: Risk-Controlled Active Evidence Acquisition`](docs/2026-07-10_crossviewguard_active_evidence_research_plan.md).
 
+The first CVIAN spatial-v1 active-view development benchmark is now complete.
+Its privileged greedy one-step, label-aware reference shows a large gap, but it
+is not a globally optimal acquisition upper bound. The current supervised
+selector does not outperform simple coverage or privileged building heuristics
+at the three-view budget, so the result is reported as a transparent No-Go
+rather than a positive active-policy claim. The model/selector split isolates
+only the downstream heads because the frozen encoder saw the complete training
+role. The spatial development test is now consumed; future selector variants
+require out-of-fold/base-encoder role isolation and a new sequence- or
+event-held-out confirmatory test. See
+[`active_view_cvian_spatial_v1.md`](docs/results/active_view_cvian_spatial_v1.md).
+
 ## Repository map
 
 ```text
@@ -85,6 +97,7 @@ Key scripts, in pipeline order:
 | Reliability gate (+ transfer) | `train_reliability_gate.py` |
 | Causal FOV intervention | `build_fov_intervention.py`, `run_fov_intervention.sh`, `analyze_fov_intervention.py` |
 | Conflict-density maps | `analyze_conflict_density_maps.py` |
+| Development active next-view benchmark | `build_cvian_active_view_manifests.py`, `cache_cvian_active_view_embeddings.py`, `run_cvian_active_view_experiment.py`, `summarize_cvian_active_view.py` |
 | Statistics | `analyze_pooled_seed_tests.py`, `analyze_ordinal_metrics.py` |
 | Manuscript | `build_manuscript_docx.py` |
 
@@ -106,6 +119,36 @@ python scripts/analyze_calibration_fusion.py  --multiseed-root outputs/multiseed
 python scripts/train_reliability_gate.py      --multiseed-root outputs/multiseed_v2 --seeds 42,123,456,789,1011
 python scripts/analyze_pooled_seed_tests.py   --multiseed-root outputs/multiseed_v2 --seeds 42,123,456,789,1011
 ```
+
+Before rebuilding the Ian split, place the official CVIAN position file at
+`<IAN_hurricane>/02_Position/CVIAN_position.geojson` and the release
+`checksums.sha512` at `<IAN_hurricane>/checksums.sha512`, then run:
+
+```powershell
+python scripts/georeference_ian_hurricane.py --dataset-root <IAN_hurricane>
+python scripts/build_ian_hurricane_manifests.py `
+  --dataset-root <IAN_hurricane> `
+  --output-dir data/splits/ian_hurricane_original `
+  --split-strategy spatial-block --spatial-buffer-m 25
+```
+
+The georeference and repaired-split audit is documented in
+[`docs/results/cvian_georeference_split_audit.md`](docs/results/cvian_georeference_split_audit.md).
+
+The repaired Ian pipeline continues with a fingerprinted five-seed run and a
+strict gate-fit/risk-calibration/final-test split:
+
+```powershell
+python scripts/run_ian_spatial_multiseed.py --jobs 2
+python scripts/build_risk_protocol_manifests.py `
+  --split-dir data/splits/ian_hurricane_original `
+  --output-dir data/splits/ian_hurricane_risk_protocol `
+  --event-id hurricane_ian_cvian
+```
+
+Selective-triage claims require explicit spatial/group auditing and one fixed
+gate identity. The executed result and fail-closed routing case are summarized
+in [`docs/results/selective_triage_ian_spatial_v1.md`](docs/results/selective_triage_ian_spatial_v1.md).
 
 Datasets are kept local (see `docs/datasets.md`): Eaton/Altadena wildfire
 inspection pairs (CAL FIRE DINS), the CVIAN Hurricane Ian release
