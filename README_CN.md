@@ -26,6 +26,15 @@
    未来正结论需要 base-encoder/utility-target OOF 隔离，以及新的 sequence- 或
    event-held-out confirmatory test。当前 label-aware oracle 只是 greedy one-step
    privileged reference，不是全局 acquisition upper bound。
+7. **方向修订（2026-07-10）**：研究对象从"拟合单一 severity 标签"转向
+   **视角条件可证实性**——标签被视为多面证据的有损投影，跨视图分歧是待解释的
+   现象，acquisition 效用从 label-loss 改为证据覆盖增益。这同时给 active-view
+   No-Go 提供了对立假说（目标函数错位 vs selector 不成熟）。RQ1 Study A
+   （CVIAN 方向性解剖，exploratory，仅用非 test 角色）已执行：三个开发判据均
+   未达标——现有可见度特征不携带 held-out 可证实性信号；5/5 种子出现一致但
+   未确认的"街景报更重"方向倾斜。Eaton 部件级 Study B 成为关键检验。详见
+   [`docs/2026-07-10_crossviewguard_attestability_revision.md`](docs/2026-07-10_crossviewguard_attestability_revision.md)
+   与 [`docs/results/disagreement_anatomy_cvian_v1.md`](docs/results/disagreement_anatomy_cvian_v1.md)。
 
 ## 复现
 

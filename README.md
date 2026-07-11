@@ -71,6 +71,21 @@ require out-of-fold/base-encoder role isolation and a new sequence- or
 event-held-out confirmatory test. See
 [`active_view_cvian_spatial_v1.md`](docs/results/active_view_cvian_spatial_v1.md).
 
+**Direction revision (2026-07-10).** The research object moves from fitting a
+single severity label to **view-conditional attestability**: the severity label
+is treated as a lossy projection of multi-facet evidence, cross-view
+disagreement as the phenomenon to explain, and evidence-coverage gain — not
+label-loss reduction — as the acquisition utility. This also reframes the
+active-view No-Go: target misspecification is now an explicit rival hypothesis
+to selector immaturity. See the
+[attestability revision memo](docs/2026-07-10_crossviewguard_attestability_revision.md).
+The first anatomy study (RQ1 Study A, exploratory, non-test roles only) is
+executed: no development criterion was met — the existing visibility features
+carry no held-out attestability signal, and a consistent but unconfirmed
+street-more-severe directional lean appears in 5/5 seeds. The Eaton
+component-level study is now the critical test. See
+[`disagreement_anatomy_cvian_v1.md`](docs/results/disagreement_anatomy_cvian_v1.md).
+
 ## Repository map
 
 ```text
@@ -98,6 +113,7 @@ Key scripts, in pipeline order:
 | Causal FOV intervention | `build_fov_intervention.py`, `run_fov_intervention.sh`, `analyze_fov_intervention.py` |
 | Conflict-density maps | `analyze_conflict_density_maps.py` |
 | Development active next-view benchmark | `build_cvian_active_view_manifests.py`, `cache_cvian_active_view_embeddings.py`, `run_cvian_active_view_experiment.py`, `summarize_cvian_active_view.py` |
+| RQ1 disagreement anatomy (exploratory) | `analyze_disagreement_anatomy.py` |
 | Statistics | `analyze_pooled_seed_tests.py`, `analyze_ordinal_metrics.py` |
 | Manuscript | `build_manuscript_docx.py` |
 
