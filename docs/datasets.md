@@ -52,6 +52,10 @@ headline result.
 - disaster type: hurricane
 - ground-view regime: 360 / panoramic environmental views
 - overhead view: paired remote-sensing crop
+- georeference: 4,121 official CRS84 points from
+  `02_Position/CVIAN_position.geojson`
+- stable source key: Mapillary image id recovered from the official SHA-512
+  manifest (the six-digit local filename is retained as `sample_id`)
 
 ### Original Label Space
 
@@ -65,6 +69,11 @@ The panoramic ground image contains broader environmental context and weaker
 direct alignment to the target structure. Keeping the moderate class makes the
 task closer to the native dataset and tests whether cross-view conclusions hold
 without endpoint-only simplification.
+
+The main split is now grouped by 0.005-degree spatial block and uses a 25 m
+cross-split buffer. The legacy source split is retained only as a leakage audit:
+299 of its 300 test samples share a Mapillary sequence with train. See
+[`CVIAN Georeference and Spatial-Split Audit`](results/cvian_georeference_split_audit.md).
 
 ## 3. Milton Hurricane / GenDisasterSVI
 
@@ -83,6 +92,13 @@ without endpoint-only simplification.
 The manifest builder uses `dataset_with_post_sat.csv`, resolves Windows-local
 paths under `hurrican-milton-GenDisasterSVI`, and pairs post-disaster SVI with
 post-disaster satellite imagery.
+
+The source table contains 2,555 rows (`train=2,047`, `val=254`, `test=254`).
+The old builder dropped the source validation rows; the repaired builder audits
+all rows and uses a 0.001-degree spatial-block split with a 25 m boundary buffer
+for the main protocol. Pre-street, post-street, and post-overhead are all
+retained, with explicit availability/dropout masks in the data loader. See the
+[`Milton Manifest and Spatial-Split Audit`](results/milton_manifest_split_audit.md).
 
 ## Why the Comparison Is Useful
 
