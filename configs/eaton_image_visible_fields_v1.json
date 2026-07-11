@@ -1,0 +1,174 @@
+{
+  "schema_version": "eaton-image-visible-field-whitelist-v1",
+  "frozen_on": "2026-07-10",
+  "freeze_scope": "RQ1 Study B development feasibility audit",
+  "source_resolution_audit": {
+    "basis": "deterministic first 1000 joined Eaton pairs; dimensions only, before any Study B outcome test",
+    "street_observed": [
+      "1280x960 JPEG (708/1000)",
+      "640x480 JPEG (290/1000)",
+      "two irregular JPEG dimensions (2/1000)"
+    ],
+    "remote_observed": [
+      "512x512 JPEG (1000/1000)"
+    ]
+  },
+  "interpretation_rules": [
+    "Every listed value originates in an inspector/service record; it is never image-level visibility ground truth.",
+    "primary_conditional means the field is in principle image-visible at source resolution only when the relevant component is in frame and not destroyed, occluded, or too small.",
+    "stress_test_only fields cannot support the primary attestability claim at the observed resolution.",
+    "excluded fields must not be used as image-visible targets.",
+    "None of the listed construction or exposure attributes is component-damage presence or component-damage dominance.",
+    "Missing and Unknown remain distinct and neither is a negative component-damage label."
+  ],
+  "allowed_view_statuses": [
+    "primary_conditional",
+    "stress_test_only",
+    "excluded"
+  ],
+  "fields": [
+    {
+      "column": "dins_roofconstruction",
+      "component": "roof",
+      "inspector_reference_semantics": "roof construction/material category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "primary_conditional",
+        "rationale": "Broad roof covering can be visible when roof pitch and street geometry expose it; visibility is not guaranteed."
+      },
+      "remote": {
+        "status": "primary_conditional",
+        "rationale": "Broad roof covering is the most plausible overhead attribute, subject to 512x512 resolution, burn state, tree cover, and crop alignment."
+      }
+    },
+    {
+      "column": "dins_eaves",
+      "component": "eaves",
+      "inspector_reference_semantics": "eave enclosure category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "primary_conditional",
+        "rationale": "Enclosed, unenclosed, or absent eaves can be visible from a suitable facade view."
+      },
+      "remote": {
+        "status": "excluded",
+        "rationale": "Eave enclosure is not reliably resolvable in the 512x512 overhead crop."
+      }
+    },
+    {
+      "column": "dins_exteriorsiding",
+      "component": "siding",
+      "inspector_reference_semantics": "exterior siding material category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "primary_conditional",
+        "rationale": "Broad siding material is in principle visible when a facade is sufficiently exposed."
+      },
+      "remote": {
+        "status": "excluded",
+        "rationale": "Facade siding is generally outside the overhead line of sight."
+      }
+    },
+    {
+      "column": "dins_windowpane",
+      "component": "window",
+      "inspector_reference_semantics": "window pane construction category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "stress_test_only",
+        "rationale": "Windows may be visible, but single- versus multi-pane detail is not reliably resolvable across the observed street-image sizes and stand-off distances."
+      },
+      "remote": {
+        "status": "excluded",
+        "rationale": "Pane construction is not resolvable in overhead imagery."
+      }
+    },
+    {
+      "column": "dins_deckporchongrade",
+      "component": "deck_porch_on_grade",
+      "inspector_reference_semantics": "on-grade deck/porch presence and material category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "primary_conditional",
+        "rationale": "Presence and broad material can be visible when the attached side faces the camera."
+      },
+      "remote": {
+        "status": "stress_test_only",
+        "rationale": "Plan-form presence may be visible, but material classes are not reliably attested at 512x512."
+      }
+    },
+    {
+      "column": "dins_deckporchelevated",
+      "component": "deck_porch_elevated",
+      "inspector_reference_semantics": "elevated deck/porch presence and material category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "primary_conditional",
+        "rationale": "Presence and broad material can be visible when the elevated structure is in frame."
+      },
+      "remote": {
+        "status": "stress_test_only",
+        "rationale": "Plan-form presence may be visible, but elevation and material are not reliably attested at 512x512."
+      }
+    },
+    {
+      "column": "dins_ventscreen",
+      "component": "vent_screen",
+      "inspector_reference_semantics": "vent presence and mesh-size category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "excluded",
+        "rationale": "The decisive mesh-size detail is below reliable resolution at typical street stand-off."
+      },
+      "remote": {
+        "status": "excluded",
+        "rationale": "Vent mesh detail is not resolvable overhead."
+      }
+    },
+    {
+      "column": "dins_patiocovercarport",
+      "component": "patio_cover_carport",
+      "inspector_reference_semantics": "attached patio cover/carport presence and combustibility category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "stress_test_only",
+        "rationale": "Presence can be visible, but the recorded combustibility category is not consistently image-resolvable."
+      },
+      "remote": {
+        "status": "stress_test_only",
+        "rationale": "Plan-form presence can be visible, but attachment and combustibility are not consistently resolvable."
+      }
+    },
+    {
+      "column": "dins_fenceattachedtostructure",
+      "component": "attached_fence",
+      "inspector_reference_semantics": "attached fence presence and combustibility category",
+      "component_damage_reference": false,
+      "street": {
+        "status": "stress_test_only",
+        "rationale": "Fence presence may be visible, but attachment and combustibility are not reliably recoverable from every street image."
+      },
+      "remote": {
+        "status": "stress_test_only",
+        "rationale": "Fence traces may be visible, but attachment and combustibility are not reliably recoverable overhead."
+      }
+    }
+  ],
+  "explicit_non_damage_fields": [
+    "dins_roofconstruction",
+    "dins_eaves",
+    "dins_ventscreen",
+    "dins_exteriorsiding",
+    "dins_windowpane",
+    "dins_deckporchongrade",
+    "dins_deckporchelevated",
+    "dins_patiocovercarport",
+    "dins_fenceattachedtostructure"
+  ],
+  "restricted_proxy": {
+    "column": "dins_wherefirestartedonstructure",
+    "semantics": "fire-origin location recorded only for Affected (1-9%) inspections",
+    "allowed_use": "descriptive feasibility/power stress test only",
+    "forbidden_use": "must not be relabeled as component-damage dominance or used to claim H-B1/H-B2"
+  }
+}

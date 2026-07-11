@@ -1,0 +1,64 @@
+{
+  "schema_version": "crossviewguard-attestation-dependency-inventory-v1",
+  "assessed_on": "2026-07-10",
+  "evidence_basis": [
+    "docs/results/disagreement_anatomy_cvian_v1.md",
+    "outputs/analysis/disagreement_anatomy_ian_spatial_v1/summary.json",
+    "docs/results/disagreement_anatomy_eaton_v1.md",
+    "outputs/analysis/disagreement_anatomy_eaton_v1/audit.json"
+  ],
+  "datasets": {
+    "cvian": {
+      "requirements": {
+        "rq1_attestability_signal_supported": false,
+        "source_media_available": true,
+        "real_damage_reference_available": false,
+        "view_field_annotations_available": false,
+        "frozen_dependency_groups_available": true,
+        "role_isolated_split_available": true,
+        "field_view_support_audited": false,
+        "rq2_matrix_validated": false,
+        "camera_geometry_available": false,
+        "building_orientation_available": false,
+        "occlusion_reference_available": false,
+        "calibrated_attestation_predictions_available": false,
+        "decision_field_weights_frozen": false,
+        "candidate_view_sets_available": true,
+        "acquisition_costs_frozen": true,
+        "policy_role_isolation_available": true,
+        "attestation_labeled_prospective_or_external_test_available": false
+      },
+      "notes": [
+        "CVIAN has overall severity labels and full-view/sector severity outputs, but no roof/eaves/siding/window/deck damage references.",
+        "The four existing visibility features failed all three RQ1 Study A development criteria and are not attestation labels.",
+        "The 137-row sequence prospective test has historical base-model exposure and is not an event-held-out confirmation."
+      ]
+    },
+    "eaton": {
+      "requirements": {
+        "rq1_attestability_signal_supported": false,
+        "source_media_available": true,
+        "real_damage_reference_available": false,
+        "view_field_annotations_available": false,
+        "frozen_dependency_groups_available": false,
+        "role_isolated_split_available": false,
+        "field_view_support_audited": false,
+        "rq2_matrix_validated": false,
+        "camera_geometry_available": false,
+        "building_orientation_available": false,
+        "occlusion_reference_available": false,
+        "calibrated_attestation_predictions_available": false,
+        "decision_field_weights_frozen": false,
+        "candidate_view_sets_available": false,
+        "acquisition_costs_frozen": false,
+        "policy_role_isolation_available": false,
+        "attestation_labeled_prospective_or_external_test_available": false
+      },
+      "notes": [
+        "Eaton has 19,780 joined image pairs and inspector construction/material attributes, not component-damage presence or dominance.",
+        "No genuine Eaton street/remote prediction export or frozen spatial role assignment exists.",
+        "dins_wherefirestartedonstructure is a restricted fire-origin proxy and is forbidden as damage dominance."
+      ]
+    }
+  }
+}

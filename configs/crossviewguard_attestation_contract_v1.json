@@ -1,0 +1,164 @@
+{
+  "schema_version": "crossviewguard-attestation-contract-v1",
+  "annotation_schema_version": "crossviewguard-attestation-annotation-v1",
+  "prediction_schema_version": "crossviewguard-attestation-prediction-v1",
+  "claim_scope": "RQ2 view-by-field attestation and RQ3 attestation-coverage utility",
+  "allowed_record_origins": [
+    "real_annotation",
+    "real_model_prediction",
+    "synthetic_fixture"
+  ],
+  "allowed_split_roles": [
+    "base_fit",
+    "attestation_fit",
+    "policy_fit",
+    "validation",
+    "prospective_test",
+    "external_test"
+  ],
+  "allowed_view_types": [
+    "street_sector",
+    "street_image",
+    "remote_overhead"
+  ],
+  "allowed_observability_states": [
+    "visible",
+    "not_visible",
+    "indeterminate"
+  ],
+  "allowed_reference_source_types": [
+    "manual_component_damage_annotation",
+    "qualified_inspector_component_damage_annotation",
+    "manual_overall_severity_annotation",
+    "qualified_inspector_overall_severity_annotation",
+    "synthetic_fixture"
+  ],
+  "fields": [
+    {
+      "field_id": "roof_damage",
+      "reference_semantics": "component_damage_state",
+      "reference_states": ["damaged", "not_damaged", "unknown"],
+      "view_observation_states": ["damaged", "not_damaged", "abstain"]
+    },
+    {
+      "field_id": "eaves_damage",
+      "reference_semantics": "component_damage_state",
+      "reference_states": ["damaged", "not_damaged", "unknown"],
+      "view_observation_states": ["damaged", "not_damaged", "abstain"]
+    },
+    {
+      "field_id": "siding_damage",
+      "reference_semantics": "component_damage_state",
+      "reference_states": ["damaged", "not_damaged", "unknown"],
+      "view_observation_states": ["damaged", "not_damaged", "abstain"]
+    },
+    {
+      "field_id": "window_damage",
+      "reference_semantics": "component_damage_state",
+      "reference_states": ["damaged", "not_damaged", "unknown"],
+      "view_observation_states": ["damaged", "not_damaged", "abstain"]
+    },
+    {
+      "field_id": "deck_damage",
+      "reference_semantics": "component_damage_state",
+      "reference_states": ["damaged", "not_damaged", "unknown"],
+      "view_observation_states": ["damaged", "not_damaged", "abstain"]
+    },
+    {
+      "field_id": "overall_severity",
+      "reference_semantics": "ordinal_damage_severity",
+      "reference_states": ["minor", "moderate", "severe", "unknown"],
+      "view_observation_states": ["minor", "moderate", "severe", "abstain"]
+    }
+  ],
+  "annotation_required_columns": [
+    "schema_version",
+    "entity_id",
+    "event_id",
+    "dependency_group_id",
+    "split_role",
+    "view_id",
+    "view_type",
+    "field_id",
+    "reference_semantics",
+    "reference_state",
+    "view_observation_state",
+    "observability",
+    "reference_source_type",
+    "reference_source_field",
+    "reference_provenance",
+    "view_annotation_provenance",
+    "record_origin",
+    "source_artifact_sha256",
+    "media_sha256"
+  ],
+  "prediction_required_columns": [
+    "schema_version",
+    "entity_id",
+    "event_id",
+    "dependency_group_id",
+    "split_role",
+    "seed",
+    "view_id",
+    "view_type",
+    "field_id",
+    "attestation_probability",
+    "abstain_probability",
+    "predicted_observation_state",
+    "record_origin",
+    "model_artifact_sha256",
+    "annotation_artifact_sha256"
+  ],
+  "forbidden_reference_source_fields": [
+    "dins_roofconstruction",
+    "dins_eaves",
+    "dins_ventscreen",
+    "dins_exteriorsiding",
+    "dins_windowpane",
+    "dins_deckporchongrade",
+    "dins_deckporchelevated",
+    "dins_patiocovercarport",
+    "dins_fenceattachedtostructure",
+    "dins_wherefirestartedonstructure"
+  ],
+  "forbidden_reference_tokens": [
+    "construction",
+    "material",
+    "combustibility",
+    "fire_origin",
+    "fire-origin",
+    "wherefirestarted"
+  ],
+  "dependency_gates": {
+    "rq2_matrix": [
+      "rq1_attestability_signal_supported",
+      "source_media_available",
+      "real_damage_reference_available",
+      "view_field_annotations_available",
+      "frozen_dependency_groups_available",
+      "role_isolated_split_available",
+      "field_view_support_audited"
+    ],
+    "rq2_geometry": [
+      "rq2_matrix_validated",
+      "camera_geometry_available",
+      "building_orientation_available",
+      "occlusion_reference_available"
+    ],
+    "rq3_coverage": [
+      "rq2_matrix_validated",
+      "calibrated_attestation_predictions_available",
+      "decision_field_weights_frozen",
+      "candidate_view_sets_available",
+      "acquisition_costs_frozen",
+      "policy_role_isolation_available",
+      "attestation_labeled_prospective_or_external_test_available"
+    ]
+  },
+  "claim_rules": [
+    "Synthetic fixtures are permitted only in synthetic_test mode and are forbidden in claim mode.",
+    "Construction, material, exposure, and fire-origin attributes are never component-damage references.",
+    "A full-view severity prediction is not a field-level attestation prediction.",
+    "RQ3 coverage utility requires a validated and frozen RQ2 matrix artifact; label-cost utility is only a baseline."
+  ]
+}

@@ -80,17 +80,24 @@ python scripts/analyze_disagreement_anatomy.py `
   --output-dir outputs/analysis/disagreement_anatomy_ian_spatial_v1
 ```
 
-## Study B — Eaton component anatomy (specified; awaits data access)
+## Study B — Eaton component anatomy (feasibility executed; inference blocked)
 
-**Inputs (required, not yet locally available).** The P0.4
-`dins_field_join` derived artifacts (`eaton_manifest_with_dins.csv` +
-`field_domains.json`), joined to Eaton per-sample evidence exports.
+**Input status.** The P0.4 `dins_field_join` artifacts are locally available
+and audited: 19,776/19,780 attachment rows match 18,411 DINS structures. The
+component-like fields record construction/material/exposure attributes, not
+component-damage presence or dominance. Eaton per-view severity predictions
+and a frozen Eaton `spatial_block_id` are not available. See
+[`disagreement_anatomy_eaton_v1.md`](disagreement_anatomy_eaton_v1.md).
 
 **Prerequisite.** The P0.4 supplement in the revision memo: freeze an
 **image-visible field whitelist** before any test is run. Candidate fields
 (roof, eaves, siding, window pane, deck/porch) are individually ruled
 visible/invisible per view at source resolution; excluded fields may appear
-only as stress tests.
+only as stress tests. The whitelist is frozen in
+[`configs/eaton_image_visible_fields_v1.json`](../../configs/eaton_image_visible_fields_v1.json).
+Its view labels are *in-principle, conditional visibility* labels; they do not
+turn inspector records into image-level observations or damage-component
+labels.
 
 **Hypotheses.**
 
@@ -108,6 +115,15 @@ only as stress tests.
 information, not error" must not appear as a conclusion in any manuscript;
 Study A alone supports only the weaker "disagreement is structured by
 visibility".
+
+**Current execution state.** The independent runner
+[`scripts/analyze_eaton_component_anatomy.py`](../../scripts/analyze_eaton_component_anatomy.py)
+completed artifact, construct, media, and restricted-proxy power diagnostics.
+It deliberately produced no H-B1/H-B2 estimates. It requires (a) genuine
+street/remote ordinal severity predictions with spatial blocks and (b) a
+separate provenance-bearing `damage_dominance` reference. It rejects
+construction/material semantics used as dominance and refuses development
+inputs marked `final_test`.
 
 ## Consumed-data ledger
 
