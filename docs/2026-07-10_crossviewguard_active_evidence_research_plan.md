@@ -1,7 +1,12 @@
 # CrossViewGuard: 从灾害分类到风险可控的主动证据获取
 
 - **Date:** 2026-07-10
-- **Status:** research roadmap, not yet executed
+- **Status:** active implementation; P0 repair, Weeks 3–4 MVP, and the first
+  CVIAN Weeks 5–8 sequential-reveal **development** benchmark are executed. The
+  learned next-view selector did not meet the development Go criterion. The
+  spatial test is consumed; adaptive stop/defer, base-encoder/utility-target OOF
+  isolation, a new sequence/event confirmatory holdout, and cross-event transfer
+  remain open.
 - **Relationship to prior memo:** 本文细化并调整
   [`2026-07-09_from_classification_to_actionable_reports.md`](./2026-07-09_from_classification_to_actionable_reports.md)。
 旧 memo 将报告生成视为主要延伸；本文把报告降为呈现层，把
@@ -197,6 +202,31 @@ zero-shot cross-event transfer 只作为 robustness stress test。若要对新�
 
 ### Workstream 2: Active Next-Best-View
 
+**Implementation update (2026-07-10):** the first spatial-v1 CVIAN development
+benchmark is complete. Eight overlapping 90-degree sectors, a hidden-view
+cache, mask-aware frozen-embedding aggregator, supervised action selector, four
+online baselines, four privileged/oracle baselines, five training seeds, and a
+descriptive spatial-block bootstrap are implemented. At the recorded `k=3`
+development budget, the learned selector does not beat random, farthest angular
+coverage, or privileged maximum-building selection, while a privileged greedy
+one-step label-aware reference reduces operational cost from about 0.81 to
+0.34. That reference is not a globally optimal multi-step acquisition upper
+bound. The task has substantial headroom, but the present selector is a
+development **No-Go**.
+
+The implementation is reveal-order invariant only under fixed canonical sector
+indexing; its raw sector mask is not generally permutation-invariant or
+rotation-equivariant. The 80/20 `model_fit`/`selector_fit` split isolates the
+downstream heads, but the frozen base checkpoint was trained on the complete
+training role, including selector-fit blocks. The test has six spatial blocks
+but only four sequence-connected dependency components. A defect correction
+required re-evaluating this test during implementation, so it is consumed and
+cannot support a later confirmatory selector claim. A future GO requires
+spatial-block OOF utility targets or base checkpoints isolated from
+selector-fit blocks, plus a new sequence- or event-held-out final test. See
+[`docs/results/active_view_protocol.md`](results/active_view_protocol.md) and
+[`docs/results/active_view_cvian_spatial_v1.md`](results/active_view_cvian_spatial_v1.md).
+
 **目标：** 当前证据不足时，选择最能降低决策风险的下一视角。
 
 Ian 和 Milton 的现有完整 panorama 只能支持离线
@@ -211,7 +241,8 @@ Ian 和 Milton 的现有完整 panorama 只能支持离线
 4. 每次 `reveal_sector`、`stop` 和 `defer_human` 都分配预注册 cost；
 5. 以逐样本 utility reduction 作为训练目标：
    `loss_before - loss_after - acquisition_cost`；
-6. oracle-gap closure 只作为数据集级评价指标，不作为逐样本 reward；
+6. greedy one-step label-aware reference gap 只作为数据集级评价指标，不作为逐样本
+   reward，也不能表述为全局 multi-step acquisition upper bound；
 7. 真实标签只用于 training/calibration，policy 不得在 test 时读取标签；
 8. 在空间隔离或跨事件测试集上评价。
 
@@ -323,6 +354,18 @@ reliability，不能只重复普通 cross-view retrieval。
 
 ### P0.1 CVIAN Georeference and Split Audit
 
+**Implementation update (2026-07-10):** the official position file is now
+checksum-verified and joined one-to-one to all local pairs; spatial-block and
+sequence-grouped protocols, boundary-buffer provenance, schema tests, and
+leakage audits are implemented. The required five-seed performance comparison
+is also complete: repaired macro-F1 is lower by 0.049 to 0.097 depending on
+mode, confirming that the legacy split overstated generalization. See
+[`docs/results/cvian_georeference_split_audit.md`](results/cvian_georeference_split_audit.md)
+and [`docs/results/ian_split_performance_comparison.md`](results/ian_split_performance_comparison.md).
+The ISPRS and SIGSPATIAL drafts and the CVDisaster comparison note now identify
+the official georeference and no longer describe the legacy index grouping as
+a clean spatial split.
+
 - 下载并记录官方 CVIAN position 文件的 checksum 和版本；
 - 建立 image id 与 position feature 的连接；
 - 使用空间 block 或 panorama-location group 重新划分 train/val/test；
@@ -330,6 +373,14 @@ reliability，不能只重复普通 cross-view retrieval。
 - 修正文稿中“position not released”和 object-grouped split 的表述。
 
 ### P0.2 Persist Per-Sample Evidence
+
+**Implementation update (2026-07-10):** `train_reliability_gate.py` now writes
+the versioned `p0.2-v1` per-sample evidence schema with dynamic class
+probabilities, complete gate weights, visibility/reliability features,
+predictions, targets, event/group/location metadata, and a fixed-gate artifact
+fingerprint. The repaired five-seed run now emits separate gate-fit,
+risk-calibration, and final-test evidence from one frozen gate per seed. See
+[`docs/results/per_sample_evidence_schema.md`](results/per_sample_evidence_schema.md).
 
 修改 `train_reliability_gate.py`，逐样本保存：
 
@@ -343,12 +394,29 @@ reliability，不能只重复普通 cross-view retrieval。
 
 ### P0.3 Temporal and Missing-View Data Loader
 
+**Implementation update (2026-07-10):** the triage dataset now supports
+optional pre/post street and overhead views with separate availability,
+real-missing, and artificial-dropout masks. The Milton builder now accounts for
+all 2,555 source rows, preserves the 254 source-val rows for audit, and provides
+a buffered spatial protocol. Collected-versus-generated post-SVI provenance is
+still unresolved. Masks are exposed by the loader but are not yet consumed by a
+mask-aware fusion model. See
+[`docs/results/milton_manifest_split_audit.md`](results/milton_manifest_split_audit.md).
+
 - 支持可选的 pre-street、post-street、pre-overhead、post-overhead；
 - 不再要求每种实验都无条件加载两个 post-event views；
 - 为缺失视图提供 mask，并明确真实缺失与人为 dropout；
 - 核对 Milton source `val` rows 和完整样本计数。
 
 ### P0.4 DINS Field Join and Provenance
+
+**Implementation update (2026-07-10):** the official expanded Eaton layer is
+now fetched with paginated count verification, metadata/domains/statistics are
+preserved, and cross-service `OBJECTID` use is prohibited. A conservative
+spatial join matched 19,776/19,780 attachment rows without ambiguity; four
+remain in the manual provenance queue. Six non-overwriting derived artifacts
+were written beside the local attachment manifest. See
+[`docs/results/dins_field_join_provenance.md`](results/dins_field_join_provenance.md).
 
 - 从 CAL FIRE 官方 REST service 获取结构字段；
 - 使用稳定键或经过验证的空间连接，不假定不同服务的 `OBJECTID` 一致；
@@ -358,11 +426,26 @@ reliability，不能只重复普通 cross-view retrieval。
 
 ### P0.5 Inaccessible Semantics
 
+**Implementation update (2026-07-10):** the versioned operational ontology
+treats Eaton `Inaccessible` as a non-ordinal field-access constraint. It is
+allowed only for stress-test/human-escalation use and fails validation if used
+as generic uncertainty, an abstention target, a severity class, or a missing-
+view marker. See
+[`docs/operational_label_cost_ontology.md`](operational_label_cost_ontology.md).
+
 Eaton 的 `Inaccessible` 数量过少，不适合作为主要新分类头；“现场不可进入”也
 不等同于“图像看不见目标”。该字段只应用于 stress test、人工升级策略和
 业务语义核验，不能直接充当通用 abstention label。
 
 ### P0.6 Operational Label and Cost Ontology
+
+**Implementation update (2026-07-10):**
+`configs/operational_ontology.json` now preserves every dataset-native label,
+defines explicit action-level mappings and directional/resource costs, and
+restricts cross-event aggregation to registered event-macro action metrics.
+The `wildfire_3class` view is a read-only derived summary that retains its
+six-class provenance. See
+[`docs/operational_label_cost_ontology.md`](operational_label_cost_ontology.md).
 
 Eaton 的 `no/trace`、`repairable`、`destroyed` 与 Ian/Milton 的
 `mild/minor`、`moderate`、`severe` 并非天然等价。跨事件策略应先定义：
@@ -375,6 +458,19 @@ Eaton 的 `no/trace`、`repairable`、`destroyed` 与 Ian/Milton 的
 不能仅凭相同的 class index 将三个数据集拼成统一决策任务。
 
 ### P0.7 Risk-Control Split and Claim Rule
+
+**Implementation update (2026-07-10):** a strict three-role protocol now
+audits gate-fit/risk-calibration/final-test disjointness, calibrates a fixed
+threshold grid with simultaneous finite-sample upper bounds, evaluates the
+locked policy once, and downgrades failed or cross-event claims to
+`risk-aware`. The CLI writes risk-coverage/AURC, review-budget recall,
+calibration diagnostics, and `per_sample_decision.csv`. Formal bounds operate
+on registered spatial-group macro losses rather than treating correlated image
+rows as independent. On repaired Ian, all five seeds correctly remain
+`risk-aware`: severe calibration examples occur in only two blocks, so no 10%
+severe-FNR threshold is certifiable. See
+[`docs/results/selective_triage_protocol.md`](results/selective_triage_protocol.md)
+and [`docs/results/selective_triage_ian_spatial_v1.md`](results/selective_triage_ian_spatial_v1.md).
 
 - 将 gate-fitting data 与 risk-calibration data 分开；
 - 预注册 primary loss、`alpha`、`delta` 和 threshold grid；
@@ -394,6 +490,12 @@ Eaton 的 `no/trace`、`repairable`、`destroyed` 与 Ian/Milton 的
 
 ### Weeks 3–4: Selective Triage and Routing MVP
 
+**Implementation update (2026-07-10):** the selective evaluator, group-aware
+risk bounds, fail-closed decisions, seven routing policies, fixed-stop/distance
+budgets, GeoJSON route, and actionable Markdown report are implemented. The
+Ian seed-42 three-stop case is generated; the statistical go criterion is not
+met because the available independent calibration-block count is too small.
+
 - 实现 `scripts/eval_selective_triage.py`；
 - 实现 `scripts/build_actionable_report.py`；
 - 实现基于 K stops / travel distance 的 route simulation；
@@ -401,6 +503,15 @@ Eaton 的 `no/trace`、`repairable`、`destroyed` 与 Ian/Milton 的
 - 判断 conflict 是否在 severity probability 之外提供增量效用。
 
 ### Weeks 5–8: Active-View Benchmark
+
+**Implementation update (2026-07-10):** the Ian in-event fixed-budget
+development track is complete for five seeds and returned No-Go for the learned
+policy. The current spatial test is consumed; a new sequence/event holdout is
+required for a confirmatory comparison. The current role split isolates only
+the downstream heads, so base-encoder or spatial-block OOF utility-target
+isolation is also required before a future GO. Adaptive `stop`/`defer_human`,
+sequence-grouped sensitivity, Milton transfer, and the reverse transfer remain
+unfinished.
 
 - 生成 Ian/Milton multi-azimuth crop manifests；
 - 建立 next-view baselines；
@@ -429,6 +540,11 @@ bootstrap 95% confidence interval 下界高于零。
 继续主线需要满足：在相同 view budget 下，learned policy 优于
 building-centered heuristic，并降低 severe miss 或 extreme-error cost。只提高
 平均 accuracy 而不改善风险指标不足以支持 active-evidence claim。
+
+当前 CVIAN 结果是 development No-Go，不是通过预注册 confirmatory test 得到的
+最终结论。未来任何 GO 必须使用新的 sequence/event holdout，并在 base encoder
+与 action-target 生成层面完成 OOF/role isolation；不得继续使用已消耗的空间 test
+选择 selector、预算或 Go 规则。
 
 ### Conflict-to-Route
 
