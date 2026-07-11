@@ -71,6 +71,36 @@ require out-of-fold/base-encoder role isolation and a new sequence- or
 event-held-out confirmatory test. See
 [`active_view_cvian_spatial_v1.md`](docs/results/active_view_cvian_spatial_v1.md).
 
+The replacement four-role CVIAN protocol has now been executed from scratch:
+1,130 base-fit, 662 selector-fit, 372 validation, and 137 prospective-test
+samples, with zero sequence or spatial-block overlap and a 25 m buffer. The
+role-isolated label-cost selector again returned **NO-GO**. Its component-macro
+cost was 1.804, versus 1.753 for farthest angular coverage and 1.778 for the
+privileged building heuristic; it also failed severe-miss non-inferiority. A
+post-scoring Windows newline bug affected only the completed-run verifier, not
+scoring; an independent verifier reproduced every metric and bootstrap result
+without inference or cache loading. Per the frozen reuse rule, the result is a
+consumed development/exploratory NO-GO. See the
+[`protocol`](docs/results/cvian_sequence_four_role_protocol.md),
+[`result`](docs/results/cvian_sequence_utility_v1.md), and
+[`integrity addendum`](docs/results/cvian_sequence_utility_v1_integrity_addendum.md).
+
+A frozen Ian-to-Milton follow-up has also been executed once. A rotation-local
+29-dimensional policy was fit only on CVIAN `selector_fit` and `validation`
+roles, then applied to the 1,707-row Milton sensitivity cohort over five model
+seeds, eight physical origins, and 32 random trajectories. The relative policy
+had lower descriptive operational cost than random sampling by 0.0246 at the
+dependency-group estimand (joint-component 95% interval 0.0133 to 0.0449) and
+0.0215 at the spatial-block estimand (0.0137 to 0.0343). Its smaller advantages
+over farthest angular coverage were not separated from zero; the label-aware
+oracle retained a large advantage. Milton influenced hypothesis development,
+lacks observed sequence/compass metadata, and has unresolved post-SVI
+provenance, so this is **zero-shot sensitivity evidence only**: no GO/NO-GO
+test and no confirmatory transfer claim were performed. See the frozen
+[`Milton sensitivity result`](docs/results/active_view_milton_zero_shot_v1.md)
+and its
+[`independent integrity verification`](docs/results/active_view_milton_zero_shot_v1_integrity.md).
+
 **Direction revision (2026-07-10).** The research object moves from fitting a
 single severity label to **view-conditional attestability**: the severity label
 is treated as a lossy projection of multi-facet evidence, cross-view
@@ -79,12 +109,19 @@ label-loss reduction — as the acquisition utility. This also reframes the
 active-view No-Go: target misspecification is now an explicit rival hypothesis
 to selector immaturity. See the
 [attestability revision memo](docs/2026-07-10_crossviewguard_attestability_revision.md).
-The first anatomy study (RQ1 Study A, exploratory, non-test roles only) is
-executed: no development criterion was met — the existing visibility features
-carry no held-out attestability signal, and a consistent but unconfirmed
-street-more-severe directional lean appears in 5/5 seeds. The Eaton
-component-level study is now the critical test. See
-[`disagreement_anatomy_cvian_v1.md`](docs/results/disagreement_anatomy_cvian_v1.md).
+The first anatomy study (RQ1 Study A, exploratory, non-test roles only) met no
+development criterion: the existing visibility features carry no held-out
+attestability signal, and a consistent but unconfirmed street-more-severe lean
+appears in 5/5 seeds. The Eaton Study B feasibility audit is also complete but
+inferentially blocked: available DINS component-like fields describe
+construction/material rather than component-damage dominance, and genuine
+paired-view predictions and frozen spatial groups are absent. The strict
+dependency gate therefore marks empirical RQ2 matrix training and RQ3
+attestation-coverage utility **NO-GO on current data**, not a negative test of
+the hypothesis. See the
+[`CVIAN anatomy result`](docs/results/disagreement_anatomy_cvian_v1.md),
+[`Eaton audit`](docs/results/disagreement_anatomy_eaton_v1.md), and
+[`attestation dependency gate`](docs/results/attestation_dependency_gate_20260710.md).
 
 ## Repository map
 
@@ -113,6 +150,8 @@ Key scripts, in pipeline order:
 | Causal FOV intervention | `build_fov_intervention.py`, `run_fov_intervention.sh`, `analyze_fov_intervention.py` |
 | Conflict-density maps | `analyze_conflict_density_maps.py` |
 | Development active next-view benchmark | `build_cvian_active_view_manifests.py`, `cache_cvian_active_view_embeddings.py`, `run_cvian_active_view_experiment.py`, `summarize_cvian_active_view.py` |
+| Four-role CVIAN sequence benchmark | `build_cvian_sequence_four_role_manifests.py`, `run_cvian_sequence_base_multiseed.py`, `cache_cvian_active_view_embeddings.py`, `cache_cvian_sector_visibility.py`, `run_cvian_sequence_utility_experiment.py`, `verify_cvian_sequence_utility_completion.py` |
+| Frozen Milton zero-shot sensitivity | `build_milton_active_view_transfer_manifest.py`, `cache_milton_active_view_embeddings.py`, `fit_cvian_relative_geometry_utility.py`, `run_milton_zero_shot_active_view_sensitivity.py`, `verify_milton_zero_shot_active_view_sensitivity.py` |
 | RQ1 disagreement anatomy (exploratory) | `analyze_disagreement_anatomy.py` |
 | Statistics | `analyze_pooled_seed_tests.py`, `analyze_ordinal_metrics.py` |
 | Manuscript | `build_manuscript_docx.py` |
@@ -147,6 +186,10 @@ python scripts/build_ian_hurricane_manifests.py `
   --output-dir data/splits/ian_hurricane_original `
   --split-strategy spatial-block --spatial-buffer-m 25
 ```
+
+The portable 4,121-point GeoJSON, checksum map, sample index, and audited
+spatial split are also published in
+[`rayford295/disaster-crossview-datasets`](https://github.com/rayford295/disaster-crossview-datasets/tree/main/IAN_hurricane).
 
 The georeference and repaired-split audit is documented in
 [`docs/results/cvian_georeference_split_audit.md`](docs/results/cvian_georeference_split_audit.md).

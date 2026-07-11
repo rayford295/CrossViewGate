@@ -1,12 +1,16 @@
 # CrossViewGuard: 从灾害分类到风险可控的主动证据获取
 
 - **Date:** 2026-07-10
-- **Status:** active implementation; P0 repair, Weeks 3–4 MVP, and the first
-  CVIAN Weeks 5–8 sequential-reveal **development** benchmark are executed. The
-  learned next-view selector did not meet the development Go criterion. The
-  spatial test is consumed; adaptive stop/defer, base-encoder/utility-target OOF
-  isolation, a new sequence/event confirmatory holdout, and cross-event transfer
-  remain open.
+- **Status:** **current-data execution endpoint reached (2026-07-11); central
+  CrossViewGuard hypothesis remains incomplete and unconfirmed.** The four-role
+  CVIAN label-cost selector is a consumed development/exploratory within-CVIAN
+  **NO-GO**. The frozen one-time Milton run is sensitivity-only: the relative
+  policy has a positive descriptive contrast against random, but its intervals
+  against farthest and clockwise cross zero, so it is neither a GO nor external
+  confirmation. RQ1 Study A met 0/3 criteria, Eaton Study B is inferentially
+  blocked, and RQ2/RQ3 cannot be executed without new provenance-bearing
+  annotations. See the consolidated
+  [`execution status`](results/crossviewguard_execution_status_20260710.md).
 - **Relationship to prior memo:** 本文细化并调整
   [`2026-07-09_from_classification_to_actionable_reports.md`](./2026-07-09_from_classification_to_actionable_reports.md)。
 旧 memo 将报告生成视为主要延伸；本文把报告降为呈现层，把
@@ -23,6 +27,34 @@ VLM 生成报告。更强的研究问题是：
 这一转变把 CrossViewGate 从静态分类器升级为
 **风险可控的主动证据调度器**。跨视图分歧不再只产生另一个类别，而是触发
 一个可评价的下一步行动。
+
+## 0. 执行终局更新（2026-07-11）
+
+原计划中**依赖当前 CVIAN、Milton 与 Eaton 资产即可合法执行的分支已经跑到
+终点**；这不等于 CrossViewGuard 整体完成，也不等于中心命题被证伪。
+
+- CVIAN 四角色 label-cost 实验为 NO-GO：在固定 `k=3` 下，farthest-minus-
+  utility 为 `-0.050935`（95% CI `[-0.114026, -0.000229]`），privileged
+  maximum-building-minus-utility 为 `-0.025325`（95% CI
+  `[-0.054784, 0.001634]`）。
+- Windows CRLF 使完成验证器预期的 LF hash 与原始 commitment hash 不同；
+  独立复核确认原始 hash DAG、语义指纹和两组 10,000 次 bootstrap 一致。正确
+  结论是 **hash-chain-verified consumed development/exploratory within-CVIAN
+  NO-GO**，不是 confirmatory result。
+- Milton 的一次性 frozen zero-shot sensitivity 已完成。relative 对 random 的
+  dependency-group / spatial-block 描述性差值分别为 `+0.024557`
+  （95% CI `[0.013279, 0.044898]`）和 `+0.021502`
+  （95% CI `[0.013730, 0.034251]`）；对 farthest 与 clockwise 的区间均跨零。
+- RQ1 Study A 为 0/3；Eaton Study B 因缺少 component-damage dominance 参照、
+  真实双视角预测和冻结空间分组而受阻；RQ2/RQ3 因缺少字段级损伤与可证实性
+  标注而为严格 dependency NO-GO。
+
+因此，当前证据只支持“协议、基准、负结果与依赖门禁已经完成”。它**不支持**
+“跨视图分歧编码了视角条件可证实性”或“证实覆盖策略优于几何基线”的结论。
+重新开启中心假说检验必须先取得新的外部事件/多方位序列和符合
+[`attestation contract`](../configs/crossviewguard_attestation_contract_v1.json)
+的字段级标注，再冻结新的、角色隔离的 protocol；不得继续在已消耗的 CVIAN
+或 Milton v1 test 上调 selector、预算或 GO 规则。
 
 ## 1. 为什么这个方向来自现有结果
 
@@ -53,41 +85,45 @@ VLM 生成报告。更强的研究问题是：
   post-disaster street view；
 - 已有 object id、attachment id、经纬度、remote tile、remote pixel location、
   coverage distance 和 pairing status；
-- CAL FIRE 的公开 DINS 服务还包含 structure type、structure category、roof、
-  eaves、vent screen、exterior siding、window pane、deck/porch 等结构字段。
+- 本地审计已将 19,776 个 manifest rows 连接到 DINS，覆盖 18,411 个唯一结构。
 
-这些 DINS 结构字段目前没有进入 CrossViewGate manifest。它们需要从官方服务
-重新获取并通过稳定的空间或记录键连接，不能把当前 damage category 误写成
-完整的 report ground truth。
+连接缺口已关闭，但构念缺口没有关闭：当前 roof、eaves、vent screen、exterior
+siding、window pane、deck/porch 等字段描述 construction/material/presence/
+exposure，不是 component-damage dominance，不能作为 RQ1 Study B 或 RQ2 的
+字段级损伤真值。Eaton 还缺真实双视角 severity predictions 与冻结 spatial
+groups；详见
+[`Eaton feasibility audit`](results/disagreement_anatomy_eaton_v1.md)。
 
 ### 2.2 Hurricane Ian / CVIAN
 
 - 4,121 个 post-disaster street/satellite pairs；
-- 当前本地 CSV 只包含图像路径和 severity；
-- CVDisaster 官方完整数据包另含
-  `02_Position/CVIAN_position.geojson` 和 position shapefile。
+- 官方 `02_Position/CVIAN_position.geojson` 已校验 checksum 并与全部本地 pairs
+  一对一连接；坐标、空间 block、sequence group 与 boundary-buffer provenance
+  已进入修复后的 manifest 和审计协议；
+- 五种子 legacy-vs-spatial split 比较已完成，修复后的 macro-F1 按模式下降
+  0.049–0.097，确认旧的顺序 `objectid` 分组不能代表干净的空间泛化。
 
-这意味着 Ian 并非无法进行空间分析。应导入官方 position 文件，再建立空间
-block split、conflict map 和 route simulation。当前 builder 给每行分配顺序
-`objectid`，不能证明论文所称的 object-grouped split。
+因此 Ian 的地理位置缺口已经关闭；后续受限点不再是坐标，而是独立依赖组数量、
+已消耗测试集，以及 RQ2/RQ3 所需的字段级损伤/可证实性标注。
 
 ### 2.3 Hurricane Milton
 
 - 源数据包含 pre-disaster street、post-disaster street、post-disaster
   satellite、经纬度、prompt 和 source split；
-- 当前 manifest 已保留这些字段；
+- 冻结 sensitivity manifest 已保留来源与坐标字段；最终评分包含 1,707 个样本、
+  259 个 dependency groups、57 个 spatial blocks、5 个 seeds 与 8 个 origins；
 - 当前 `CrossViewTriageDataset` 只读取 post street、post satellite、label 和
   sample id，未使用 pre-disaster street；
-- GenDisasterSVI 数据清单记录 2,555 个 indexed samples，并单独列出
-  train/val/test；它不同于 `Bi-temporal_hurricane` 清单中的 2,556 个 paired
-  folders。当前 builder 只选择 source `train` 和 `test`，需要直接审计源 CSV
-  的 `set` 分布、过滤条件和最终保留行数。
-- 数据名称和 manifest 中保留的 `prompt` 表明还需核验 post-SVI 的生成与采集
-  provenance。若部分图像为生成数据，Milton 应作为敏感性分析，真实 CVIAN
-  应作为 active-view 主结果。
+- Milton 影响过假说开发，且没有可观测真实 acquisition sequence 或可信 compass；
+  因而冻结协议预先将其限定为 sensitivity-only，而不是 confirmatory event；
+- **P0.3 媒体来源仍未解决：** manifest/source-split 与 hash-chain 审计证明了本次
+  本地评分链的可追溯性，但不能证明 post-SVI 是现场采集还是生成媒体；保留的
+  `prompt` 等字段不足以消除 collected-vs-generated ambiguity。
 
-Milton 因此适合研究“视角乘以时间”的证据增益，而不是继续把信息压缩成一个
-三分类输入。
+Milton 的一次性 zero-shot sensitivity 与独立完成验证均已结束。它提供 relative
+对 random 的正向描述性信号，但没有超过 farthest/clockwise 的确认性证据；不得
+重跑以选择 policy 或把它升级为外部验证。完整性边界见
+[`Milton integrity verification`](results/active_view_milton_zero_shot_v1_integrity.md)。
 
 ### 2.4 已有代码脚手架
 
@@ -226,6 +262,36 @@ spatial-block OOF utility targets or base checkpoints isolated from
 selector-fit blocks, plus a new sequence- or event-held-out final test. See
 [`docs/results/active_view_protocol.md`](results/active_view_protocol.md) and
 [`docs/results/active_view_cvian_spatial_v1.md`](results/active_view_cvian_spatial_v1.md).
+
+**Final execution update (2026-07-11):** the repaired four-role experiment is
+also complete and remains a NO-GO. Its primary role is
+`selector_selection_holdout_with_historical_base_exposure` (137 samples, 22
+sequence components, 21 severe samples), so it improves downstream role
+isolation but is not a never-seen external confirmation. At fixed `k=3`, the
+registered utility policy is worse than farthest angular coverage by `0.050935`
+component-macro cost (farthest-minus-utility 95% CI
+`[-0.114026, -0.000229]`) and is not superior to privileged maximum-building
+selection (contrast `-0.025325`, 95% CI `[-0.054784, 0.001634]`). A Windows
+CRLF verifier defect was independently bounded to newline representation; the
+raw hash DAG, semantic fingerprint, result, and both 10,000-draw bootstraps
+verify. The resulting claim is **hash-chain-verified consumed
+development/exploratory within-CVIAN NO-GO**, not confirmatory evidence. See
+[`docs/results/cvian_sequence_utility_v1.md`](results/cvian_sequence_utility_v1.md)
+and the
+[`integrity addendum`](results/cvian_sequence_utility_v1_integrity_addendum.md).
+
+The frozen Milton sensitivity run is also complete. Relative geometry beats
+`random_mc32` descriptively under both dependency-group and spatial-block
+aggregation, but its intervals against farthest and clockwise cross zero. It
+therefore supplies a bounded sensitivity signal, not a GO, transfer claim, or
+external confirmation. The independent post-score verifier passed with
+`verified=true`, no defect or downgrade, and independently matched the hash
+chain, all decisions/RNG replays, estimands, and bootstraps without inference or
+rescoring. See
+[`docs/results/active_view_milton_zero_shot_v1.md`](results/active_view_milton_zero_shot_v1.md).
+The human-readable integrity record is
+[`docs/results/active_view_milton_zero_shot_v1_integrity.md`](results/active_view_milton_zero_shot_v1_integrity.md).
+There is no legitimate current-data continuation by tuning these consumed tests.
 
 **目标：** 当前证据不足时，选择最能降低决策风险的下一视角。
 
@@ -504,14 +570,19 @@ met because the available independent calibration-block count is too small.
 
 ### Weeks 5–8: Active-View Benchmark
 
-**Implementation update (2026-07-10):** the Ian in-event fixed-budget
-development track is complete for five seeds and returned No-Go for the learned
-policy. The current spatial test is consumed; a new sequence/event holdout is
-required for a confirmatory comparison. The current role split isolates only
-the downstream heads, so base-encoder or spatial-block OOF utility-target
-isolation is also required before a future GO. Adaptive `stop`/`defer_human`,
-sequence-grouped sensitivity, Milton transfer, and the reverse transfer remain
-unfinished.
+**Final execution update (2026-07-11):** the current-data active-view branch is
+complete. The original spatial-v1 and repaired four-role CVIAN experiments both
+returned development NO-GO. The four-role test is consumed and carries
+historical base exposure; it cannot be recycled into confirmation. The one-time
+Milton zero-shot run is complete as sensitivity-only: relative geometry has a
+positive descriptive contrast against random, but the primary intervals against
+farthest and clockwise cross zero. Adaptive stop/defer remains secondary and
+uncalibrated: fail-closed STOP is disabled and the threshold-1 heuristic is only
+risk-aware. RQ2/RQ3 cannot proceed on current assets because real field-level
+damage, observability/judgment/abstention, and held-out attestation labels do not
+exist. The next executable phase is external annotation/data acquisition followed
+by a newly frozen, role-isolated protocol—not further tuning on CVIAN or Milton
+v1.
 
 - 生成 Ian/Milton multi-azimuth crop manifests；
 - 建立 next-view baselines；
@@ -521,11 +592,18 @@ unfinished.
 
 ### Weeks 9–12: External Validation and Paper Package
 
-- 优先加入 Palisades DINS 作为第二个 property-centric wildfire event；
-- 或在数据权限不完整时，用现有三事件完成 leave-one-event-out validation；
-- 锁定 task definition、baselines 和 primary metrics；
-- 生成方法图、risk-coverage 图、budgeted discovery 图和路线案例；
-- 完成论文 outline 与 reproducibility checklist。
+**Current disposition (2026-07-11):** 现有三事件不能完成 attestability/
+attestation-coverage 的外部确认；Milton 已限定为 sensitivity，Eaton 缺损伤构念，
+CVIAN 测试已消耗。该阶段在新数据到位前 BLOCKED。
+
+- 取得新的 property-centric event 或真实 multi-azimuth field/vehicle/UAV
+  acquisition sequence；
+- 取得满足 annotation contract 的 field × view 可证实性标注与 Eaton
+  component-damage dominance 参照；
+- 在查看新 test outcome 前冻结 task、role isolation、baselines、costs、风险规则
+  和 primary metrics；
+- 仅在这些 unlock 条件满足后执行 prospective/external evaluation 与 paper
+  package。
 
 ## 7. Go / No-Go 判据
 
@@ -545,6 +623,17 @@ building-centered heuristic，并降低 severe miss 或 extreme-error cost。只
 最终结论。未来任何 GO 必须使用新的 sequence/event holdout，并在 base encoder
 与 action-target 生成层面完成 OOF/role isolation；不得继续使用已消耗的空间 test
 选择 selector、预算或 Go 规则。
+
+四角色修复实验没有改变该判定：utility policy 相对 farthest 的主要区间完全位于
+零以下，相对 privileged maximum-building 的区间跨零。CRLF 完成验证缺陷已由
+独立复核限定在换行表示，但使最终 claim 必须降级为 **hash-chain-verified
+consumed development/exploratory within-CVIAN NO-GO**。Milton 只提供 relative
+对 random 的正向描述性敏感性；对 farthest/clockwise 未确认，故没有 GO。
+
+这关闭的是**当前数据上的 label-cost selector 分支**，不是对 attestability /
+attestation-coverage 中心假说的检验。该假说仍未完成、未确认；在取得字段级
+可证实性标注、独立事件/真实多方位序列和新的 prospective test 之前，不得把
+label-cost utility 改名为 attestation coverage，也不得继续声称主线已经验证。
 
 ### Conflict-to-Route
 
@@ -567,6 +656,14 @@ VLM report experiment。ROUGE、BLEU 或单一 LLM judge 不能作为主要证�
 **Central claim**
 
 > Cross-view disagreement should trigger an action, not merely another class.
+
+**Current evidence boundary (2026-07-11):** this remains a research motivation,
+not an established empirical claim. The current publishable package is a
+protocol/benchmark plus development NO-GO, sensitivity, anatomy 0/3, and explicit
+data-dependency results. A paper claiming view-conditional attestability or
+attestation-coverage superiority requires the external unlock conditions listed
+in the consolidated execution status; the present results cannot support that
+claim.
 
 **Three contributions**
 
