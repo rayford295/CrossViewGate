@@ -1,0 +1,10 @@
+.gitattributes text eol=lf
+configs/eaton_component_direction_v1*.json text eol=lf
+crossview_conflict/analysis/*.py text eol=lf
+scripts/*eaton_component*.py text eol=lf
+scripts/run_eaton_preannotation_futility_gate.py text eol=lf
+tests/test_eaton_component*.py text eol=lf
+tests/test_eaton_preannotation_futility_cli.py text eol=lf
+docs/protocols/eaton_component_direction_v1.md text eol=lf
+docs/results/eaton_component_observability_v1.md text eol=lf
+docs/results/artifacts/eaton_component_preannotation_futility_v1.json text eol=lf

@@ -1,5 +1,15 @@
 # CrossViewGuard: 从灾害分类到风险可控的主动证据获取
 
+> **Focused Eaton update (2026-07-11):** Eaton now has a frozen four-role
+> spatial protocol and fresh role-isolated model execution. The earlier plan
+> text saying that Eaton predictions and spatial roles are absent is superseded.
+> The focused damaged-component observability v1 branch reaches an
+> outcome-blind structural STOP before human annotation because its complete
+> development role has 28 spatial blocks, below the registered 30 eligible-block
+> minimum; its completed ensemble has 97 unsigned disagreements across 24
+> blocks, also below the 250/30 capacity gates. See
+> [`results/eaton_component_observability_v1.md`](results/eaton_component_observability_v1.md).
+
 - **Date:** 2026-07-10
 - **Status:** **current-data execution endpoint reached (2026-07-11); central
   CrossViewGuard hypothesis remains incomplete and unconfirmed.** The four-role

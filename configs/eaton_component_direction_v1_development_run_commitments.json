@@ -1,0 +1,93 @@
+{
+  "schema_version": "eaton-component-direction-development-run-commitments-v1",
+  "protocol_version": "eaton-component-direction-v1",
+  "status": "FROZEN_BEFORE_PRE_ANNOTATION_FUTILITY_AUDIT",
+  "protocol_config_sha256": "79bfc18f3e8d690ace9d460e7fada1c23c032e75da9dc18006c96e0033eadbb9",
+  "protocol_summary_sha256": "e8894ec1862762c549673622411d0986e3d0e5482a536b1a078ce9316f28926e",
+  "prediction_csv_sha256": "5a99017c38b5600b9c08c380156682c572cabc4ba8267762535055caf2b65c25",
+  "prediction_metadata_sha256": "8c68a6ea830a7fa1820aa0f3edd3fa6cfc4e7291761c57fcec10abb3e4b3d1e9",
+  "prediction_role": "study_development",
+  "spatial_confirmation_read_or_scored": false,
+  "seeds": [
+    42,
+    123,
+    456,
+    789,
+    1011
+  ],
+  "runner_sha256": "9a699f524791cd9d2e5991bae13ce8a85680d5bc45cd19d563d182c5596dbc1b",
+  "role_manifest_sha256": {
+    "model_fit": "84b002563f1a9fc7a77e17037c74277c53dc3f18f724474a57f62a5f921a9dd7",
+    "model_validation": "fa060bae1e1949c0d427407c5b0acc197e318aeca2e61194d02c01b2da4c3240",
+    "study_development": "ae90bae3676911325df1086ab582a80f5f481e09c35e32b547e221eb10ca98f7"
+  },
+  "code_sha256": {
+    "scripts/run_eaton_component_models.py": "9a699f524791cd9d2e5991bae13ce8a85680d5bc45cd19d563d182c5596dbc1b",
+    "scripts/build_eaton_component_direction_protocol.py": "aadb4be38f7b6c9977707b0f9c75b5f57bce439f772c7b5787efda7469c795cb",
+    "scripts/train_triage.py": "4e7f4ee7eeaa34401b9cabb0b13beb40b95749e65d51149a426ebc3e51cf9c88",
+    "scripts/eval_triage.py": "c7536bee1f889a621e914706178865e95755d21c3c8a16042f7b585fa2351481",
+    "crossview_conflict/factory.py": "7bc3c2090cc080c5fd202d42f1820dda2a4b47c13e2da8d1192a18f850a2146b",
+    "crossview_conflict/data/datasets.py": "c9914fbf04f304af420caf0af30cefc76e855341f78a4d2fe1de261b35393e2a",
+    "crossview_conflict/models/triage.py": "251106459f3f0eed4f3ae4d342a31c1ba0573844dcd042cb1bc629a49b29595f",
+    "crossview_conflict/models/backbones.py": "9b27106c2ab6d760766a26754f369dd2b34f3e4b5bb26ad8b9ce6320e314dee6",
+    "crossview_conflict/training/loops.py": "f175db6484d454b47b6d1c8eb76d85d30e62345128893a69e3086bb05248a703",
+    "crossview_conflict/training/metrics.py": "6c553b40a849077622fbbec70ec3a8d68a25a0d5f16b17a936e10151cccc24b6",
+    "crossview_conflict/training/conflict_focal_loss.py": "2e3060843e0ad738b958ba337d81fbdec09865128ef8fd1974dc88dcff3eeb40",
+    "crossview_conflict/utils/image.py": "ab23d36b8588bbaedbda3bc896d1a09d08b3b512eb99e95e58f035eb195ef152",
+    "crossview_conflict/utils/io.py": "b1f2f5326b43d9c3b1d68f04703ce84a47e747ada057a515305df9cb8a58feaa",
+    "crossview_conflict/utils/seed.py": "d66e1b10fdd17fca5e5d04687d410f3647b330b6f46791bae4412ac73afbcf55"
+  },
+  "model_artifacts": {
+    "street_only_seed42": {
+      "checkpoint_sha256": "d601eecd6d9e7d1d9065354ad96e4d4799206f87afb1c06ff34ad6f73a0ff481",
+      "validation_predictions_sha256": "befda8642908b2c0b3e2d5e7b5314dfc2f5ce5fa333c841b1d06c27339e2484b",
+      "development_predictions_sha256": "5121a0729b72e4eeed61a3fe5a0a6a89a0b8938a92f2f976483624a1ab7c6ffe"
+    },
+    "remote_only_seed42": {
+      "checkpoint_sha256": "2d5bb5453e301ca5f662f501df395ffe0c56689b5850040525cedc1bee4f67b0",
+      "validation_predictions_sha256": "2adda15d15ce766ec2b45db98a34652d80979ee112fde07709087ec591182f16",
+      "development_predictions_sha256": "b023a3df00e76763d64490fb3ac11d7fd3b490009e492cc159c883e0729e280c"
+    },
+    "street_only_seed123": {
+      "checkpoint_sha256": "0b1332e4335c5e9954214678e37dbf47b8519f080e3905e59ed309d5897cec77",
+      "validation_predictions_sha256": "4cfc13a669c192e7cd668b6a8ca3c5eeb3428d655278e13d4b0a24f1827bc35e",
+      "development_predictions_sha256": "c337b458a85845d30909e615d5c0cefa2a62f8a2b9f086b88b40477316a2123a"
+    },
+    "remote_only_seed123": {
+      "checkpoint_sha256": "5538d18e69ce818e536db73f33dd8eb840593048ef514bfe46cfab0ad235cf9d",
+      "validation_predictions_sha256": "1d0d27919ea346d2ddd9d9f45fbf00b66810357de8ddd496f18a0fd75cee1fa5",
+      "development_predictions_sha256": "666c206eec51c6afb2913f7095e5248e8fd83028a47f3cfff95cfe32d7884b33"
+    },
+    "street_only_seed456": {
+      "checkpoint_sha256": "0dc04aeb1155f45000899951cc82f5f071cd76995f13db5e771c6b2dc15a8310",
+      "validation_predictions_sha256": "19c4df959d069d015b37571ff51332aa59e1799a119b5c1e8ba3f9a711e24bef",
+      "development_predictions_sha256": "a7b5a1e2dd83dadd592a0823737cb75d51aa979e3102eedaa59199f61896168e"
+    },
+    "remote_only_seed456": {
+      "checkpoint_sha256": "9583354c1b597994ccd5293fae6cf0edce6cff6c281dcb0cc81d757bc4ac8ec7",
+      "validation_predictions_sha256": "aa505e329f558167f9291a66e94f0249b3d9e1983a4c84dec298de5b44b54b10",
+      "development_predictions_sha256": "2e2276e838bca1c57b04089b060f5cdd6934e8f4761766ca466a3598e274492f"
+    },
+    "street_only_seed789": {
+      "checkpoint_sha256": "eb89a827d660c3fb4525286b826c60cf926e604fe6dab9527fc8ada84b812821",
+      "validation_predictions_sha256": "0e9a21167cd39817fff31a42d201c1b84fd7a85e5f4c67317860272b75e19033",
+      "development_predictions_sha256": "f8f4277e808c3bd21c56634251fbbe8f18de06420506c57a75b65e9a4170e261"
+    },
+    "remote_only_seed789": {
+      "checkpoint_sha256": "efae8fddb24d9b5314243b83ba976c73b543b84bd55668d64364d60a277ab30f",
+      "validation_predictions_sha256": "404570444b721705717ab0766a55d2756b09cb373fdcba65fd4e861950f27417",
+      "development_predictions_sha256": "fda8bf7684ab601be7d6c024db99b3964083c0cabe0d15af6a8365ddc225f88a"
+    },
+    "street_only_seed1011": {
+      "checkpoint_sha256": "afc62da0abbb46862b040de80c37a38c39c38f89daecbfafb15ffab2c4742da2",
+      "validation_predictions_sha256": "3a01d9ad1f9c48335680e833ce95e4ef8ed40f12e71374899bee7c12bbbded2f",
+      "development_predictions_sha256": "70674c5e120bd36706ef1de9d2f6eacca3abcbaa8a5414c151c76a911069938b"
+    },
+    "remote_only_seed1011": {
+      "checkpoint_sha256": "c49b3da35032bf6ea2451a76e388d875b380af9f6244241bdeef242156e62aed",
+      "validation_predictions_sha256": "a9c41d2f72c622bd2bb68fa101d09171213ef2310ed2f1eb117fbdc9b267d076",
+      "development_predictions_sha256": "9bfa07e420716781faa3122b252eb4d49f4153e3f3534a7cc20cf6796a2b1592"
+    }
+  },
+  "scope": "Raw artifact hashes frozen after the fresh development model run and before any pre-annotation futility audit or signed-direction analysis."
+}

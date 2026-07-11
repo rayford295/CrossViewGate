@@ -1,0 +1,19 @@
+{
+  "schema_version": "eaton-component-direction-artifact-commitments-v1",
+  "protocol_version": "eaton-component-direction-v1",
+  "event_id": "eaton_fire_2025",
+  "status": "FROZEN_BEFORE_REGISTERED_DIRECTIONAL_ANALYSIS",
+  "protocol_config_sha256": "79bfc18f3e8d690ace9d460e7fada1c23c032e75da9dc18006c96e0033eadbb9",
+  "protocol_summary_sha256": "e8894ec1862762c549673622411d0986e3d0e5482a536b1a078ce9316f28926e",
+  "split_builder_sha256": "aadb4be38f7b6c9977707b0f9c75b5f57bce439f772c7b5787efda7469c795cb",
+  "joined_manifest_sha256": "c413c272a761b0c25269bab1158438b28f2f3727cb8bfdd7edab42d0b281ffcf",
+  "role_manifest_sha256": {
+    "model_fit": "84b002563f1a9fc7a77e17037c74277c53dc3f18f724474a57f62a5f921a9dd7",
+    "model_validation": "fa060bae1e1949c0d427407c5b0acc197e318aeca2e61194d02c01b2da4c3240",
+    "study_development": "ae90bae3676911325df1086ab582a80f5f481e09c35e32b547e221eb10ca98f7",
+    "spatial_confirmation": "3f7cd19f6afe55bbb761c7a44e6e6dfeea31744fe84d0665c597388629cdcbfe"
+  },
+  "media_hash_ledger_sha256": "8f539f045cd3b986e72f76159bffb32b514889e1b99eeeaa3283f12340c3dbda",
+  "confirmation_status": "UNSCORED_RESERVED_SAME_EVENT_SPATIAL_CONFIRMATION",
+  "scope": "These hashes anchor the local frozen spatial protocol artifacts. They do not contain or imply an H-B1/H-B2 result."
+}
