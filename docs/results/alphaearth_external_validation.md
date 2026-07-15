@@ -74,6 +74,9 @@ outputs/experiments/alphaearth_post_street_comparison/comparison.md
 
 ## Reproduction
 
+See `docs/alphaearth_api_usage.md` for Earth Engine project setup, leakage
+rules, and the tracked AlphaEarth artifacts.
+
 ```powershell
 earthengine set_project extended-acumen-502205-v5
 
