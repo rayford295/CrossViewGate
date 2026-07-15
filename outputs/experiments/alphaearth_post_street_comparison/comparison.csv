@@ -1,0 +1,4 @@
+event_dataset,hazard,evaluation_split,post_disaster_street_baseline,alphaearth_year,alphaearth_model,alphaearth_macro_f1,alphaearth_macro_f1_std,post_street_macro_f1,post_street_macro_f1_std,recovery_ratio,macro_f1_gap
+PrepStreet / Milton 2024,Hurricane,5-fold spatial GroupKFold,oracle_post_image_deep RF,2023,random_forest_balanced,0.5972,0.0733,0.6457,0.0949,0.9248877187548395,-0.0485000000000001
+CVIAN / Ian 2022,Hurricane,spatial-block test,street_only post-SVI mean over 5 seeds,2021,logistic_balanced,0.5687228789328359,,0.6499586118374554,0.0131429659997024,0.8750139910063454,-0.0812357329046195
+Eaton / Altadena 2025,Wildfire,study_development spatial role,street_only post-field-image mean over 5 seeds,2024,logistic_balanced,0.4825400109386361,,0.6855865935026185,0.01680993008547025,0.7038352492766372,-0.20304658256398245

@@ -1,0 +1,17 @@
+{
+  "schema_version": "ian-alphaearth-validation-v1",
+  "feature_set": "alphaearth_overhead",
+  "split_dir": "data/splits/ian_hurricane_original",
+  "features_csv": "data/features/ian_alphaearth_2021.csv",
+  "output_dir": "outputs/experiments/ian_alphaearth_2021",
+  "embedding_year": 2021,
+  "seed": 13,
+  "n_samples": 4078,
+  "n_feature_columns": 128,
+  "missing_rows": 0,
+  "files": {
+    "metrics": "outputs/experiments/ian_alphaearth_2021/metrics.csv",
+    "predictions": "outputs/experiments/ian_alphaearth_2021/predictions.csv",
+    "summary": "outputs/experiments/ian_alphaearth_2021/summary.md"
+  }
+}
