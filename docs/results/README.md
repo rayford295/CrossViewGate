@@ -38,6 +38,7 @@ are the earlier 3-epoch pilot, retained as a low-budget ablation.
 | `disagreement_anatomy_eaton_v1.md` | RQ1 Study B construct/media/power audit: DINS component-like fields are non-damage inspector attributes; H-B1/H-B2 blocked pending genuine per-view predictions, damage-dominance references, and spatial blocks |
 | `attestation_dependency_gate_20260710.md` | Strict RQ2/RQ3 dependency audit: current data cannot support an empirical view-by-field attestation matrix or attestation-coverage policy |
 | `crossviewguard_execution_status_20260710.md` | Unified claim ledger for completed CrossViewGuard work, terminal current-data blockers, and the exact inputs required to resume confirmatory research |
+| `alphaearth_external_validation.md` | Pre-event AlphaEarth vs post-disaster street-view baselines across Milton, Ian, and Eaton, with recovery ratios and cross-hazard interpretation |
 
 ## Pilot (3-epoch, 3 seeds)
 
