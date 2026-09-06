@@ -7,19 +7,20 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23500000'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia' font-size='32' fill='white'%3EC%3C/text%3E%3C/svg%3E">
     <meta
       name="description"
-      content="Project page for CrossViewConflict: conflict-aware cross-view disaster triage across spatial observation regimes."
+      content="Project page for CrossViewGate: visibility-conditioned reliability gating for conflict-aware cross-view disaster damage assessment."
     >
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header class="site-header" aria-label="Site navigation">
-      <a class="brand" href="#top">CrossViewConflict</a>
+      <a class="brand" href="#top">CrossViewGate</a>
       <nav>
         <a href="#claim">Claim</a>
-        <a href="#cae">CAE</a>
-        <a href="#results">Results</a>
-        <a href="#spatial">Spatial Signal</a>
-        <a href="#methods">Methods</a>
+        <a href="#gap">Oracle Gap</a>
+        <a href="#gate">Gate</a>
+        <a href="#causal">Causal Test</a>
+        <a href="#spatial">Damage Map</a>
+        <a href="#data">Data</a>
       </nav>
     </header>
 
@@ -27,15 +28,20 @@
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-media" aria-hidden="true"></div>
         <div class="hero-content">
-          <p class="eyebrow">When Cross-View Helps Most</p>
-          <h1 id="hero-title">Trust the View That Sees the Target: Reliability-Gated Cross-View Damage Assessment</h1>
+          <p class="eyebrow">Which view should be trusted, where, and why?</p>
+          <h1 id="hero-title">Trust the View That Sees the Target: Reliability-Gated Cross-View Disaster Damage Assessment</h1>
           <p class="hero-copy">
-            Cross-view fusion helps most when street-side and overhead evidence conflict,
-            but the value of each view depends on the spatial observation regime.
+            Cross-view fusion of street-level and overhead imagery is almost always
+            symmetric: both views are trusted equally everywhere. Measured on the
+            cases where the two views disagree, that assumption leaves 0.37&ndash;0.41
+            accuracy on the table across three real disasters. A linear,
+            interpretable gate over building visibility recovers a significant part
+            of it, and a controlled intervention shows why.
           </p>
           <div class="hero-actions" aria-label="Project links">
-            <a class="button primary" href="assets/crossviewconflict-draft-2026-04-30.pdf">Paper PDF</a>
-            <a class="button secondary" href="https://github.com/rayford295/CrossViewConflict">GitHub Repository</a>
+            <a class="button primary" href="https://github.com/rayford295/CrossViewGate/blob/main/paper/isprs_manuscript.md">Full Manuscript</a>
+            <a class="button secondary" href="https://github.com/rayford295/CrossViewGate/blob/main/paper/geosearch2026_short/main.pdf">Short Paper (GeoSearch '26)</a>
+            <a class="button secondary" href="https://github.com/rayford295/CrossViewGate">GitHub Repository</a>
           </div>
         </div>
       </section>
@@ -43,269 +49,329 @@
       <section id="claim" class="section">
         <div class="section-heading">
           <p class="eyebrow">Central Thesis</p>
-          <h2>Do not ask only whether fusion helps. Ask where the views disagree.</h2>
+          <h2>Do not ask whether fusion helps. Ask which view to believe on each sample.</h2>
           <p>
-            The work reframes multimodal disaster triage around disagreement between
-            the street-only and remote-only predictors. The paired-view model is most
-            consequential on those conflict cases, not on easy samples where both
-            single-view models already agree.
+            Most records in a paired street/overhead collection are easy: both views
+            agree and fusion adds little. The operationally interesting records are
+            the <em>conflict cases</em>, the 10&ndash;33% of samples on which
+            independently trained single-view models disagree. Conflicts concentrate
+            exactly where one sensor is blind: a facade intact from above but gutted
+            at street level, or a roof destroyed above vegetation that hides it from
+            the road.
           </p>
         </div>
 
         <div class="metric-strip" aria-label="Headline metrics">
           <article class="metric">
-            <span class="metric-label">Wildfire conflict gain</span>
-            <strong>+0.0388</strong>
-            <span>Crossview Conflict-F1 over the stronger single-view baseline.</span>
+            <span class="metric-label">Oracle single-view gap</span>
+            <strong>0.37&ndash;0.41</strong>
+            <span>Conflict accuracy an oracle that trusts the correct view adds over the best single view, on all three disasters.</span>
           </article>
           <article class="metric">
-            <span class="metric-label">Best conflict-aware training gain</span>
-            <strong>+0.0590</strong>
-            <span>Conflict-F1 gain from ConflictFocalLoss at &gamma; = 0.5.</span>
+            <span class="metric-label">Reliability gate vs. end-to-end fusion</span>
+            <strong>+0.072</strong>
+            <span>Wildfire conflict accuracy, p &lt; 10<sup>&minus;4</sup>; +0.051 over calibrated averaging, p = 0.0001.</span>
           </article>
           <article class="metric">
-            <span class="metric-label">Spatial damage proxy</span>
-            <strong>r = 0.5123</strong>
-            <span>Tile-level conflict density tracks wildfire damage rate.</span>
+            <span class="metric-label">Label-free damage map</span>
+            <strong>r = 0.615</strong>
+            <span>Tile-level conflict density vs. wildfire damage (Spearman, p = 0.001). Single-view uncertainty anti-correlates.</span>
           </article>
         </div>
       </section>
 
       <section class="section figure-band">
         <div class="figure-copy">
-          <p class="eyebrow">Observation Regimes</p>
-          <h2>Wildfire and hurricane imagery differ in target alignment.</h2>
+          <p class="eyebrow">Framework</p>
+          <h2>From conflict cases to a trust decision and a map.</h2>
           <p>
-            Wildfire ground views are property-centric inspection images. Hurricane
-            ground views are broader panoramic scenes. This changes which modality
-            is likely to arbitrate conflict.
+            Independently trained street and remote models define the conflict cases.
+            A linear gate over target-building visibility, calibrated confidence, and
+            cross-view disagreement decides which view to trust per sample. The
+            spatial density of conflicts doubles as a damage map that needs no labels.
           </p>
         </div>
         <figure>
           <img
-            src="assets/site/building_alignment_comparison.png"
-            alt="Comparison of building ratio and centroid-distance distributions for wildfire and hurricane regimes."
+            src="assets/site/fig0_pipeline.png"
+            alt="Pipeline: street and overhead models, conflict cases, linear trust gate, gated prediction and conflict-density map."
           >
           <figcaption>
-            Building-alignment proxies separate a property-centric wildfire regime
-            from a more panoramic hurricane regime.
+            The pipeline adds one frozen segmentation pass and a linear fit on top of
+            any existing pair of single-view models.
           </figcaption>
         </figure>
       </section>
 
-      <section id="cae" class="section two-column">
+      <section id="gap" class="section two-column">
         <div>
-          <p class="eyebrow">Conflict-Aware Evaluation</p>
-          <h2>CAE makes the hard cases visible.</h2>
+          <p class="eyebrow">The Oracle Gap</p>
+          <h2>Symmetric fusion leaves most view-reliability information unused.</h2>
           <p>
-            For a threshold &tau;, the conflict subset contains samples where the
-            two single-view probabilities differ by more than &tau;. The paper
-            reports standard Overall-F1, Conflict-F1 on that subset, and crossview
-            gain relative to the stronger single-view baseline.
+            An oracle that picks whichever single view is correct per conflict sample
+            exceeds every tested fusion method by 0.37&ndash;0.41 accuracy. The gap
+            survives model convergence, temperature calibration, and backbone changes.
+            Calibrated probability averaging closes at most 44% of it; end-to-end
+            learned fusion closes less. Under converged training, learned fusion does
+            not reliably beat calibrated averaging at all, a negative result the field
+            should absorb.
           </p>
         </div>
 
         <div class="definition-panel">
-          <p class="formula">C<sub>&tau;</sub> = { i : |p<sub>street</sub>(i) &minus; p<sub>remote</sub>(i)| &gt; &tau; }</p>
+          <p class="formula">closure(m) = [acc<sub>C</sub>(m) &minus; acc<sub>C</sub>(best single)] / [acc<sub>C</sub>(oracle) &minus; acc<sub>C</sub>(best single)]</p>
           <dl>
             <div>
-              <dt>Overall-F1</dt>
-              <dd>Aggregate performance over the full test set.</dd>
+              <dt>Conflict subset C</dt>
+              <dd>Test samples where the street and remote argmax predictions differ: 9.6% (Eaton), 33.2% (Ian), 25.7% (Milton).</dd>
             </div>
             <div>
-              <dt>Conflict-F1</dt>
-              <dd>Performance only where the single-view models disagree.</dd>
+              <dt>Oracle</dt>
+              <dd>Correct if either single view is correct. It only chooses which of two fixed models to trust.</dd>
             </div>
             <div>
-              <dt>Crossview gain</dt>
-              <dd>Conflict-F1(crossview) minus the better single-view Conflict-F1.</dd>
+              <dt>Closure</dt>
+              <dd>Fraction of the gap a method recovers. Gate 0.52 on the wildfire; no method passes one half on the panoramic datasets.</dd>
             </div>
           </dl>
         </div>
       </section>
 
-      <section id="results" class="section">
+      <section id="gate" class="section">
         <div class="section-heading">
-          <p class="eyebrow">Main Results</p>
-          <h2>Crossview often wins on conflict cases, but the grouped-clean split keeps the claim honest.</h2>
+          <p class="eyebrow">Reliability Gate</p>
+          <h2>A linear gate over eleven interpretable features beats every fusion baseline where it should, and never hurts.</h2>
         </div>
 
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Setting</th>
-                <th>Best Single Conflict-F1</th>
-                <th>Crossview Conflict-F1</th>
-                <th>Gain</th>
-                <th>n</th>
+                <th>Method</th>
+                <th>Eaton wildfire</th>
+                <th>Hurricane Ian</th>
+                <th>Hurricane Milton</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Wildfire sensitive</td>
-                <td>0.6230 street</td>
-                <td class="accent">0.6618</td>
-                <td class="accent">+0.0388</td>
-                <td>435</td>
+                <td>street_only</td>
+                <td>0.486</td>
+                <td>0.529</td>
+                <td>0.557</td>
               </tr>
               <tr>
-                <td>Hurricane endpoint</td>
-                <td>0.6842 street</td>
-                <td class="accent">0.7647</td>
-                <td class="accent">+0.0805</td>
-                <td>32</td>
+                <td>remote_only</td>
+                <td>0.475</td>
+                <td>0.367</td>
+                <td>0.407</td>
               </tr>
               <tr>
-                <td>Hurricane moderate+severe</td>
-                <td>0.7742 remote</td>
-                <td class="accent">0.7867</td>
-                <td class="accent">+0.0125</td>
-                <td>128</td>
+                <td>crossview (end-to-end fusion)</td>
+                <td>0.699</td>
+                <td class="accent">0.624</td>
+                <td class="accent">0.649</td>
               </tr>
               <tr>
-                <td>Hurricane endpoint grouped clean</td>
-                <td class="warning">0.8101 street</td>
-                <td>0.7949</td>
-                <td class="warning">&minus;0.0153</td>
-                <td>80</td>
+                <td>calibrated probability averaging</td>
+                <td>0.732</td>
+                <td>0.617</td>
+                <td>0.626</td>
+              </tr>
+              <tr>
+                <td>reliability gate (linear)</td>
+                <td class="accent">0.768</td>
+                <td>0.618</td>
+                <td>0.631</td>
+              </tr>
+              <tr>
+                <td>oracle single view</td>
+                <td class="warning">0.961</td>
+                <td class="warning">0.896</td>
+                <td class="warning">0.964</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <p>
+          Conflict-case accuracy, five-seed means. On the property-centric wildfire
+          imagery the gate delivers +0.072 over end-to-end fusion and +0.051 over
+          calibrated averaging (pooled sign-flip permutation tests, p &le; 0.0001). On
+          the panoramic hurricane imagery, where street views rarely see the target
+          building, it sits at parity and is never significantly worse. The learned
+          rule reads: <em>trust the street view when it is confident and actually
+          looking at the building.</em>
+        </p>
 
-        <div class="image-grid">
-          <figure>
-            <img
-              src="assets/site/view_dominance_switch_tau0.1.png"
-              alt="Pie charts showing view dominance switching across wildfire and hurricane conflict cases."
-            >
-            <figcaption>View dominance changes across spatial observation regimes.</figcaption>
-          </figure>
-          <figure>
-            <img
-              src="assets/site/alignment_gain_correlation.png"
-              alt="Scatter plot of building ratio against crossview correctness on conflict subset."
-            >
-            <figcaption>Per-sample alignment is weak; the stronger interpretation is regime-level.</figcaption>
-          </figure>
-        </div>
+        <figure>
+          <img
+            src="assets/site/fig3_gate.png"
+            alt="Left: conflict-case accuracy by method on three datasets with the oracle as a dashed line. Right: linear gate coefficients on the wildfire."
+          >
+          <figcaption>
+            (a) Conflict-case accuracy by method with the oracle as reference.
+            (b) Linear gate coefficients on the wildfire: building centering and the
+            confidence gap shift trust toward the street view; street entropy shifts it
+            toward the overhead view.
+          </figcaption>
+        </figure>
       </section>
 
-      <section class="section figure-band reverse">
+      <section id="causal" class="section figure-band reverse">
         <div class="figure-copy">
-          <p class="eyebrow">Qualitative Evidence</p>
-          <h2>Conflict cases reveal what each view can and cannot see.</h2>
+          <p class="eyebrow">Causal Field-of-View Intervention</p>
+          <h2>Target alignment, not disaster type, controls the value of fusion.</h2>
           <p>
-            The qualitative examples show cases where overhead evidence misses
-            facade-level damage, and cases where panoramic street imagery does
-            not align cleanly with the target building.
+            Hurricane panoramas are cropped to 90&deg; windows that are either
+            centered on the detected building or placed at a random azimuth. The two
+            variants are geometrically identical. Building-centered crops double the
+            fusion benefit on Milton (gap closure 0.177 &rarr; 0.365) and raise it on
+            Ian; random crops do not, in 6/6 dataset&ndash;seed pairs. The gain arrives
+            even though building-centered crops <em>lower</em> street-only accuracy:
+            the two views simply start attending to the same object.
           </p>
         </div>
         <figure>
           <img
-            src="assets/site/qualitative_conflict_examples.png"
-            alt="Qualitative conflict cases across wildfire and hurricane regimes."
+            src="assets/site/fig4_fov_intervention.png"
+            alt="One panorama with a building-centered and a random 90-degree crop, and bars of conflict gain by crop variant on Ian and Milton."
           >
           <figcaption>
-            Representative conflict cases pair street imagery, overhead patches,
-            building overlays, and model predictions.
+            One panorama, two crops of identical geometry. Only the aimed crop raises
+            the cross-view conflict gain.
           </figcaption>
         </figure>
       </section>
 
       <section id="spatial" class="section">
         <div class="section-heading">
-          <p class="eyebrow">Spatial Signal</p>
-          <h2>Model conflict is not only an error mode. It can become a damage proxy.</h2>
+          <p class="eyebrow">Conflict Density as a Damage Map</p>
+          <h2>Disagreement between two sensors is a spatial signal, not just an error mode.</h2>
           <p>
-            In the wildfire dataset, tile-level conflict density co-locates with
-            higher realized damage. This turns disagreement between two discriminative
-            models into an unsupervised spatial signal.
+            Aggregated to tiles, the fraction of conflict cases predicts wildfire
+            damage without any labels (Spearman r = 0.615, p = 0.001 on overhead
+            tiles; r = 0.60 on a 0.01&deg; grid). The natural control fails in the most
+            instructive way: single-view uncertainty <em>anti-correlates</em> with damage,
+            because burned-to-the-ground parcels are easy, confident classifications.
+            A conflict-density raster can be computed within hours of acquiring paired
+            imagery.
           </p>
         </div>
 
-        <div class="image-grid wide">
-          <figure>
-            <img
-              src="assets/site/wildfire_spatial_maps.png"
-              alt="Wildfire spatial maps for damage rate, conflict density, and crossview gain."
-            >
-            <figcaption>Damage rate, conflict density, and cross-view gain mapped over local wildfire tiles.</figcaption>
-          </figure>
-          <figure>
-            <img
-              src="assets/site/tile_conflict_vs_damage_wildfire.png"
-              alt="Scatter plot of wildfire tile conflict rate against damage rate."
-            >
-            <figcaption>Tile conflict density correlates with damage rate: Spearman r = 0.5123, p = 0.0063.</figcaption>
-          </figure>
-        </div>
+        <figure>
+          <img
+            src="assets/site/fig5_conflict_density.png"
+            alt="Tile maps of labeled damage and conflict density over the Eaton fire, a scatter with positive rank correlation, and the uncertainty control with negative correlation."
+          >
+          <figcaption>
+            Eaton wildfire: (a) labeled damage, (b) label-free conflict density,
+            (c) their rank correlation, (d) the uncertainty control.
+          </figcaption>
+        </figure>
       </section>
 
-      <section id="methods" class="section methods">
+      <section class="section figure-band">
+        <div class="figure-copy">
+          <p class="eyebrow">Qualitative Evidence</p>
+          <h2>Conflict cases show what each view can and cannot see.</h2>
+          <p>
+            Street view, overhead patch, per-model predictions, and the building
+            segmentation overlay that feeds the gate, for wildfire and hurricane
+            conflicts resolved by fusion and one failure case.
+          </p>
+        </div>
+        <figure>
+          <img
+            src="assets/site/fig6_qualitative_conflicts.jpg"
+            alt="Qualitative conflict cases with street view, overhead patch, model predictions and segmentation overlays."
+          >
+          <figcaption>
+            Representative conflict cases across the two observation regimes.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="data" class="section methods">
         <div class="section-heading">
-          <p class="eyebrow">Operational Extensions</p>
-          <h2>Conflict can guide training and deployment.</h2>
+          <p class="eyebrow">Data and Protocol</p>
+          <h2>Three disasters, two ground-view observation regimes, one converged protocol.</h2>
         </div>
 
         <div class="method-grid">
           <article class="method">
-            <h3>ConflictFocalLoss</h3>
+            <h3>Eaton wildfire (Altadena, CA)</h3>
             <p>
-              Reweights training examples whose street and remote embeddings
-              disagree, improving wildfire Conflict-F1 from 0.6618 to 0.7208.
+              CAL FIRE Damage Inspection photographs from the January 2025 fire, paired
+              with post-event VHR overhead tiles. Property-centric ground view; ordinal
+              three-class task; split by property and tile.
             </p>
             <div class="mini-table">
-              <div><span>Baseline</span><strong>0.6618</strong></div>
-              <div><span>&gamma; = 0.25</span><strong>0.7190</strong></div>
-              <div><span>&gamma; = 0.5</span><strong>0.7208</strong></div>
+              <div><span>Regime</span><strong>property-centric</strong></div>
+              <div><span>Conflict rate</span><strong>9.6%</strong></div>
+              <div><span>Gate closure</span><strong>0.52</strong></div>
             </div>
           </article>
 
           <article class="method">
-            <h3>Adaptive Inference Cascade</h3>
+            <h3>Hurricane Ian (CVIAN)</h3>
             <p>
-              Routes samples to the paired-view model only when the two single-view
-              predictors disagree strongly, preserving performance while reducing
-              full cross-view calls.
+              The released CVDisaster pairing: Mapillary panoramas over Sanibel Island
+              with 27 cm satellite imagery. An audit against the official position
+              GeoJSON showed the release split leaks Mapillary sequences; a repaired
+              spatial-block split with a 25 m buffer lowers macro-F1 by 0.05&ndash;0.10.
             </p>
             <div class="mini-table">
-              <div><span>Wildfire stage 2</span><strong>9.5%</strong></div>
-              <div><span>Wildfire cascade F1</span><strong>0.9498</strong></div>
-              <div><span>Hurricane stage 2</span><strong>22.3%</strong></div>
+              <div><span>Regime</span><strong>panoramic</strong></div>
+              <div><span>Conflict rate</span><strong>33.2%</strong></div>
+              <div><span>Gate closure</span><strong>0.23</strong></div>
+            </div>
+          </article>
+
+          <article class="method">
+            <h3>Hurricane Milton (FL)</h3>
+            <p>
+              Street-view panoramas paired with satellite tiles after the October 2024
+              hurricane, constructed analogously to CVIAN. The smallest dataset, which
+              widens the gate's intervals.
+            </p>
+            <div class="mini-table">
+              <div><span>Regime</span><strong>panoramic</strong></div>
+              <div><span>Conflict rate</span><strong>25.7%</strong></div>
+              <div><span>Gate closure</span><strong>0.18</strong></div>
             </div>
           </article>
         </div>
 
         <figure class="threshold-figure">
           <img
-            src="assets/site/wildfire_threshold_sensitivity.png"
-            alt="Wildfire threshold sensitivity plots for conflict rate and accuracy."
+            src="assets/site/fig2_oracle_gap.png"
+            alt="For each dataset, a bar from the best single view to the oracle on conflict cases, with each method placed inside the span."
           >
           <figcaption>
-            Threshold sweeps check that CAE is not a one-threshold artifact.
+            The oracle gap per dataset. Dots place each method inside the span from
+            best single view to oracle; the gate comes closest on the wildfire.
           </figcaption>
         </figure>
       </section>
 
       <section class="section takeaways">
         <div>
-          <p class="eyebrow">What This Paper Claims</p>
-          <h2>Cross-view disaster triage should be conflict-aware and regime-aware.</h2>
+          <p class="eyebrow">What This Work Claims</p>
+          <h2>Cross-view disaster assessment should be conflict-aware and reliability-gated.</h2>
         </div>
         <ul>
-          <li>Evaluate fusion where single-view evidence disagrees, not only on average cases.</li>
-          <li>Interpret modality value through spatial observation regime and target alignment.</li>
-          <li>Use conflict as a reusable signal for training, routing, and spatial damage mapping.</li>
-          <li>Do not claim that crossview always wins; the grouped-clean hurricane endpoint is deliberately conservative.</li>
+          <li>Evaluate fusion on the cases where the views disagree, and report how much of the oracle gap a method closes.</li>
+          <li>Once single-view models are converged and calibrated, simple averaging is a strong baseline; the advantage of learning lies in asymmetric, reliability-aware arbitration.</li>
+          <li>Street-view target alignment is the causal driver of fusion benefit. Capture policy is itself an intervention: aim cameras at structures.</li>
+          <li>Conflict density is a label-free damage map that plain uncertainty cannot replicate.</li>
+          <li>Split by object and location. Release-style random or index-based splits overstate spatial generalization.</li>
         </ul>
       </section>
     </main>
 
     <footer class="site-footer">
-      <span>CrossViewConflict</span>
-      <a href="https://github.com/rayford295/CrossViewConflict">github.com/rayford295/CrossViewConflict</a>
+      <span>CrossViewGate &middot; Yifan Yang, Department of Geography, Texas A&amp;M University</span>
+      <a href="https://github.com/rayford295/CrossViewGate">github.com/rayford295/CrossViewGate</a>
     </footer>
   </body>
 </html>

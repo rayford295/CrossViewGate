@@ -2,7 +2,7 @@
 
 **看得见目标的视图才值得信任：面向跨视图灾害损伤评估的可见度条件化可靠性门控。**
 
-英文完整说明见 `README.md`，论文稿见 `paper/isprs_manuscript.md`。
+英文完整说明见 `README.md`，论文完整稿见 `paper/isprs_manuscript.md`，GeoSearch 2026 四页短文见 `paper/geosearch2026_short/`。
 
 ## 核心发现
 

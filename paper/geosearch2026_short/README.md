@@ -4,7 +4,7 @@ Four-page short-paper version of the ISPRS manuscript
 (`../isprs_manuscript.md`, "Trust the view that sees the target"), reframed for
 the 5th ACM SIGSPATIAL International Workshop on Searching and Mining Large
 Collections of Geospatial Data (GeoSearch '26). It does not replace the
-ISPRS manuscript or the June SIGSPATIAL short draft in `../sigspatial2026_short/`.
+ISPRS manuscript.
 
 ## Target
 
