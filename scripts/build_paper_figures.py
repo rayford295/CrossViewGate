@@ -15,7 +15,7 @@ from matplotlib.patches import Rectangle
 from PIL import Image
 
 REPO = Path(__file__).resolve().parents[1]
-OUT = REPO / "paper/figures/v2"
+OUT = REPO / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
 COL = {

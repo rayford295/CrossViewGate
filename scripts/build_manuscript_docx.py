@@ -12,12 +12,12 @@ from docx.shared import Inches, Pt
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 FIGURES = {
-    "Figure 1.": [REPO_ROOT / "paper/figures/v2/fig1_overview.png"],
-    "Figure 2.": [REPO_ROOT / "paper/figures/v2/fig2_oracle_gap.png"],
-    "Figure 3.": [REPO_ROOT / "paper/figures/v2/fig3_gate.png"],
-    "Figure 4.": [REPO_ROOT / "paper/figures/v2/fig4_fov_intervention.png"],
-    "Figure 5.": [REPO_ROOT / "paper/figures/v2/fig5_conflict_density.png"],
-    "Figure 6.": [REPO_ROOT / "paper/figures/qualitative_conflict_examples.png"],
+    "Figure 1.": [REPO_ROOT / "figures/fig1_overview.png"],
+    "Figure 2.": [REPO_ROOT / "figures/fig2_oracle_gap.png"],
+    "Figure 3.": [REPO_ROOT / "figures/fig3_gate.png"],
+    "Figure 4.": [REPO_ROOT / "figures/fig4_fov_intervention.png"],
+    "Figure 5.": [REPO_ROOT / "figures/fig5_conflict_density.png"],
+    "Figure 6.": [REPO_ROOT / "figures/fig6_qualitative_conflicts.png"],
 }
 
 

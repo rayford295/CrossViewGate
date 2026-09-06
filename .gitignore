@@ -20,3 +20,14 @@ outputs/**
 
 # OS
 .DS_Store
+
+# LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+comment.cut
