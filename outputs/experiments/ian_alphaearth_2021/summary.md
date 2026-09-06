@@ -1,6 +1,6 @@
 # Ian AlphaEarth Validation
 
-Features: `C:\Users\yyang295\Documents\New project\CrossViewGate\data\features\ian_alphaearth_2021.csv`
+Features: `data/features/ian_alphaearth_2021.csv`
 Embedding year: 2021
 Seed: 13
 Rows with all AlphaEarth features missing: 0

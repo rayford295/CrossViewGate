@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$repo = "C:\Users\yyang295\Documents\New project\CrossViewConflict"
+$repo = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $python = "C:\python310\python.exe"
 $outdir = Join-Path $repo "outputs\conflict_focal\altadena_sensitive_gamma025_seed42"
 

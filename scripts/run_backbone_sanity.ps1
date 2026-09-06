@@ -1,5 +1,5 @@
 param(
-  [string]$RepoRoot = "C:\Users\yyang295\Documents\New project\CrossViewConflict",
+  [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
   [string]$OutputRoot = "outputs\backbone_sanity",
   [int]$Epochs = 3,
   [int]$BatchSize = 32,

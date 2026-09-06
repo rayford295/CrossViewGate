@@ -63,7 +63,7 @@ preparedness-style validation:
 ## Reproduction Commands
 
 ```powershell
-cd "C:\Users\yyang295\Documents\New project\CrossViewGate"
+cd <path-to-CrossViewGate>
 
 earthengine set_project extended-acumen-502205-v5
 

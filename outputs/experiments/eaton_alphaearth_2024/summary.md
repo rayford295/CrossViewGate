@@ -1,6 +1,6 @@
 # Eaton AlphaEarth External Validation
 
-Features: `C:\Users\yyang295\Documents\New project\CrossViewGate\data\features\eaton_alphaearth_2024.csv`
+Features: `data/features/eaton_alphaearth_2024.csv`
 Embedding year: 2024 (pre-event for Eaton 2025)
 Seed: 13
 Rows with all AlphaEarth features missing: 0

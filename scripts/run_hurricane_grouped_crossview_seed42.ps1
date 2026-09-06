@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-Set-Location "C:\Users\yyang295\Documents\New project\CrossViewConflict"
+Set-Location (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
 $outDir = "outputs\grouped_rerun\hurricane_minor_vs_severe\crossview_seed42_full"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
