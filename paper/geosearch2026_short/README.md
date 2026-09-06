@@ -30,14 +30,17 @@ ISPRS manuscript or the June SIGSPATIAL short draft in `../sigspatial2026_short/
   conflict cases as a search-and-mining problem over paired collections.
 - Kept: oracle gap, linear reliability gate, calibration decomposition,
   field-of-view intervention, conflict-density map, CVIAN split-repair note.
-- Dropped for space: related-work section, Figure 1 overview, Figure 4 (FOV
-  panorama), Figure 6 (qualitative), ordinal metrics, cross-disaster transfer
-  details, Moran's I discussion beyond one sentence.
-- Table 2 merges the ISPRS main table and oracle table (closure column).
+- Figure 1 is the clean pipeline overview (`figures/fig0_pipeline.png`,
+  from `cross_view_pipeline.png`); Figures 2 and 3 are `fig3_gate` and
+  `fig5_conflict_density`.
+- Dropped for space: related-work section, dataset table (counts are in the
+  text), Figure 4 (FOV panorama), Figure 6 (qualitative), ordinal metrics,
+  cross-disaster transfer details, Moran's I discussion beyond one sentence.
+- Table 1 merges the ISPRS main table and oracle table (closure column).
   concat closures (0.29 / 0.15 / 0.16) come from
   `docs/results/calibration_decomposition_v2.md`; the other closures follow
   the ISPRS manuscript / `docs/results/multiseed_v2_results.md`.
-- Bibliography trimmed to 11 entries (`references.bib`, subset of
+- Bibliography trimmed to 10 entries (`references.bib`, subset of
   `../references.bib` plus Guo et al. 2017).
 
 ## Build
@@ -46,6 +49,6 @@ ISPRS manuscript or the June SIGSPATIAL short draft in `../sigspatial2026_short/
 pdflatex main && bibtex main && pdflatex main && pdflatex main
 ```
 
-Figures are referenced from `../../figures/` (`fig3_gate.pdf`,
-`fig5_conflict_density.pdf`). Compiled locally with TinyTeX / acmart v2.20:
+Figures are referenced from `../../figures/` (`fig0_pipeline.png`,
+`fig3_gate.pdf`, `fig5_conflict_density.pdf`). Compiled locally with TinyTeX / acmart v2.20:
 4 pages, US Letter, all fonts embedded.
