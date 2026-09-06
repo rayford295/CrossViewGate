@@ -88,7 +88,7 @@ def add_figure(document, image_paths: list[Path]) -> None:
 
 def main() -> None:
     source = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO_ROOT / "paper/isprs_manuscript.md"
-    output = Path(sys.argv[2]) if len(sys.argv) > 2 else Path.home() / "Desktop/CrossViewConflict_ISPRS_manuscript.docx"
+    output = Path(sys.argv[2]) if len(sys.argv) > 2 else REPO_ROOT / "outputs/isprs_manuscript.docx"
 
     document = Document()
     style = document.styles["Normal"]

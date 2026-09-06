@@ -1,5 +1,5 @@
 param(
-  [string]$RepoRoot = "C:\Users\yyang295\Documents\New project\CrossViewConflict",
+  [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
   [string]$OutputRoot = "outputs\multiseed_label_sensitivity",
   [int]$Epochs = 3,
   [int]$BatchSize = 64,
@@ -10,8 +10,8 @@ param(
   [string]$DatasetNames = "altadena_3class,altadena_original,altadena_sensitive,ian_binary",
   [string]$Modes = "street_only,remote_only,concat,crossview",
   [string]$AltadenaSensitiveManifest = "data\manifests\altadena_sensitive_manifest.csv",
-  [string]$AltadenaPathRewriteFrom = "C:\Users\yyang295\Desktop\Altadena_Images",
-  [string]$AltadenaPathRewriteTo = "C:\Users\yyang295\Desktop\disaster-dataset-Yifan-all\Altadena_Images",
+  [string]$AltadenaPathRewriteFrom = $env:ALTADENA_MANIFEST_IMAGE_ROOT,  # image root recorded inside the Altadena manifest CSV
+  [string]$AltadenaPathRewriteTo = (Join-Path $env:CROSSVIEW_DATASET_ROOT "Altadena_Images"),
   [switch]$Force
 )
 

@@ -22,7 +22,7 @@
   annotations. See the consolidated
   [`execution status`](results/crossviewguard_execution_status_20260710.md).
 - **Relationship to prior memo:** 本文细化并调整
-  [`2026-07-09_from_classification_to_actionable_reports.md`](./2026-07-09_from_classification_to_actionable_reports.md)。
+  2026-07-09 direction memo (superseded, removed from the repository)。
 旧 memo 将报告生成视为主要延伸；本文把报告降为呈现层，把
 **selective triage、next-best-view 和有限预算派检**定义为核心研究任务。
 

@@ -3,7 +3,8 @@
 Palette: validated reference categorical slots, fixed identity per method
 across all figures. Yellow slot carries direct labels (contrast relief rule).
 """
-from __future__ import annotations
+from __future__ import os
+import annotations
 
 from pathlib import Path
 
@@ -199,7 +200,7 @@ def fig_fov() -> None:
     fig = plt.figure(figsize=(7.0, 3.4))
     grid = fig.add_gridspec(2, 3, height_ratios=[1.15, 1.0], width_ratios=[2.1, 1.0, 1.0], hspace=0.42, wspace=0.18)
 
-    pano_path = Path(r"C:\Users\yyang295\Desktop\disaster-dataset-Yifan-all\IAN_hurricane\images\003128_svi.png")
+    pano_path = Path(os.environ["CROSSVIEW_DATASET_ROOT"]) / "IAN_hurricane/images/003128_svi.png"  # local imagery root
     log = pd.read_csv(REPO / "data/fov_intervention/ian_original/crop_log.csv")
     row = log[log.sample_id == 3128].iloc[0]
 

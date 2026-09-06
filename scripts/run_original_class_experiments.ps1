@@ -1,6 +1,7 @@
 param(
   [string]$RepoRoot = "",
-  [string]$DatasetRoot = "C:\Users\yyang295\Desktop\disaster-dataset-Yifan-all",
+  [string]$DatasetRoot = $env:CROSSVIEW_DATASET_ROOT,                     # local root holding Altadena_Images/, IAN_hurricane/, ...
+  [string]$AltadenaPathRewriteFrom = $env:ALTADENA_MANIFEST_IMAGE_ROOT,  # image root recorded inside the Altadena manifest CSV
   [string]$AltadenaManifest = "data\manifests\altadena_sensitive_manifest.csv",
   [string]$OutputRoot = "outputs\original_class",
   [int]$Epochs = 10,
@@ -39,7 +40,7 @@ if (-not $SkipManifestBuild) {
     --group-col objectid `
     --label-col auto `
     --category-scheme wildfire_original `
-    --path-rewrite-from "C:\Users\yyang295\Desktop\Altadena_Images" `
+    --path-rewrite-from $AltadenaPathRewriteFrom `
     --path-rewrite-to (Join-Path $DatasetRoot "Altadena_Images") `
     --require-existing-images
   if ($LASTEXITCODE -ne 0) { throw "Failed to build Altadena original splits." }
@@ -50,7 +51,7 @@ if (-not $SkipManifestBuild) {
     --group-col objectid `
     --label-col auto `
     --category-scheme wildfire_3class `
-    --path-rewrite-from "C:\Users\yyang295\Desktop\Altadena_Images" `
+    --path-rewrite-from $AltadenaPathRewriteFrom `
     --path-rewrite-to (Join-Path $DatasetRoot "Altadena_Images") `
     --require-existing-images
   if ($LASTEXITCODE -ne 0) { throw "Failed to build Altadena 3-class splits." }
