@@ -326,71 +326,10 @@ def fig_density() -> None:
 
 
 # ---------------------------------------------------------------- Figure 1
-def fig_overview() -> None:
-    from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
-
-    base = Path(r"C:\Users\yyang295\Desktop\disaster-dataset-Yifan-all\Altadena_Images\Eaton_Fire_attachments_index_output\dataset\sample_00005")
-    fig, ax = plt.subplots(figsize=(7.0, 3.1))
-    ax.set_xlim(0, 100)
-    ax.set_ylim(0, 44)
-    ax.axis("off")
-
-    def box(x, y, w, h, text, fc="#f5f4f2", ec=COL["muted"], fontsize=6.5, weight="normal", tc=COL["ink"]):
-        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.6", fc=fc, ec=ec, lw=0.9))
-        ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fontsize,
-                color=tc, fontweight=weight, linespacing=1.4)
-
-    def arrow(x0, y0, x1, y1, color=COL["muted"], lw=1.0, style="-|>"):
-        ax.add_patch(FancyArrowPatch((x0, y0), (x1, y1), arrowstyle=style, mutation_scale=9,
-                                     color=color, lw=lw, shrinkA=2, shrinkB=2))
-
-    # input images
-    for img_name, y, label in (("street_view.jpg", 24.5, "street view"), ("remote_sensing.jpg", 4.5, "overhead view")):
-        image = Image.open(base / img_name)
-        image = image.resize((256, 256)) if img_name.endswith("remote_sensing.jpg") else image.resize((256, 192))
-        extent = (2, 15, y, y + (13 * image.size[1] / image.size[0]) * (44 / 100) * (7.0 / 3.1))
-        ax.imshow(np.asarray(image), extent=(2, 15, y, y + 13.5), aspect="auto", zorder=2)
-        ax.add_patch(Rectangle((2, y), 13, 13.5, fill=False, ec=COL["muted"], lw=0.8, zorder=3))
-        ax.text(8.5, y - 1.6, label, ha="center", va="top", fontsize=6.5, color=COL["ink"], fontweight="bold")
-
-    # single-view models
-    box(21, 27.5, 13, 7, "street model\n$f_s$", fc="#eafaf3", ec=COL["street_only"])
-    box(21, 7.5, 13, 7, "remote model\n$f_r$", fc="#efedf9", ec=COL["remote_only"])
-    arrow(15.3, 31, 20.6, 31)
-    arrow(15.3, 11, 20.6, 11)
-
-    # conflict split
-    box(41, 17.5, 15, 8, "views disagree?\nconflict cases:\n10–33% of samples", fc="#fdf3e3", ec=COL["calib_avg"], weight="bold")
-    arrow(34.3, 31, 41.2, 23.5)
-    arrow(34.3, 11, 41.2, 19.5)
-
-    # oracle gap annotation under conflict box
-    ax.text(48.5, 13.2, "oracle single-view gap:\n0.37–0.41 unclaimed accuracy", ha="center", va="top",
-            fontsize=6, color=COL["gate"], fontweight="bold")
-
-    # gate
-    box(63.5, 15.5, 17, 13,
-        "reliability gate (linear)\nbuilding visibility\ncalibrated confidence\ncross-view disagreement",
-        fc="#fdecec", ec=COL["gate"], weight="bold")
-    arrow(56.3, 21.5, 63.1, 21.5)
-
-    # outputs
-    box(87, 25.5, 11, 8, "gated triage\nprediction", fc="#e9f1fb", ec=COL["crossview"], weight="bold")
-    box(87, 8.5, 11, 8, "conflict-density\ndamage map\n(no labels)", fc="#e9f1fb", ec=COL["crossview"])
-    arrow(80.9, 23.5, 86.6, 28.5)
-    arrow(48.5, 17.1, 86.6, 12.5)
-
-    # causal intervention note
-    ax.text(63.5 + 8.5, 13.4, "validated causally by the\nfield-of-view intervention",
-            ha="center", va="top", fontsize=5.8, color=COL["muted"], style="italic")
-
-    ax.text(1, 43, "Which view should be trusted, where, and why?", fontsize=8.5, fontweight="bold", color=COL["ink"], va="top")
-    save(fig, "fig1_overview")
 
 
 if __name__ == "__main__":
     methods = load_methods()
-    fig_overview()
     fig_oracle_gap(methods)
     fig_gate(methods)
     fig_fov()

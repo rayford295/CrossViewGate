@@ -99,7 +99,7 @@ nav a:focus {
 .hero-media {
   position: absolute;
   inset: 0;
-  background-image: url("assets/site/fig1_overview.png");
+  background-image: url("assets/site/fig0_pipeline.png");
   background-position: center;
   background-size: cover;
   opacity: 0.34;

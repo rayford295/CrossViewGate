@@ -7,7 +7,7 @@ panels are driven by the result CSVs under `outputs/analysis/` (converged
 
 | File | Content |
 | --- | --- |
-| `fig1_overview` | Framework: conflict cases → oracle gap → reliability gate → triage + density map; real Eaton conflict pair |
+| `fig0_pipeline` | Pipeline diagram (drawn by hand): street/remote models, conflict cases, linear trust gate, gated prediction and conflict-density map |
 | `fig2_oracle_gap` | The oracle single-view gap per dataset, with each method placed inside the best-single→oracle span |
 | `fig3_gate` | (a) Conflict-case accuracy by method (5 seeds, oracle reference); (b) linear gate coefficients on wildfire |
 | `fig4_fov_intervention` | Causal FOV intervention: crop windows on a real panorama, the two crops, and conflict gain by variant |
