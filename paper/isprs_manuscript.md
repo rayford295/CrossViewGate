@@ -4,7 +4,7 @@ Yifan Yang^a^, Lei Zou^a,\*^
 
 ^a^ Department of Geography, Texas A&M University, College Station, TX, USA
 
-\* Corresponding author. E-mail: [to be added]; Y. Yang: yifan.yang@gisphere.info
+\* Corresponding author. Y. Yang: yifan.yang@gisphere.info
 
 ## Abstract
 

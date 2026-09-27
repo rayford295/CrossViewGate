@@ -6,13 +6,19 @@
 
 [![Project website](https://img.shields.io/badge/website-rayford295.github.io%2FCrossViewGate-500000)](https://rayford295.github.io/CrossViewGate/)
 [![Full manuscript](https://img.shields.io/badge/paper-full%20manuscript-2c6fb7)](paper/isprs_manuscript.md)
-[![Short paper](https://img.shields.io/badge/paper-GeoSearch%20'26%20short-2c6fb7)](paper/geosearch2026_short/main.pdf)
+[![Short paper](https://img.shields.io/badge/paper-GeoSearch%20'26%20(accepted)-2c6fb7)](paper/geosearch2026_short/main.pdf)
 [![Datasets](https://img.shields.io/badge/data-disaster--crossview--datasets-168a58)](https://github.com/rayford295/disaster-crossview-datasets)
 [![License](https://img.shields.io/badge/license-Apache%202.0-lightgrey)](LICENSE)
 
 <img src="figures/fig0_pipeline.png" alt="CrossViewGate pipeline" width="900">
 
 </div>
+
+> **News (2026-09-23).** The short paper *Trust the View That Sees the Target: Mining
+> Cross-View Conflicts for Reliability-Gated Disaster Damage Assessment* has been
+> accepted as a lightning talk at the 5th ACM SIGSPATIAL International Workshop on
+> Searching and Mining Large Collections of Geospatial Data (GeoSearch 2026),
+> Riverside, CA, 3 November 2026.
 
 Cross-view fusion of street-level and overhead imagery is standard in
 post-disaster building damage assessment, and almost always *symmetric*: both
@@ -78,7 +84,7 @@ come from the converged five-seed `_v2` documents.
 | Version | Where | Status |
 | --- | --- | --- |
 | Full manuscript | [`paper/isprs_manuscript.md`](paper/isprs_manuscript.md) | ISPRS J. Photogramm. Remote Sens. target |
-| Four-page short paper | [`paper/geosearch2026_short/`](paper/geosearch2026_short/) ([PDF](paper/geosearch2026_short/main.pdf)) | Submitted to GeoSearch '26 (ACM SIGSPATIAL 2026 workshop) |
+| Four-page short paper | [`paper/geosearch2026_short/`](paper/geosearch2026_short/) ([PDF](paper/geosearch2026_short/main.pdf)) | Accepted (lightning talk) at GeoSearch '26, ACM SIGSPATIAL 2026 workshop; camera-ready in preparation |
 
 Figures are in [`figures/`](figures/README.md); `python scripts/build_paper_figures.py`
 regenerates them from the result CSVs.
@@ -93,7 +99,7 @@ configs/              frozen experiment contracts and ontologies
 paper/                manuscripts and bibliography
 figures/              publication figure set
 docs/results/         result documents (_v2 = headline protocol)
-docs/                 datasets.md, protocols, research plans, project website
+docs/                 datasets.md, protocols, project website
 ```
 
 | Stage | Script |
@@ -125,16 +131,16 @@ all new spatial claims use a repaired spatial-block protocol with a 25 m buffer
 georeferenced split is published in
 [`disaster-crossview-datasets`](https://github.com/rayford295/disaster-crossview-datasets/tree/main/IAN_hurricane).
 
-## Roadmap
+## Beyond classification
 
-The next stage is **risk-controlled active evidence acquisition**: when is the
-evidence sufficient, which view to trust, which view to acquire next, when to
-defer to a human. See the
-[research plan](docs/2026-07-10_crossviewguard_active_evidence_research_plan.md)
-and the [attestability revision](docs/2026-07-10_crossviewguard_attestability_revision.md).
-Development results so far are transparent No-Go or sensitivity-only findings
-and are recorded in full in
-[`docs/results/`](docs/results/README.md).
+A follow-up line of work asks when the available evidence is sufficient, which
+view to trust, which view to acquire next, and when to defer to a human
+(risk-controlled active evidence acquisition). The development results
+obtained so far on the current data are transparent No-Go or sensitivity-only
+findings; they are recorded in full, with their consumed-data ledger and
+unlock conditions, in [`docs/results/`](docs/results/README.md) and summarised
+in the
+[execution status ledger](docs/results/crossviewguard_execution_status_20260710.md).
 
 ## Citation
 
@@ -149,5 +155,5 @@ and are recorded in full in
 ```
 
 Previously named `CrossViewConflict` (old URLs redirect; the package import name
-stays `crossview_conflict`). Chinese summary: [`README_CN.md`](README_CN.md).
+stays `crossview_conflict`).
 License: [Apache 2.0](LICENSE).

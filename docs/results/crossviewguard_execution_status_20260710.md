@@ -281,9 +281,7 @@ sufficient.
 - Reopen the central branch only after the unlock artifacts exist and a new
   protocol is frozen before outcome inspection.
 
-The active-evidence plan and attestability revision should therefore be read as
-a protocol history plus this execution boundary, not as evidence that the full
-CrossViewGuard idea has already been executed:
-
-- [`active-evidence research plan`](../2026-07-10_crossviewguard_active_evidence_research_plan.md)
-- [`attestability revision`](../2026-07-10_crossviewguard_attestability_revision.md)
+The active-evidence plan and attestability revision (internal planning notes,
+not tracked in this repository) should therefore be read as a protocol history
+plus this execution boundary, not as evidence that the full CrossViewGuard idea
+has already been executed.

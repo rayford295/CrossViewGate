@@ -5,8 +5,9 @@
 This document specifies a **development/exploratory** analysis of the *causal
 structure of cross-view severity disagreement*: how much of it is systematically
 produced by view-conditional attestability (what each view can see), versus
-residual noise. It supports the attestability revision
-([`2026-07-10_crossviewguard_attestability_revision.md`](../2026-07-10_crossviewguard_attestability_revision.md)).
+residual noise. It supports the attestability framing adopted on 2026-07-10:
+the severity label is treated as a lossy projection of multi-view evidence, and
+cross-view disagreement as the phenomenon to be explained.
 
 - All Study A results are **exploratory**. The analysis reads only
   `gate_fit` and `risk_calibration` role rows from the p0.2-v1 per-sample

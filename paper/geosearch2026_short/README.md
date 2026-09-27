@@ -1,5 +1,7 @@
 # GeoSearch 2026 Short Paper (4 pages)
 
+**Status:** accepted as a lightning talk (notification 2026-09-23, EasyChair paper 18). Camera-ready due 2026-10-12 on the ACM template; the version tracked here is the submitted one until then.
+
 Four-page short-paper version of the ISPRS manuscript
 (`../isprs_manuscript.md`, "Trust the view that sees the target"), reframed for
 the 5th ACM SIGSPATIAL International Workshop on Searching and Mining Large
@@ -21,8 +23,9 @@ ISPRS manuscript.
 ## Dates
 
 - Submission deadline: September 6, 2026 (extended)
-- Notification: September 18, 2026
+- Notification: September 23, 2026 (accepted, lightning talk)
 - Camera-ready: October 12, 2026
+- Workshop: November 3, 2026, Riverside Convention Center
 
 ## What changed relative to the ISPRS manuscript
 
