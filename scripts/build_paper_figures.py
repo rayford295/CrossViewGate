@@ -1,4 +1,4 @@
-"""Publication figures for the CrossViewGate ISPRS manuscript (Figs 2-5).
+"""Publication figures for the CrossViewGate paper (Figs 2-5).
 
 Palette: validated reference categorical slots, fixed identity per method
 across all figures. Yellow slot carries direct labels (contrast relief rule).

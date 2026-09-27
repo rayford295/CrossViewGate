@@ -1,6 +1,6 @@
 # Figures
 
-Final manuscript figure set (PNG 300 dpi for viewing, PDF vector for
+Publication figure set (PNG 300 dpi for viewing, PDF vector for
 submission). Regenerate with `python scripts/build_paper_figures.py` — all
 panels are driven by the result CSVs under `outputs/analysis/` (converged
 5-seed v2 protocol).
