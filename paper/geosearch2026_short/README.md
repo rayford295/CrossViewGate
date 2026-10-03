@@ -1,6 +1,6 @@
 # GeoSearch 2026 Short Paper (4 pages)
 
-**Status:** accepted as a lightning talk (notification 2026-09-23, EasyChair paper 18). Camera-ready due 2026-10-12 on the ACM template; the version tracked here is the submitted one until then.
+**Status:** accepted as a lightning talk (notification 2026-09-23, EasyChair paper 18). The version tracked here is the **camera-ready** (prepared 2026-10-03, due 2026-10-12 via EasyChair): ACM rights block, DOI 10.1145/3849732.3857333, ISBN 979-8-4007-3058-0/2026/11, CCS concepts, no page numbers, and a readability revision in response to the reviews (shorter sentences, fewer inline statistics, Figures 2-3 single-column).
 
 Four-page short paper, "Trust the View That Sees the Target: Mining Cross-View
 Conflicts for Reliability-Gated Disaster Damage Assessment", for the 5th ACM
@@ -14,8 +14,8 @@ Geospatial Data (GeoSearch '26). Sole author: Yifan Yang.
 - Paper type: short research paper, 4 pages (we keep references inside the
   4 pages because the CFP does not say they are excluded)
 - Review: single-blind (author names and affiliations are listed)
-- Template: ACM `acmart` `sigconf`, submission mode (`\setcopyright{none}`,
-  `printacmref=false`); the ACM rights block goes in at camera-ready
+- Template: ACM `acmart` `sigconf`, camera-ready mode (`\setcopyright{cc}`,
+  `\setcctype{by}`, `printfolios=false`); rights block issued by ACM 2026-10-03
 - Submission: <https://easychair.org/my/conference?conf=geosearch2026>
 - CFP: <https://geosearch-workshop.github.io/geosearch2026/>
 
