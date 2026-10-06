@@ -20,34 +20,41 @@
 
 Street-level and overhead imagery are usually fused *symmetrically*: both views
 are trusted equally everywhere. On the samples where the two views disagree,
-that habit throws away most of the useful signal. CrossViewGate measures the
-loss, closes part of it with a linear and interpretable **reliability gate**,
-shows the mechanism with a controlled intervention, and turns the disagreement
-itself into a **label-free damage map**.
+that habit leaves much of the useful signal unused. CrossViewGate measures the
+headroom, recovers part of it with a linear and interpretable **reliability
+gate**, tests the role of ground-view framing with a controlled cropping
+experiment, and turns the disagreement itself into a **label-free damage
+indicator**.
 
 ## Key findings
 
-- **The oracle gap.** On conflict cases (10–33% of samples, where independent
-  street and overhead models disagree), choosing the right single view beats
-  every fusion method by **0.37–0.41 accuracy**. Stable across three disasters
-  (2025 Eaton wildfire, Hurricanes Ian and Milton), five seeds, calibration,
-  and backbones.
-- **The reliability gate.** A linear model over 11 features (building
-  visibility, calibrated per-view confidence, cross-view disagreement) mixes
-  the views per sample. It is the only method that significantly beats
-  calibrated averaging (+0.051, p = 0.0001) and beats end-to-end fusion on
-  wildfire conflicts (+0.072) and the full test set (+0.018), p < 10⁻⁴, with
-  parity on panoramic data. The rule it learns: *trust the street view when it
-  is confident and the building is centered in the frame.*
-- **Causal mechanism.** Cropping hurricane panoramas to building-centered 90°
-  views doubles the fusion benefit (Milton oracle-gap closure 0.177 → 0.365);
-  geometrically identical random crops do not, in 6/6 dataset-seed pairs.
-- **Label-free damage map.** Tile-level conflict density predicts wildfire
-  damage without annotations (Spearman r = 0.615, p = 0.001); single-view
-  uncertainty density anti-correlates.
+- **The oracle gap.** On conflict cases (9.6–33.2% of test samples, where
+  independent street and overhead models disagree), choosing the right single
+  view would add 0.37–0.48 conflict accuracy over the better single view and
+  0.19–0.32 over the best evaluated fusion method (2025 Eaton wildfire,
+  Hurricanes Ian and Milton; five seeds).
+- **The reliability gate.** A linear mixture over 11 features (building
+  visibility, calibrated per-view confidence, cross-view disagreement) weights
+  the street, overhead, and end-to-end fusion predictions per sample. On the
+  property-centric wildfire data it beats end-to-end fusion on conflicts
+  (+0.072) and the full test set (+0.018), both p < 10⁻⁴, and calibrated
+  averaging (+0.051, p = 0.0001). On the panoramic hurricane data it is
+  statistically indistinguishable from end-to-end fusion. The two-expert
+  variant reads as one rule: *trust the street view when it is confident and
+  the building is centered in the frame.*
+- **Field-of-view intervention.** Cropping hurricane panoramas to
+  building-centered 90° views raises the conflict gain of fusion (Ian
+  0.064 → 0.109, Milton 0.067 → 0.149); random crops with identical geometry
+  do not, in 6/6 dataset-seed pairs. This supports building-oriented framing as
+  a driver of the regime difference (the segmenter locates built structures,
+  not the specific target building).
+- **Label-free damage indicator.** Tile-level conflict density correlates with
+  wildfire damage without annotations (Spearman r = 0.615, 25 tiles; nominal
+  p, damage is spatially autocorrelated); single-view uncertainty
+  anti-correlates. The hurricane signal is weaker (Milton r = 0.289, n.s.).
 - **A negative result.** Once single-view models are converged and
-  calibrated, simple probability averaging matches end-to-end learned fusion.
-  Learning pays off only as asymmetric, reliability-aware arbitration.
+  calibrated, simple probability averaging is as strong as end-to-end learned
+  fusion. Learning pays off as reliability-aware arbitration.
 
 ## Results
 
@@ -68,8 +75,8 @@ Conflict-case test accuracy, five-seed means.
     <td width="50%"><img src="figures/fig4_fov_intervention.png" alt="Field-of-view intervention"></td>
   </tr>
   <tr>
-    <td><sub><b>Reliability gate.</b> Accuracy by method and the learned linear coefficients.</sub></td>
-    <td><sub><b>Causal intervention.</b> Same panorama, same geometry; only the building-centered crop helps.</sub></td>
+    <td><sub><b>Reliability gate.</b> Accuracy by method and the coefficients of the two-expert (street vs. overhead) linear gate.</sub></td>
+    <td><sub><b>Field-of-view intervention.</b> Same panorama, same crop geometry; the building-centered crop raises the fusion gain, the random crop does not.</sub></td>
   </tr>
   <tr>
     <td><img src="figures/fig5_conflict_density.png" alt="Conflict density map"></td>

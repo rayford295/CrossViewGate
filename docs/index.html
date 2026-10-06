@@ -18,7 +18,7 @@
         <a href="#claim">Claim</a>
         <a href="#gap">Oracle Gap</a>
         <a href="#gate">Gate</a>
-        <a href="#causal">Causal Test</a>
+        <a href="#causal">Cropping Test</a>
         <a href="#spatial">Damage Map</a>
         <a href="#data">Data</a>
       </nav>
@@ -33,10 +33,11 @@
           <p class="hero-copy">
             Cross-view fusion of street-level and overhead imagery is almost always
             symmetric: both views are trusted equally everywhere. Measured on the
-            cases where the two views disagree, that assumption leaves 0.37&ndash;0.41
-            accuracy on the table across three real disasters. A linear,
-            interpretable gate over building visibility recovers a significant part
-            of it, and a controlled intervention shows why.
+            cases where the two views disagree, an oracle that trusts the correct view
+            would still add 0.19&ndash;0.32 accuracy over the best fusion method across
+            three real disasters. A linear, interpretable gate over building
+            visibility recovers part of it where ground photographs are aimed at the
+            building, and a controlled cropping experiment probes why.
           </p>
           <p class="hero-copy"><strong>News:</strong> the short paper has been accepted as a
             lightning talk at GeoSearch 2026 (5th ACM SIGSPATIAL Workshop on Searching and
@@ -66,8 +67,8 @@
         <div class="metric-strip" aria-label="Headline metrics">
           <article class="metric">
             <span class="metric-label">Oracle single-view gap</span>
-            <strong>0.37&ndash;0.41</strong>
-            <span>Conflict accuracy an oracle that trusts the correct view adds over the best single view, on all three disasters.</span>
+            <strong>0.37&ndash;0.48</strong>
+            <span>Conflict accuracy an oracle that trusts the correct view adds over the better single view (0.19&ndash;0.32 over the best fusion method).</span>
           </article>
           <article class="metric">
             <span class="metric-label">Reliability gate vs. end-to-end fusion</span>
@@ -77,7 +78,7 @@
           <article class="metric">
             <span class="metric-label">Label-free damage map</span>
             <strong>r = 0.615</strong>
-            <span>Tile-level conflict density vs. wildfire damage (Spearman, p = 0.001). Single-view uncertainty anti-correlates.</span>
+            <span>Tile-level conflict density vs. wildfire damage (Spearman, 25 tiles). Single-view uncertainty anti-correlates.</span>
           </article>
         </div>
       </section>
@@ -88,8 +89,8 @@
           <h2>From conflict cases to a trust decision and a map.</h2>
           <p>
             Independently trained street and remote models define the conflict cases.
-            A linear gate over target-building visibility, calibrated confidence, and
-            cross-view disagreement decides which view to trust per sample. The
+            A linear gate over building visibility, calibrated confidence, and
+            cross-view disagreement decides how much to trust each predictor per sample. The
             spatial density of conflicts doubles as a damage map that needs no labels.
           </p>
         </div>
@@ -111,12 +112,10 @@
           <h2>Symmetric fusion leaves most view-reliability information unused.</h2>
           <p>
             An oracle that picks whichever single view is correct per conflict sample
-            exceeds every tested fusion method by 0.37&ndash;0.41 accuracy. The gap
-            survives model convergence, temperature calibration, and backbone changes.
-            Calibrated probability averaging closes at most 44% of it; end-to-end
-            learned fusion closes less. Under converged training, learned fusion does
-            not reliably beat calibrated averaging at all, a negative result the field
-            should absorb.
+            exceeds the better single view by 0.37&ndash;0.48 conflict accuracy and the
+            best evaluated fusion method by 0.19&ndash;0.32. Under converged, calibrated
+            training, end-to-end learned fusion does not reliably beat calibrated
+            probability averaging, a negative result worth absorbing.
           </p>
         </div>
 
@@ -133,7 +132,7 @@
             </div>
             <div>
               <dt>Closure</dt>
-              <dd>Fraction of the gap a method recovers. Gate 0.52 on the wildfire; no method passes one half on the panoramic datasets.</dd>
+              <dd>Fraction of the gap a method recovers. Computed from the five-seed means. Gate 0.59 on the wildfire; no method exceeds 0.26 on the panoramic datasets.</dd>
             </div>
           </dl>
         </div>
@@ -200,9 +199,9 @@
           imagery the gate delivers +0.072 over end-to-end fusion and +0.051 over
           calibrated averaging (pooled sign-flip permutation tests, p &le; 0.0001). On
           the panoramic hurricane imagery, where street views rarely see the target
-          building, it sits at parity and is never significantly worse. The learned
-          rule reads: <em>trust the street view when it is confident and actually
-          looking at the building.</em>
+          building, it is statistically indistinguishable from end-to-end fusion. The
+          two-expert (street vs. overhead) variant reads as one rule: <em>trust the
+          street view when it is confident and the building is centered.</em>
         </p>
 
         <figure>
@@ -212,25 +211,29 @@
           >
           <figcaption>
             (a) Conflict-case accuracy by method with the oracle as reference.
-            (b) Linear gate coefficients on the wildfire: building centering and the
-            confidence gap shift trust toward the street view; street entropy shifts it
-            toward the overhead view.
+            (b) Coefficients of the two-expert linear gate on the wildfire (mean &plusmn;
+            std over seeds): building centering and the confidence gap shift trust
+            toward the street view; the raw building pixel ratio shifts it toward the
+            overhead view. Several coefficients do not keep their sign across seeds.
           </figcaption>
         </figure>
       </section>
 
       <section id="causal" class="section figure-band reverse">
         <div class="figure-copy">
-          <p class="eyebrow">Causal Field-of-View Intervention</p>
-          <h2>Target alignment, not disaster type, controls the value of fusion.</h2>
+          <p class="eyebrow">Field-of-View Intervention</p>
+          <h2>Aiming the ground view at the building raises the value of fusion.</h2>
           <p>
             Hurricane panoramas are cropped to 90&deg; windows that are either
             centered on the detected building or placed at a random azimuth. The two
-            variants are geometrically identical. Building-centered crops double the
-            fusion benefit on Milton (gap closure 0.177 &rarr; 0.365) and raise it on
-            Ian; random crops do not, in 6/6 dataset&ndash;seed pairs. The gain arrives
-            even though building-centered crops <em>lower</em> street-only accuracy:
-            the two views simply start attending to the same object.
+            variants are geometrically identical. Building-centered crops raise the
+            conflict gain of fusion (Ian 0.064 &rarr; 0.109, Milton 0.067 &rarr; 0.149);
+            random crops do not, and the building-minus-random contrast is positive in
+            6/6 dataset&ndash;seed pairs (three seeds, three-epoch schedule). The gain
+            arrives even though building-centered crops <em>lower</em> street-only
+            accuracy. The segmenter locates built structures rather than the specific
+            target building, so this supports, rather than proves, target alignment
+            as the mechanism.
           </p>
         </div>
         <figure>
@@ -251,8 +254,9 @@
           <h2>Disagreement between two sensors is a spatial signal, not just an error mode.</h2>
           <p>
             Aggregated to tiles, the fraction of conflict cases predicts wildfire
-            damage without any labels (Spearman r = 0.615, p = 0.001 on overhead
-            tiles; r = 0.60 on a 0.01&deg; grid). The natural control fails in the most
+            damage without any labels (Spearman r = 0.615 over 25 overhead tiles;
+            r = 0.60 on a 0.01&deg; grid; nominal p-values, since damage is spatially
+            autocorrelated). The hurricane signal is weaker (Milton r = 0.289, n.s.). The natural control fails in the most
             instructive way: single-view uncertainty <em>anti-correlates</em> with damage,
             because burned-to-the-ground parcels are easy, confident classifications.
             A conflict-density raster can be computed within hours of acquiring paired
@@ -310,7 +314,7 @@
             <div class="mini-table">
               <div><span>Regime</span><strong>property-centric</strong></div>
               <div><span>Conflict rate</span><strong>9.6%</strong></div>
-              <div><span>Gate closure</span><strong>0.52</strong></div>
+              <div><span>Gate closure</span><strong>0.59</strong></div>
             </div>
           </article>
 
@@ -325,7 +329,7 @@
             <div class="mini-table">
               <div><span>Regime</span><strong>panoramic</strong></div>
               <div><span>Conflict rate</span><strong>33.2%</strong></div>
-              <div><span>Gate closure</span><strong>0.23</strong></div>
+              <div><span>Gate closure</span><strong>0.24</strong></div>
             </div>
           </article>
 
@@ -364,8 +368,8 @@
         <ul>
           <li>Evaluate fusion on the cases where the views disagree, and report how much of the oracle gap a method closes.</li>
           <li>Once single-view models are converged and calibrated, simple averaging is a strong baseline; the advantage of learning lies in asymmetric, reliability-aware arbitration.</li>
-          <li>Street-view target alignment is the causal driver of fusion benefit. Capture policy is itself an intervention: aim cameras at structures.</li>
-          <li>Conflict density is a label-free damage map that plain uncertainty cannot replicate.</li>
+          <li>Building-oriented framing of the street view raises the value of fusion. Capture policy is itself a lever: aim cameras at structures.</li>
+          <li>Conflict density is a label-free damage indicator on the wildfire that plain uncertainty does not replicate; it still needs spatially independent validation.</li>
           <li>Split by object and location. Release-style random or index-based splits overstate spatial generalization.</li>
         </ul>
       </section>
