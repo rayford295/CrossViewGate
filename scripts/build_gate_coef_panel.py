@@ -8,7 +8,11 @@ typography as ``build_paper_figures.py``.
 The result CSVs (``outputs/analysis/reliability_gate_v2/``) are not tracked in
 the repository, so the values below were digitized from the vector geometry
 of ``figures/fig3_gate.pdf`` (bar extents and error-bar ends measured in PDF
-points against the axis ticks; precision about 0.01). Re-run
+points against the axis ticks; precision about 0.01). They match the
+tracked coefficient table in ``docs/results/reliability_gate_results_v2.md``
+exactly. Note: these are coefficients of the two-expert (street vs. remote)
+gate, which has a single logit; the three-expert headline gate has no
+single "trust street" coefficient. Re-run
 ``build_paper_figures.py`` on the experiment machine to regenerate from data.
 """
 from __future__ import annotations
