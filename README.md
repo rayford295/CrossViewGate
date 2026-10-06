@@ -6,6 +6,7 @@
 *Mining cross-view conflicts for reliability-gated disaster damage assessment*
 
 [![Paper](https://img.shields.io/badge/paper-GeoSearch%20'26%20%C2%B7%20accepted-2c6fb7)](paper/geosearch2026_short/main.pdf)
+[![arXiv](https://img.shields.io/badge/arXiv-2610.04327-b31b1b)](https://arxiv.org/abs/2610.04327)
 [![Website](https://img.shields.io/badge/website-project%20page-500000)](https://rayford295.github.io/CrossViewGate/)
 [![Datasets](https://img.shields.io/badge/data-disaster--crossview--datasets-168a58)](https://github.com/rayford295/disaster-crossview-datasets)
 [![License](https://img.shields.io/badge/license-Apache%202.0-lightgrey)](LICENSE)
@@ -135,6 +136,9 @@ No-Go or sensitivity-only findings, recorded with their consumed-data ledger in
   booktitle = {Proceedings of the 5th ACM SIGSPATIAL International Workshop on
                Searching and Mining Large Collections of Geospatial Data (GeoSearch '26)},
   year      = {2026},
+  doi       = {10.1145/3849732.3857333},
+  eprint    = {2610.04327},
+  archivePrefix = {arXiv},
   note      = {Lightning talk. Code: https://github.com/rayford295/CrossViewGate}
 }
 ```
