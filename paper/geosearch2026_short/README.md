@@ -39,7 +39,7 @@ Corrections made in this pass relative to the 2026-10-03 build:
 Four-page short paper, "Trust the View That Sees the Target: Mining Cross-View
 Conflicts for Reliability-Gated Disaster Damage Assessment", for the 5th ACM
 SIGSPATIAL International Workshop on Searching and Mining Large Collections of
-Geospatial Data (GeoSearch '26). Sole author: Yifan Yang.
+Geospatial Data (GeoSearch '26). Authors: Yifan Yang and Lei Zou (both corresponding).
 
 ## Target
 

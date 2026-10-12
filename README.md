@@ -132,7 +132,7 @@ No-Go or sensitivity-only findings, recorded with their consumed-data ledger in
 @inproceedings{yang2026trust,
   title     = {Trust the View That Sees the Target: Mining Cross-View Conflicts
                for Reliability-Gated Disaster Damage Assessment},
-  author    = {Yang, Yifan},
+  author    = {Yang, Yifan and Zou, Lei},
   booktitle = {Proceedings of the 5th ACM SIGSPATIAL International Workshop on
                Searching and Mining Large Collections of Geospatial Data (GeoSearch '26)},
   year      = {2026},
