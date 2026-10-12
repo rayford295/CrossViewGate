@@ -23,7 +23,7 @@
 \newcommand{\conf}{\mathcal{C}}
 \newcommand{\acc}{\mathrm{acc}}
 
-\title{Trust the View That Sees the Target: Mining Cross-View Conflicts for Reliability-Gated Disaster Damage Assessment}
+\title{When Satellite and Street Views Disagree: Cross-View Complementarity in Disaster Damage Assessment}
 
 \author{Yifan Yang}
 \authornote{Both authors are corresponding authors.}
@@ -49,27 +49,26 @@
 
 
 \begin{abstract}
-After a disaster, building damage is assessed from overhead tiles and
-ground-level photographs, and most methods fuse the two views
-symmetrically. This paper studies the samples where the views do not agree:
-the \emph{conflict cases}, on which two independently trained single-view
-models disagree. We mine them from three paired collections (inspection
-photographs from the 2025 Eaton wildfire and street-view panoramas from
-Hurricanes Ian and Milton, each matched to very-high-resolution overhead
-tiles), where they make up 9.6--33.2\% of the test data. An oracle that
-picks the correct single view on each conflict exceeds the best evaluated
-fusion method by 0.19--0.32 conflict accuracy. A linear reliability gate
-over building-visibility features, calibrated confidences, and disagreement
+Satellite and street-view imagery see different parts of a damaged
+building: roofs from above, facades and debris from the ground. Average
+accuracy hides whether fusion methods use this complementary evidence. We
+study the \emph{conflict cases}, the samples on which independently trained
+single-view models disagree, as a diagnostic subset. On paired collections
+from the 2025 Eaton wildfire and Hurricanes Ian and Milton, conflicts make
+up 9.6--33.2\% of the test data. Fusion improves conflict accuracy over
+either view, yet an oracle that selects the correct single view per
+conflict remains 0.19--0.32 above the best evaluated fusion method. A linear fusion gate over
+building-visibility features, calibrated confidences, and disagreement
 recovers part of this headroom where ground photographs are aimed at the
 building: on Eaton it beats end-to-end fusion by $+0.072$ conflict accuracy
-($p<10^{-4}$) and calibrated averaging by $+0.051$ ($p=0.0001$). On the
-panoramic datasets it is statistically indistinguishable from end-to-end
-fusion. Cropping panoramas toward the building raises the conflict gain of
-fusion, whereas random crops of the same size do not. Finally, the spatial
-density of conflicts, computed without labels, correlates with tile-level
-wildfire damage (Spearman $r=0.615$, 25 tiles). Mining conflicts turns
-``does fusion help?'' into ``which view should be trusted, where, and
-why?''.
+($p<10^{-4}$) and calibrated averaging by $+0.051$ ($p=0.0001$); on the
+panoramic hurricane datasets it is indistinguishable from end-to-end fusion.
+Cropping panoramas toward the building raises the conflict gain of fusion,
+whereas random crops of the same size do not. The spatial density of
+conflicts, computed without labels, correlates with tile-level wildfire
+damage (Spearman $r=0.615$, 25 tiles). Conflict cases thus show how much
+complementary evidence fusion uses, which view carries it under each hazard
+and capture setting, and where current methods fall short.
 \end{abstract}
 
 \begin{CCSXML}
@@ -96,7 +95,7 @@ why?''.
 \ccsdesc[300]{Information systems~Geographic information systems}
 \ccsdesc[300]{Computing methodologies~Machine learning}
 
-\keywords{cross-view fusion, street-view imagery, satellite imagery, disaster damage assessment, reliability estimation, GeoAI}
+\keywords{cross-view complementarity, street-view imagery, satellite imagery, disaster damage assessment, cross-view fusion, GeoAI}
 
 \begin{document}
 
@@ -104,16 +103,16 @@ why?''.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.47\textwidth]{../../figures/fig0_pipeline.png}
+  \includegraphics[width=0.44\textwidth]{../../figures/fig0_pipeline.png}
   \Description{Pipeline diagram: a street-view image feeds a street model and
   an overhead image feeds a remote model; where the two disagree, conflict
-  cases pass to a linear trust gate over building visibility, calibrated
+  cases pass to a linear fusion gate over building visibility, calibrated
   confidence and street-overhead disagreement, which outputs a gated
   prediction; the spatial density of conflicts gives a damage map.}
   \caption{Overview. Single-view models define the conflict cases; a linear
-  gate decides how much to trust each predictor per sample (the implemented
-  gate also mixes in the end-to-end fusion model, omitted here); conflict
-  density is a label-free damage indicator. Shown: an Eaton-fire conflict.}
+  fusion gate decides how much weight each view receives per sample (the
+  implemented gate also mixes in the end-to-end fusion model, omitted here);
+  conflict density is a label-free damage indicator (Eaton-fire example).}
   \label{fig:pipeline}
 \end{figure*}
 
@@ -138,52 +137,57 @@ why?''.
     concat & 0.930 & 0.674 & 0.40 & 0.709 & 0.588 & 0.16 & 0.766 & 0.622 & 0.16 \\
     crossview (end-to-end fusion) & 0.940 & 0.699 & 0.45 & \textbf{0.735} & \textbf{0.624} & \textbf{0.26} & 0.776 & \textbf{0.649} & \textbf{0.23} \\
     calibrated probability averaging & 0.954 & 0.732 & 0.52 & 0.731 & 0.617 & 0.24 & 0.776 & 0.626 & 0.17 \\
-    \textbf{reliability gate (linear)} & \textbf{0.959} & \textbf{0.768} & \textbf{0.59} & 0.731 & 0.618 & 0.24 & \textbf{0.777} & 0.631 & 0.18 \\
+    \textbf{fusion gate (linear)} & \textbf{0.959} & \textbf{0.768} & \textbf{0.59} & 0.731 & 0.618 & 0.24 & \textbf{0.777} & 0.631 & 0.18 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
 \section{Introduction}
 Building-level damage assessment after a disaster increasingly draws on two
-large image collections at once. Overhead imagery covers a whole region within
+image collections at once. Satellite imagery covers a whole region within
 hours and is the basis of standardized damage
-mapping~\cite{gupta2019creating}. Ground-level imagery, whether crowdsourced
-street-view panoramas or official inspection photographs, shows the facades
-and debris that overhead sensors cannot
-see~\cite{zhai2020damage,yang2025hyperlocal}. Methods that pair the two views
-serve geolocalization and damage
+mapping~\cite{gupta2019creating}, but it mainly shows roofs. Ground-level
+imagery, whether crowdsourced street-view panoramas or official inspection
+photographs, shows the facades and debris that overhead sensors cannot
+fully detect~\cite{zhai2020damage,yang2025hyperlocal}. The views are
+complementary: a facade can be gutted under an unbroken roof. Methods that
+pair them serve geolocalization and damage
 mapping~\cite{li2025cross,yin2026triple,li2026towards}, multimodal
 arbitration~\cite{yang2026damagearbiter}, and agentic assessment
-pipelines~\cite{yang2026rapid,yang2026rapidmap}. Their usual conclusion is
-encouraging: fusion improves average accuracy over either view alone.
+pipelines~\cite{yang2026rapid,yang2026rapidmap}, and usually report that
+fusion improves average accuracy over either view alone.
 
-Average accuracy hides both the value and the limitation of
-cross-view fusion: for most buildings the two views agree. The informative records are the \emph{conflicts}, the samples on which
-independently trained single-view models disagree. A conflict often means
-that one sensor cannot see the damage: a facade can look intact from above
-and gutted from the street, or trees can hide a destroyed roof from the road.
-Finding these records, deciding which view to believe for each, and reading
-their spatial pattern is a search-and-mining problem as much as a modeling one.
+Average accuracy says little about whether this evidence is used, because
+for most buildings the two views agree. The informative
+records are the \emph{conflict cases}, the samples on which independently
+trained single-view models disagree: at least one view carries evidence the
+other lacks, whether damage is visible only from one side, vegetation hides
+the building, or the views are misaligned. Conflicts are thus a focused
+subset for asking how much complementary evidence fusion recovers, which
+view carries it under a given hazard and capture setting, and how the views
+can be combined.
 
-We therefore make conflict cases the unit of analysis and ask four
-questions. (1)~How much headroom do fusion methods leave on conflicts? We
-compare them with an oracle that trusts whichever single view is correct.
-(2)~Can a simple, readable gate recover part of it from cues about whether
-the ground image actually shows the building? (3)~Does aiming the ground view
-at the building change the value of fusion? We vary the framing
-\emph{within} a dataset with a controlled cropping experiment. (4)~Does the spatial density
-of conflicts, which needs no labels once the models are trained, track
-damage (Figure~\ref{fig:pipeline})? Code, protocols, and derived result
-tables: \url{https://github.com/rayford295/CrossViewGate}.
+This study examines cases in which damage assessments derived from
+satellite imagery conflict with those derived from street-view imagery to
+address four research questions. (1)~How much complementary headroom do
+fusion methods leave on conflict cases? We compare them with an oracle that
+selects whichever single view is correct. (2)~Can a simple, readable gate
+recover part of it from cues about whether the ground image actually shows
+the building? (3)~Does aiming the ground view at the building change the
+value of fusion? We vary framing \emph{within} a dataset by controlled
+cropping. (4)~Does the spatial density of conflicts,
+which needs no labels once the models are trained, track damage
+(Figure~\ref{fig:pipeline})? Code and protocols:
+\url{https://github.com/rayford295/CrossViewGate}.
 
 \section{Data and Protocol}
-We use three paired street/overhead collections spanning two hazards and,
-more importantly, two ground-view \emph{observation regimes}: property-centric
+We use three paired street/overhead collections spanning two hazards and
+two ground-view \emph{observation regimes}: property-centric
 photographs aimed at a building, and panoramas that are not.
 
 \textbf{Eaton wildfire (Altadena, CA; property-centric).} Building-level
 CAL~FIRE Damage Inspection (DINS) photographs taken after the January 2025
-fire, paired by location with post-event VHR overhead tiles. The six-level
+fire, paired by location with post-event Very-High-Resolution (VHR) overhead tiles. The six-level
 DINS scale is mapped to three ordinal classes (no/trace damage,
 damaged--repairable, destroyed). The split has 6.5k/1,966/1,984
 train/val/test pairs.
@@ -197,19 +201,19 @@ pairing over Florida after the October 2024 hurricane, built in the same way;
 
 \paragraph{Splits and leakage.}
 Eaton is split by property and tile, so all photographs of one structure fall
-in one partition. For Ian the headline numbers keep the released split for
+in one partition. For Ian, the headline numbers keep the released split for
 comparability with CVDisaster. However, an audit against the official CVIAN
-position file found that 299 of the 300 test samples share a Mapillary
+position file found that 299 out of the 300 test samples share a Mapillary
 sequence with the training data, so we also evaluate a repaired protocol with
 $0.005^\circ$ spatial blocks and a 25~m buffer. Under it, macro-F1 drops by
 0.05--0.10 for every model, so index-based splits overstate spatial
 generalization, although the single-view ranking (street above satellite) is
-unchanged. The Ian results in Table~\ref{tab:main} should therefore be read as
-in-distribution results, not as evidence of spatial transfer.
+unchanged. The Ian results in Table~\ref{tab:main} should therefore be interpreted as
+in-distribution results, not as the evidence of spatial transfer.
 
 \section{Method}
 \paragraph{Base models and conflict cases.}
-For each dataset we train four models under one protocol:
+For each dataset, we trained four models under one protocol:
 \textit{street\_only} and \textit{remote\_only} (ResNet-18~\cite{he2016deep}
 with a linear head), \textit{concat} (both encoders with an MLP head), and
 \textit{crossview} (both encoders with a learned interaction head), which
@@ -230,18 +234,18 @@ and its \textbf{oracle-gap closure},
      {\acc_{\conf}(\text{oracle})-\acc_{\conf}(\text{best single})},
 \label{eq:closure}
 \end{equation}
-where ``best single'' is the single-view model with the higher mean conflict
-accuracy. The oracle only chooses \emph{which} of two fixed models to trust,
+where "best single'' is the single-view model with the higher mean conflict
+accuracy. The oracle only chooses \emph{which} of two fixed models to use,
 so it measures the headroom of hard view selection; it is not an upper bound
 for probability mixtures, which can in principle exceed it.
 
 \paragraph{Calibration.}
 Since miscalibration can distort averaging~\cite{guo2017calibration},
-we fit one temperature per view on validation predictions and evaluate every
+we fit one temperature per view on validation predictions and evaluated every
 training-free fusion baseline on calibrated probabilities; the argmax, and
 hence the conflict subset, is unchanged.
 
-\paragraph{Visibility-conditioned reliability gate.}
+\paragraph{Visibility-conditioned fusion gate.}
 A frozen SegFormer-B0~\cite{xie2021segformer} trained on ADE20K gives four
 building-visibility features per street image: the building pixel ratio, the
 same ratio inside a centered crop of half the image size, their difference (a
@@ -260,7 +264,7 @@ p(y\mid x)=\sum_{k}w_k(z)\,p_k(y\mid x),\qquad w(z)=\mathrm{softmax}(Wz+b),
 over $k\in\{\text{street},\text{remote},\text{crossview}\}$, fit on the
 validation split by minimizing the negative log-likelihood of the mixture.
 A \emph{two-expert} variant (street and remote only) has a single logit, so
-each coefficient reads directly as a shift of trust toward one view. A small
+each coefficient reads directly as a shift of weight toward one view. A small
 MLP in place of the linear logits did not help on Eaton.
 
 \paragraph{Field-of-view intervention.}
@@ -268,16 +272,15 @@ Each $1024\times512$ panorama is cropped to a $256\times256$ window with a
 90$^\circ$ horizontal field of view on the horizon band. In the
 \textbf{building-centered} variant the window is aimed at the circular-mean
 azimuth of the SegFormer building mask. In the \textbf{random} variant it is
-aimed at a reproducible uniformly random azimuth. The two variants share
-output size, projection, and resolution and differ only in where the window
-points. We retrain \textit{street\_only} and \textit{crossview} on each
-variant (three seeds, shorter three-epoch schedule; the original-panorama
-reference uses the same schedule), reuse the remote models, and compare the
+aimed at a reproducible uniformly random azimuth. The variants differ only
+in where the window points. We retrained \textit{street\_only} and \textit{crossview} on each
+variant (three seeds, three-epoch schedule, also used for the
+original-panorama reference), reuse the remote models, and compare the
 gain of fusion on conflicts.
 
 \paragraph{Conflict density.}
-We average test-set predictions over seeds, aggregate them to geographic
-tiles, and compute per tile the hard conflict density (fraction of samples on
+We averaged test-set predictions over seeds, aggregate them to geographic
+tiles, and computed per tile the hard conflict density (fraction of samples on
 which the two argmax predictions disagree) and, as a control, the mean
 single-view predictive entropy. Both are rank-correlated (Spearman) with the
 tile's mean ordinal damage label.
@@ -285,11 +288,10 @@ tile's mean ordinal damage label.
 \section{Results}
 \label{sec:results}
 \paragraph{Overall results and the oracle gap.}
-For paired comparisons we average each test sample's correctness difference
-over the seeds in which it is a conflict and apply a two-sided sign-flip
-permutation test (20,000 permutations). These pooled differences weight
-samples rather than seeds, so they differ slightly from the differences of
-the means in Table~\ref{tab:main}. First,
+For paired comparisons, we averaged each test sample's correctness difference
+over the conflict seeds and applied a two-sided sign-flip
+permutation test (20,000 permutations). Pooled differences weight samples
+rather than seeds, so they differ slightly from Table~\ref{tab:main}. First,
 end-to-end fusion beats the street model on conflicts on every dataset
 (Eaton $+0.246$, $p<10^{-4}$; Ian $+0.078$, $p=0.013$; Milton $+0.141$,
 $p=0.006$). Second, once the single-view models are converged and calibrated,
@@ -299,7 +301,7 @@ fusion in both overall accuracy (0.954 vs.\ 0.940) and conflict accuracy
 oracle headroom dwarfs these differences: picking the right single view per
 sample would add 0.475 / 0.367 / 0.407 conflict accuracy over the better
 single view, and still 0.193 / 0.272 / 0.315 over the best evaluated fusion
-method. The unused information concerns \emph{when} each view is reliable.
+method.
 
 \begin{figure}[t]
   \centering
@@ -310,13 +312,12 @@ method. The unused information concerns \emph{when} each view is reliable.
   pixel ratio and street entropy are negative; several error bars cross
   zero.}
   \caption{Coefficients of the two-expert (street vs.\ remote) linear gate on
-  Eaton (mean $\pm$ std over five seeds). Positive values shift trust toward
-  the street view. Bars whose error bars cross zero do not have a stable
-  sign across seeds.}
+  Eaton (mean $\pm$ std over five seeds). Positive values shift weight toward
+  the street view; bars crossing zero have no stable sign across seeds.}
   \label{fig:gate}
 \end{figure}
 
-\paragraph{The reliability gate.}
+\paragraph{The fusion gate.}
 On the property-centric dataset the gate gains $+0.072$ conflict accuracy over
 end-to-end fusion ($p<10^{-4}$) and $+0.018$ on the full test set
 ($p<10^{-4}$); against calibrated averaging, the strongest baseline, it gains
@@ -335,10 +336,9 @@ crossview as a third expert lifts this to 0.768, so the headline gain combines
 both effects. The two-expert coefficients (Figure~\ref{fig:gate}) are the
 interpretable part. The largest weight is building centering ($+0.75\pm0.33$),
 followed by the confidence gap and street confidence, while the raw building
-pixel ratio is negative ($-0.45\pm0.31$). Trust in the street view thus rises
+pixel ratio is negative ($-0.45\pm0.31$). Weight on the street view thus rises
 when the photograph is confident and the building sits in the middle of the
-frame, not merely when much of it is built-up area. Street entropy and the
-disagreement flag have large but seed-dependent weights.
+frame, not merely when much of it is built-up area.
 
 \begin{table}[t]
   \caption{Field-of-view intervention (three seeds, three-epoch schedule;
@@ -365,17 +365,16 @@ disagreement flag have large but seed-dependent weights.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.72\textwidth]{../../figures/fig5_conflict_density.pdf}
+  \includegraphics[width=0.62\textwidth]{../../figures/fig5_conflict_density.pdf}
   \Description{Four panels for the Eaton wildfire on a 0.01-degree grid: a tile
   map of labeled damage, a tile map of conflict density computed without
   labels, a scatter of density against damage with positive rank correlation,
   and the single-view uncertainty control with negative correlation.}
   \caption{Conflict density as a label-free damage indicator (Eaton wildfire,
-  $0.01^\circ$ grid). (a)~Labeled tile damage. (b)~Tile conflict density,
-  computed from model predictions without labels. (c)~Their rank
-  correlation. (d)~The single-view uncertainty control, which
-  anti-correlates with damage. Point size reflects tile sample count;
-  $p$-values are nominal and ignore spatial dependence.}
+  $0.01^\circ$ grid). (a)~Labeled tile damage. (b)~Tile conflict density
+  from model predictions. (c)~Their rank correlation. (d)~The single-view
+  uncertainty control, which anti-correlates with damage. Point size
+  reflects tile sample count; $p$-values ignore spatial dependence.}
   \label{fig:density}
 \end{figure*}
 
@@ -386,10 +385,9 @@ hurricanes (Table~\ref{tab:fov}): from 0.064 to 0.109 on Ian and from 0.067 to
 0.055), and the building-minus-random contrast is positive in all six
 dataset--seed pairs. Cropping \emph{lowers} street-only accuracy yet \emph{raises}
 the benefit of fusion, so the gain does not come from a stronger street
-model, and the random control rules out cropping artifacts. The result
-supports building-oriented framing as a driver of the regime effect; since
-the segmenter does not identify the target building and retraining changes
-the conflict subsets, a fixed-sample test with target annotations would be
+model, and the random control argues against a cropping artifact. This
+supports building-oriented framing as a driver of the regime effect,
+although a fixed-sample test with target-building annotations would be
 stronger.
 
 \paragraph{Conflict density as a spatial damage signal.}
@@ -398,40 +396,47 @@ On the wildfire, the conflict density of an overhead tile tracks its damage
 grid of Figure~\ref{fig:density}). The uncertainty control behaves very
 differently: it \emph{anti-correlates} with damage ($r=-0.37$ to $-0.52$),
 because parcels burned to the ground are easy, confident classifications.
-Conflict density is thus not model uncertainty under another name. Damage on
+Damage on
 Eaton is spatially autocorrelated (Moran's $I=0.27$),
 so the nominal $p$-values overstate the evidence. On Milton the signal is
 weaker and not significant once the models converge ($r=0.289$, $p=0.14$),
 because better single-view models disagree less.
 
 \section{Discussion and Conclusion}
-The oracle headroom, a restricted choice between two existing models, is
-larger than any fusion gain we observed, so for paired geospatial collections
-the productive question is less ``how should features be fused?'' than ``when
-should each view be believed?''. The gate adds one frozen segmentation pass per street image and a linear
-fit on existing probabilities, and its two-expert form reads as one sentence (\emph{trust the street view when it is confident and the
-building is centered}), which matters where automated triage must be
-auditable. For panoramic imagery, calibrated averaging or end-to-end
-fusion suffices; for property-centric photographs, as in inspection programs,
-gating pays. Capture policy is also a lever: framing ground photographs on
-structures raised the value of fusion.
+Conflict cases make the value of complementary views measurable. The oracle
+headroom, a restricted choice between two existing models, exceeds every
+fusion gain we observed, so current fusion leaves most view-specific
+evidence unused. Which view carries it depends on hazard and capture
+setting. On property-centric wildfire photographs, visibility cues identify
+when the street view is decisive, and the gate, one frozen segmentation
+pass plus a linear fit, is cheap and auditable: weight the street view when
+it is confident and the building is centered. On
+panoramic hurricane imagery the building is rarely prominent, and
+calibrated averaging or end-to-end fusion suffices, and framing ground
+photographs on structures raises the value of fusion.
 
 \paragraph{Limitations.}
-The property-centric regime rests on one wildfire dataset; Milton is small
-(254 test pairs); the released Ian split has sequence overlap and the
-repaired protocol only six test blocks. The permutation tests treat test
-samples as independent, ignoring dependence between nearby properties. The
-density signal relies on supervised models and needs spatially aware
-inference and replication on further disasters.
+Hazard and capture regime are confounded across datasets, and the
+property-centric regime rests on one wildfire. Milton is small (254 test
+pairs); the released Ian split has sequence overlap and the repaired
+protocol only six test blocks. The permutation tests ignore dependence
+between nearby properties. We measure prediction complementarity, not which
+component was damaged; conflicts may also stem from occlusion,
+misalignment, or label ambiguity. The density signal needs spatially aware inference and
+replication.
 
 \paragraph{Conclusion.}
-Where the two views disagree, symmetric fusion leaves substantial accuracy
-unused. A visibility-conditioned linear gate recovers part of it when ground
-photographs are aimed at the building, and spatially aggregated disagreement
-is a label-free damage indicator. Mining conflicts turns ``does fusion help?'' into
-``which view should be trusted, where, and why?''.
+Where satellite and street views disagree, symmetric fusion leaves
+substantial complementary evidence unused. A visibility-conditioned gate
+recovers part of it for building-aimed photographs, and spatially
+aggregated disagreement is a label-free damage indicator.
+Mining conflicts turns ``does fusion help?'' into ``which view carries the
+evidence, where, and why?''.
 
 \begin{acks}
+Supported by the U.S.\ National Science Foundation (Award 2318206) and the
+Gulf Research Program of the National Academies of Sciences, Engineering,
+and Medicine (SCON-10000653 and SCON-10001536).
 Claude (Anthropic) and OpenAI Codex were used for language editing and for
 checking reported numbers against the result logs. The authors take full
 responsibility for the content.

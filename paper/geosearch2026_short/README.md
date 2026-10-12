@@ -36,8 +36,9 @@ Corrections made in this pass relative to the 2026-10-03 build:
 - The two-expert ablation is now reported, which separates visibility-based
   weighting from the benefit of adding crossview as a third expert.
 
-Four-page short paper, "Trust the View That Sees the Target: Mining Cross-View
-Conflicts for Reliability-Gated Disaster Damage Assessment", for the 5th ACM
+Four-page short paper, "When Satellite and Street Views Disagree: Cross-View
+Complementarity in Disaster Damage Assessment" (title changed 2026-10-12 at
+Lei Zou's request; formerly "Trust the View That Sees the Target"), for the 5th ACM
 SIGSPATIAL International Workshop on Searching and Mining Large Collections of
 Geospatial Data (GeoSearch '26). Authors: Yifan Yang and Lei Zou (both corresponding).
 

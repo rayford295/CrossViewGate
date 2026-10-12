@@ -2,8 +2,8 @@
 
 # CrossViewGate
 
-**Trust the View That Sees the Target**<br>
-*Mining cross-view conflicts for reliability-gated disaster damage assessment*
+**When Satellite and Street Views Disagree**<br>
+*Cross-view complementarity in disaster damage assessment, studied through conflict cases*
 
 [![Paper](https://img.shields.io/badge/paper-GeoSearch%20'26%20%C2%B7%20accepted-2c6fb7)](paper/geosearch2026_short/main.pdf)
 [![arXiv](https://img.shields.io/badge/arXiv-2610.04327-b31b1b)](https://arxiv.org/abs/2610.04327)
@@ -129,9 +129,9 @@ No-Go or sensitivity-only findings, recorded with their consumed-data ledger in
 ## Citation
 
 ```bibtex
-@inproceedings{yang2026trust,
-  title     = {Trust the View That Sees the Target: Mining Cross-View Conflicts
-               for Reliability-Gated Disaster Damage Assessment},
+@inproceedings{yang2026disagree,
+  title     = {When Satellite and Street Views Disagree: Cross-View Complementarity
+               in Disaster Damage Assessment},
   author    = {Yang, Yifan and Zou, Lei},
   booktitle = {Proceedings of the 5th ACM SIGSPATIAL International Workshop on
                Searching and Mining Large Collections of Geospatial Data (GeoSearch '26)},
