@@ -63,9 +63,13 @@ Geospatial Data (GeoSearch '26). Authors: Yifan Yang and Lei Zou (both correspon
 
 ## Content notes
 
-- Title gains the "Mining Cross-View Conflicts" hook; the introduction frames
-  conflict cases as a search-and-mining problem over paired collections.
-- Kept: oracle gap, linear reliability gate, calibration decomposition,
+- Framing (since 2026-10-12): the two views are complementary, and the
+  conflict cases are the diagnostic subset that shows how much complementary
+  evidence fusion uses, which view carries it under each hazard and capture
+  setting, and where current methods fall short. "Reliability gate" and
+  "trust" became "fusion gate" and "weight" throughout; the Figure 1 label
+  was changed accordingly. Funding acknowledgment added.
+- Kept: oracle gap, linear fusion gate, calibration decomposition,
   field-of-view intervention, conflict-density map, CVIAN split-repair note.
 - Figure 1 is the clean pipeline overview (`figures/fig0_pipeline.png`,
   from `cross_view_pipeline.png`); Figure 2 is `fig3_gate_coef` (camera-ready)
@@ -86,5 +90,5 @@ pdflatex main && bibtex main && pdflatex main && pdflatex main
 ```
 
 Figures are referenced from `../../figures/` (`fig0_pipeline.png`,
-`fig3_gate.pdf`, `fig5_conflict_density.pdf`). Compiled locally with TinyTeX / acmart v2.20:
+`fig3_gate_coef.pdf`, `fig5_conflict_density.pdf`). Compiled locally with TinyTeX / acmart v2.20:
 4 pages, US Letter, all fonts embedded.

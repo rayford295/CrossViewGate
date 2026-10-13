@@ -7,7 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23500000'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia' font-size='32' fill='white'%3EC%3C/text%3E%3C/svg%3E">
     <meta
       name="description"
-      content="Project page for CrossViewGate: visibility-conditioned reliability gating for conflict-aware cross-view disaster damage assessment."
+      content="Project page for CrossViewGate: cross-view complementarity in disaster damage assessment, studied through the conflict cases where satellite and street-view models disagree."
     >
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -31,13 +31,17 @@
           <p class="eyebrow">Which view carries the evidence, where, and why?</p>
           <h1 id="hero-title">When Satellite and Street Views Disagree: Cross-View Complementarity in Disaster Damage Assessment</h1>
           <p class="hero-copy">
-            Cross-view fusion of street-level and overhead imagery is almost always
-            symmetric: both views are trusted equally everywhere. Measured on the
-            cases where the two views disagree, an oracle that trusts the correct view
-            would still add 0.19&ndash;0.32 accuracy over the best fusion method across
-            three real disasters. A linear, interpretable gate over building
-            visibility recovers part of it where ground photographs are aimed at the
-            building, and a controlled cropping experiment probes why.
+            Satellite and street-view imagery see different parts of a damaged
+            building: roofs from above, facades and debris from the ground. Average
+            accuracy hides whether fusion uses this complementary evidence. We study
+            the <em>conflict cases</em>, where independently trained single-view
+            models disagree, as a diagnostic subset across three real disasters. An
+            oracle that picks the correct view per conflict stays 0.19&ndash;0.32
+            above the best fusion method. A linear fusion gate over building
+            visibility recovers part of that headroom where ground photographs are
+            aimed at the building, a controlled cropping experiment shows that framing
+            is a driver, and the spatial density of conflicts tracks damage without
+            labels.
           </p>
           <p class="hero-copy"><strong>News:</strong> the short paper has been accepted as a
             lightning talk at GeoSearch 2026 (5th ACM SIGSPATIAL Workshop on Searching and
@@ -53,15 +57,17 @@
       <section id="claim" class="section">
         <div class="section-heading">
           <p class="eyebrow">Central Thesis</p>
-          <h2>Do not ask whether fusion helps. Ask which view to believe on each sample.</h2>
+          <h2>Do not ask whether fusion helps. Ask which view carries the evidence, where, and why.</h2>
           <p>
-            Most records in a paired street/overhead collection are easy: both views
-            agree and fusion adds little. The operationally interesting records are
+            The two views are complementary: a facade can be gutted under an
+            unbroken roof. Yet for most buildings in a paired street/overhead
+            collection the views agree, so average accuracy says little about
+            whether fusion uses view-specific evidence. The informative records are
             the <em>conflict cases</em>, the 10&ndash;33% of samples on which
-            independently trained single-view models disagree. Conflicts concentrate
-            exactly where one sensor is blind: a facade intact from above but gutted
-            at street level, or a roof destroyed above vegetation that hides it from
-            the road.
+            independently trained single-view models disagree. On a conflict, at
+            least one view carries evidence the other lacks, whether damage is
+            visible only from one side, vegetation hides the building, or the views
+            are misaligned.
           </p>
         </div>
 
@@ -69,10 +75,10 @@
           <article class="metric">
             <span class="metric-label">Oracle single-view gap</span>
             <strong>0.37&ndash;0.48</strong>
-            <span>Conflict accuracy an oracle that trusts the correct view adds over the better single view (0.19&ndash;0.32 over the best fusion method).</span>
+            <span>Conflict accuracy an oracle that selects the correct view adds over the better single view (0.19&ndash;0.32 over the best fusion method).</span>
           </article>
           <article class="metric">
-            <span class="metric-label">Reliability gate vs. end-to-end fusion</span>
+            <span class="metric-label">Fusion gate vs. end-to-end fusion</span>
             <strong>+0.072</strong>
             <span>Wildfire conflict accuracy, p &lt; 10<sup>&minus;4</sup>; +0.051 over calibrated averaging, p = 0.0001.</span>
           </article>
@@ -87,11 +93,11 @@
       <section class="section figure-band">
         <div class="figure-copy">
           <p class="eyebrow">Framework</p>
-          <h2>From conflict cases to a trust decision and a map.</h2>
+          <h2>From conflict cases to a per-sample fusion weight and a map.</h2>
           <p>
             Independently trained street and remote models define the conflict cases.
             A linear gate over building visibility, calibrated confidence, and
-            cross-view disagreement decides how much to trust each predictor per sample. The
+            cross-view disagreement assigns each predictor a weight per sample. The
             spatial density of conflicts doubles as a damage map that needs no labels.
           </p>
         </div>
@@ -110,13 +116,16 @@
       <section id="gap" class="section two-column">
         <div>
           <p class="eyebrow">The Oracle Gap</p>
-          <h2>Symmetric fusion leaves most view-reliability information unused.</h2>
+          <h2>Current fusion leaves most complementary evidence unused.</h2>
           <p>
-            An oracle that picks whichever single view is correct per conflict sample
-            exceeds the better single view by 0.37&ndash;0.48 conflict accuracy and the
-            best evaluated fusion method by 0.19&ndash;0.32. Under converged, calibrated
-            training, end-to-end learned fusion does not reliably beat calibrated
-            probability averaging, a negative result worth absorbing.
+            Fusion improves conflict accuracy over either view, but an oracle that
+            picks whichever single view is correct per conflict sample exceeds the
+            better single view by 0.37&ndash;0.48 and the best evaluated fusion method
+            by 0.19&ndash;0.32. The oracle only chooses between two existing models, so
+            this is a measure of view-specific evidence that fusion does not recover.
+            Under converged, calibrated training, end-to-end learned fusion does not
+            reliably beat calibrated probability averaging, a negative result worth
+            absorbing.
           </p>
         </div>
 
@@ -129,7 +138,7 @@
             </div>
             <div>
               <dt>Oracle</dt>
-              <dd>Correct if either single view is correct. It only chooses which of two fixed models to trust.</dd>
+              <dd>Correct if either single view is correct. It only chooses which of two fixed models to use.</dd>
             </div>
             <div>
               <dt>Closure</dt>
@@ -141,8 +150,8 @@
 
       <section id="gate" class="section">
         <div class="section-heading">
-          <p class="eyebrow">Reliability Gate</p>
-          <h2>A linear gate over eleven interpretable features beats every fusion baseline where it should, and never hurts.</h2>
+          <p class="eyebrow">Fusion Gate</p>
+          <h2>A linear gate over eleven interpretable features recovers part of the headroom where the ground view shows the building.</h2>
         </div>
 
         <div class="table-wrap">
@@ -181,7 +190,7 @@
                 <td>0.626</td>
               </tr>
               <tr>
-                <td>reliability gate (linear)</td>
+                <td>fusion gate (linear)</td>
                 <td class="accent">0.768</td>
                 <td>0.618</td>
                 <td>0.631</td>
@@ -201,8 +210,10 @@
           calibrated averaging (pooled sign-flip permutation tests, p &le; 0.0001). On
           the panoramic hurricane imagery, where street views rarely see the target
           building, it is statistically indistinguishable from end-to-end fusion. The
-          two-expert (street vs. overhead) variant reads as one rule: <em>trust the
-          street view when it is confident and the building is centered.</em>
+          two-expert (street vs. overhead) variant reads as one rule: <em>weight the
+          street view when it is confident and the building is centered.</em> Which
+          view carries the evidence is thus a property of the capture setting, not
+          of the sensor.
         </p>
 
         <figure>
@@ -213,7 +224,7 @@
           <figcaption>
             (a) Conflict-case accuracy by method with the oracle as reference.
             (b) Coefficients of the two-expert linear gate on the wildfire (mean &plusmn;
-            std over seeds): building centering and the confidence gap shift trust
+            std over seeds): building centering and the confidence gap shift weight
             toward the street view; the raw building pixel ratio shifts it toward the
             overhead view. Several coefficients do not keep their sign across seeds.
           </figcaption>
@@ -223,7 +234,7 @@
       <section id="causal" class="section figure-band reverse">
         <div class="figure-copy">
           <p class="eyebrow">Field-of-View Intervention</p>
-          <h2>Aiming the ground view at the building raises the value of fusion.</h2>
+          <h2>Aiming the ground view at the building changes which view carries the evidence.</h2>
           <p>
             Hurricane panoramas are cropped to 90&deg; windows that are either
             centered on the detected building or placed at a random azimuth. The two
@@ -232,9 +243,10 @@
             random crops do not, and the building-minus-random contrast is positive in
             6/6 dataset&ndash;seed pairs (three seeds, three-epoch schedule). The gain
             arrives even though building-centered crops <em>lower</em> street-only
-            accuracy. The segmenter locates built structures rather than the specific
-            target building, so this supports, rather than proves, target alignment
-            as the mechanism.
+            accuracy, so the gain does not come from a stronger street model. The
+            segmenter locates built structures rather than the specific target
+            building, so this supports, rather than proves, building-oriented framing
+            as a driver of the regime difference.
           </p>
         </div>
         <figure>
@@ -252,7 +264,7 @@
       <section id="spatial" class="section">
         <div class="section-heading">
           <p class="eyebrow">Conflict Density as a Damage Map</p>
-          <h2>Disagreement between two sensors is a spatial signal, not just an error mode.</h2>
+          <h2>Where the views disagree is itself a spatial signal.</h2>
           <p>
             Aggregated to tiles, the fraction of conflict cases predicts wildfire
             damage without any labels (Spearman r = 0.615 over 25 overhead tiles;
@@ -364,11 +376,12 @@
       <section class="section takeaways">
         <div>
           <p class="eyebrow">What This Work Claims</p>
-          <h2>Cross-view disaster assessment should be conflict-aware and reliability-gated.</h2>
+          <h2>Mining conflicts turns &ldquo;does fusion help?&rdquo; into &ldquo;which view carries the evidence, where, and why?&rdquo;</h2>
         </div>
         <ul>
-          <li>Evaluate fusion on the cases where the views disagree, and report how much of the oracle gap a method closes.</li>
-          <li>Once single-view models are converged and calibrated, simple averaging is a strong baseline; the advantage of learning lies in asymmetric, reliability-aware arbitration.</li>
+          <li>Evaluate fusion on the cases where the views disagree, and report how much of the oracle gap a method closes. That ratio measures how much complementary evidence fusion uses.</li>
+          <li>Which view carries the evidence depends on hazard and capture setting: visibility cues identify when the street view is decisive on property-centric wildfire photographs; on panoramic hurricane imagery calibrated averaging or end-to-end fusion suffices.</li>
+          <li>Once single-view models are converged and calibrated, simple averaging is a strong baseline; learning pays off when it decides per sample which view to weight.</li>
           <li>Building-oriented framing of the street view raises the value of fusion. Capture policy is itself a lever: aim cameras at structures.</li>
           <li>Conflict density is a label-free damage indicator on the wildfire that plain uncertainty does not replicate; it still needs spatially independent validation.</li>
           <li>Split by object and location. Release-style random or index-based splits overstate spatial generalization.</li>

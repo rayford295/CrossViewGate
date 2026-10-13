@@ -1,5 +1,9 @@
 # Result documents
 
+Terminology: the GeoSearch '26 paper calls the per-sample weighting model
+the *fusion gate*. These logs, and the scripts that produced them, keep the
+original identifier `reliability_gate`; it is the same model.
+
 Headline protocol: converged 5-seed suite (`_v2` suffix). Non-suffixed files
 are the earlier 3-epoch pilot, retained as a low-budget ablation.
 

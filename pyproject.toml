@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "crossview-gate"
 version = "0.1.0"
-description = "Visibility-conditioned reliability gating for conflict-aware cross-view disaster damage assessment."
+description = "Cross-view complementarity in disaster damage assessment: conflict cases, a visibility-conditioned fusion gate, and label-free conflict-density maps."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
