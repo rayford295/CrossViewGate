@@ -8,6 +8,7 @@
 [![Paper](https://img.shields.io/badge/paper-GeoSearch%20'26%20%C2%B7%20accepted-2c6fb7)](paper/geosearch2026_short/main.pdf)
 [![arXiv](https://img.shields.io/badge/arXiv-2610.04327-b31b1b)](https://arxiv.org/abs/2610.04327)
 [![Website](https://img.shields.io/badge/website-project%20page-500000)](https://rayford295.github.io/CrossViewGate/)
+[![Slides](https://img.shields.io/badge/slides-GeoSearch%20'26%20talk-6a4c93)](talk/geosearch2026/CrossViewGate_GeoSearch2026_slides.pdf)
 [![Datasets](https://img.shields.io/badge/data-disaster--crossview--datasets-168a58)](https://github.com/rayford295/disaster-crossview-datasets)
 [![License](https://img.shields.io/badge/license-Apache%202.0-lightgrey)](LICENSE)
 
@@ -18,6 +19,7 @@
 > **Accepted** as a lightning talk at the 5th ACM SIGSPATIAL Workshop on Searching and
 > Mining Large Collections of Geospatial Data (**GeoSearch 2026**), Riverside, CA,
 > 3 November 2026. Yifan Yang and Lei Zou, Department of Geography, Texas A&M University.
+> Slides and speaker script: [`talk/geosearch2026/`](talk/geosearch2026/).
 
 Satellite and street-view imagery see different parts of a damaged
 building: roofs from above, facades and debris from the ground. Fusion
@@ -142,6 +144,7 @@ scripts/              pipeline and analysis
 tests/                protocol, provenance, and integrity tests
 configs/              frozen experiment contracts
 paper/                GeoSearch '26 short paper (LaTeX + PDF)
+talk/                 GeoSearch '26 slides (PDF + PPTX) and speaker script
 figures/              publication figures
 docs/                 datasets, protocols, results, project website
 ```
