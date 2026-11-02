@@ -3,7 +3,8 @@
 Presentation materials for *When Satellite and Street Views Disagree: Cross-View
 Complementarity in Disaster Damage Assessment*, presented at the 5th ACM
 SIGSPATIAL International Workshop on Searching and Mining Large Collections of
-Geospatial Data (GeoSearch '26), Riverside, CA, 3 November 2026.
+Geospatial Data (GeoSearch '26), Riverside, CA: Tuesday, 3 November 2026,
+2:15–2:30 pm, Riverside Convention Center.
 
 | File | Content |
 | --- | --- |
